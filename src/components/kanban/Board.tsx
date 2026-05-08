@@ -51,7 +51,7 @@ export function Board() {
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur" style={{ borderWidth: "0.5px" }}>
         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <h1 className="text-base font-medium tracking-tight text-foreground">
-            Personal Kanban
+            Gerenciador de Molas
           </h1>
           <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
             {(["Todos", ...TAGS] as Filter[]).map((f) => {

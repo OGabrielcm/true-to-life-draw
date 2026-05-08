@@ -5,8 +5,8 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Personal Kanban — Estágio, Faculdade & IA/Dev" },
-      { name: "description", content: "Lightweight personal Kanban board for managing internship, university, and side-project tasks." },
+      { title: "Gerenciador de Molas — Estágio, Faculdade & IA/Dev" },
+      { name: "description", content: "Quadro Kanban pessoal para gerenciar tarefas de estágio, faculdade e projetos de IA/Dev." },
     ],
   }),
 });
