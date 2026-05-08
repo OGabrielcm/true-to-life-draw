@@ -21,6 +21,8 @@ export function Board() {
   const [filter, setFilter] = useState<Filter>("Todos");
   const [addingTo, setAddingTo] = useState<ColumnId | null>(null);
   const [openCard, setOpenCard] = useState<Card | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<ColumnId | null>(null);
 
   useEffect(() => {
     setCards(loadCards());
@@ -83,11 +85,32 @@ export function Board() {
         <div className="flex min-h-full gap-3 p-4 sm:p-6" style={{ minWidth: "min-content" }}>
           {COLUMNS.map((col) => {
             const colCards = filtered.filter((c) => c.col === col.id);
+            const isOver = dragOverCol === col.id;
             return (
               <section
                 key={col.id}
-                className="flex w-[280px] shrink-0 flex-col rounded-xl border bg-muted/40 sm:w-auto sm:flex-1"
-                style={{ borderWidth: "0.5px", minWidth: "200px" }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (dragOverCol !== col.id) setDragOverCol(col.id);
+                }}
+                onDragLeave={(e) => {
+                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                  setDragOverCol((cur) => (cur === col.id ? null : cur));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id = e.dataTransfer.getData("text/plain");
+                  if (id) moveCard(id, col.id);
+                  setDragOverCol(null);
+                  setDraggingId(null);
+                }}
+                className="flex w-[280px] shrink-0 flex-col rounded-xl border bg-muted/40 transition-colors sm:w-auto sm:flex-1"
+                style={{
+                  borderWidth: "0.5px",
+                  minWidth: "200px",
+                  backgroundColor: isOver ? "color-mix(in oklab, var(--foreground) 8%, var(--muted))" : undefined,
+                }}
               >
                 <div className="flex items-center justify-between px-3 pb-2 pt-3">
                   <div className="flex items-center gap-2">
@@ -101,7 +124,17 @@ export function Board() {
                 </div>
                 <div className="flex flex-1 flex-col gap-2 px-2 pb-2">
                   {colCards.map((c) => (
-                    <CardItem key={c.id} card={c} onClick={() => setOpenCard(c)} />
+                    <CardItem
+                      key={c.id}
+                      card={c}
+                      onClick={() => setOpenCard(c)}
+                      onDragStart={() => setDraggingId(c.id)}
+                      onDragEnd={() => {
+                        setDraggingId(null);
+                        setDragOverCol(null);
+                      }}
+                      isDragging={draggingId === c.id}
+                    />
                   ))}
                 </div>
                 <button
