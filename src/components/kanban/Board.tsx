@@ -1,41 +1,50 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Tags } from "lucide-react";
 import {
   Card,
   COLUMNS,
   ColumnId,
-  Tag,
-  TAGS,
-  TAG_COLORS,
+  Trilha,
   loadCards,
   saveCards,
+  loadTrilhas,
+  saveTrilhas,
 } from "@/lib/kanban-types";
 import { CardItem } from "./CardItem";
 import { AddCardModal } from "./AddCardModal";
 import { CardDetailModal } from "./CardDetailModal";
-
-type Filter = "Todos" | Tag;
+import { TrilhasModal } from "./TrilhasModal";
 
 export function Board() {
   const [cards, setCards] = useState<Card[]>([]);
-  const [filter, setFilter] = useState<Filter>("Todos");
+  const [trilhas, setTrilhas] = useState<Trilha[]>([]);
+  const [filter, setFilter] = useState<string>("__all"); // "__all" or trilha id
   const [addingTo, setAddingTo] = useState<ColumnId | null>(null);
   const [openCard, setOpenCard] = useState<Card | null>(null);
+  const [trilhasOpen, setTrilhasOpen] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<ColumnId | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setCards(loadCards());
+    setTrilhas(loadTrilhas());
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (cards.length > 0 || localStorage.getItem("kanban-cards-v1")) {
-      saveCards(cards);
-    }
-  }, [cards]);
+    if (hydrated) saveCards(cards);
+  }, [cards, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) saveTrilhas(trilhas);
+  }, [trilhas, hydrated]);
 
   const filtered = useMemo(
-    () => (filter === "Todos" ? cards : cards.filter((c) => c.tags.includes(filter))),
+    () =>
+      filter === "__all"
+        ? cards
+        : cards.filter((c) => c.tags.includes(filter)),
     [cards, filter],
   );
 
@@ -44,6 +53,19 @@ export function Board() {
   const moveCard = (id: string, col: ColumnId) =>
     setCards((cur) => cur.map((c) => (c.id === id ? { ...c, col } : c)));
   const deleteCard = (id: string) => setCards((cur) => cur.filter((c) => c.id !== id));
+
+  const createTrilha = (t: Omit<Trilha, "id">) =>
+    setTrilhas((cur) => [...cur, { ...t, id: crypto.randomUUID() }]);
+  const updateTrilha = (id: string, data: Omit<Trilha, "id">) =>
+    setTrilhas((cur) => cur.map((t) => (t.id === id ? { ...t, ...data } : t)));
+  const deleteTrilha = (id: string) => {
+    setTrilhas((cur) => cur.filter((t) => t.id !== id));
+    setCards((cur) => cur.map((c) => ({ ...c, tags: c.tags.filter((x) => x !== id) })));
+    setFilter((f) => (f === id ? "__all" : f));
+  };
+
+  // Sync openCard with cards (in case it was edited/deleted)
+  const liveOpenCard = openCard ? cards.find((c) => c.id === openCard.id) ?? null : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -54,28 +76,43 @@ export function Board() {
             Gerenciador de Molas
           </h1>
           <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
-            {(["Todos", ...TAGS] as Filter[]).map((f) => {
-              const active = filter === f;
-              const colors = f !== "Todos" ? TAG_COLORS[f] : null;
+            <button
+              key="__all"
+              onClick={() => setFilter("__all")}
+              className="whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors"
+              style={{
+                backgroundColor: filter === "__all" ? "var(--foreground)" : "transparent",
+                color: filter === "__all" ? "var(--background)" : "var(--muted-foreground)",
+                border: `0.5px solid ${filter === "__all" ? "var(--foreground)" : "var(--border)"}`,
+              }}
+            >
+              Todos
+            </button>
+            {trilhas.map((t) => {
+              const active = filter === t.id;
               return (
                 <button
-                  key={f}
-                  onClick={() => setFilter(f)}
+                  key={t.id}
+                  onClick={() => setFilter(t.id)}
                   className="whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors"
                   style={{
-                    backgroundColor: active
-                      ? colors?.bg ?? "var(--foreground)"
-                      : "transparent",
-                    color: active
-                      ? colors?.fg ?? "var(--background)"
-                      : "var(--muted-foreground)",
-                    border: `0.5px solid ${active ? (colors?.bg ?? "var(--foreground)") : "var(--border)"}`,
+                    backgroundColor: active ? t.bg : "transparent",
+                    color: active ? t.fg : "var(--muted-foreground)",
+                    border: `0.5px solid ${active ? t.bg : "var(--border)"}`,
                   }}
                 >
-                  {f}
+                  {t.name}
                 </button>
               );
             })}
+            <button
+              onClick={() => setTrilhasOpen(true)}
+              className="ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              style={{ borderWidth: "0.5px" }}
+            >
+              <Tags className="h-3.5 w-3.5" />
+              Trilhas
+            </button>
           </div>
         </div>
       </header>
@@ -127,6 +164,7 @@ export function Board() {
                     <CardItem
                       key={c.id}
                       card={c}
+                      trilhas={trilhas}
                       onClick={() => setOpenCard(c)}
                       onDragStart={() => setDraggingId(c.id)}
                       onDragEnd={() => {
@@ -153,16 +191,27 @@ export function Board() {
       {addingTo && (
         <AddCardModal
           column={addingTo}
+          trilhas={trilhas}
           onClose={() => setAddingTo(null)}
           onAdd={addCard}
         />
       )}
-      {openCard && (
+      {liveOpenCard && (
         <CardDetailModal
-          card={openCard}
+          card={liveOpenCard}
+          trilhas={trilhas}
           onClose={() => setOpenCard(null)}
           onMove={moveCard}
           onDelete={deleteCard}
+        />
+      )}
+      {trilhasOpen && (
+        <TrilhasModal
+          trilhas={trilhas}
+          onClose={() => setTrilhasOpen(false)}
+          onCreate={createTrilha}
+          onUpdate={updateTrilha}
+          onDelete={deleteTrilha}
         />
       )}
     </div>
