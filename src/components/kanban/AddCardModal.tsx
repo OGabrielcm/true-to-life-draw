@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { ColumnId, Priority, PRIORITIES, Trilha, Card } from "@/lib/kanban-types";
+import { ColumnId, Priority, PRIORITIES, Trilha, Card, TrackId } from "@/lib/kanban-types";
 
 export function AddCardModal({
   column,
+  track,
   trilhas,
   onClose,
   onAdd,
 }: {
   column: ColumnId;
+  track: TrackId;
   trilhas: Trilha[];
   onClose: () => void;
   onAdd: (card: Omit<Card, "id">) => void;
@@ -29,6 +31,7 @@ export function AddCardModal({
     if (!title.trim()) return;
     onAdd({
       col: column,
+      track,
       title: title.trim(),
       desc: desc.trim() || undefined,
       prio,
