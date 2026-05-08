@@ -1,13 +1,32 @@
 import { Calendar } from "lucide-react";
 import { Card, PRIO_COLORS, TAG_COLORS, formatDate } from "@/lib/kanban-types";
 
-export function CardItem({ card, onClick }: { card: Card; onClick: () => void }) {
+export function CardItem({
+  card,
+  onClick,
+  onDragStart,
+  onDragEnd,
+  isDragging,
+}: {
+  card: Card;
+  onClick: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
+}) {
   const prio = PRIO_COLORS[card.prio];
   return (
     <button
       onClick={onClick}
-      className="kb-card group w-full text-left rounded-lg border bg-card p-3 transition-colors hover:border-foreground/30"
-      style={{ borderWidth: "0.5px" }}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", card.id);
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+      className="kb-card group w-full cursor-grab text-left rounded-lg border bg-card p-3 transition-all hover:border-foreground/30 active:cursor-grabbing"
+      style={{ borderWidth: "0.5px", opacity: isDragging ? 0.4 : 1 }}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-medium leading-snug text-foreground line-clamp-2">{card.title}</h3>
