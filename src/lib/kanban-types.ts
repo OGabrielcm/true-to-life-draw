@@ -1,5 +1,6 @@
 export type ColumnId = "backlog" | "todo" | "inprogress" | "review" | "done";
 export type Priority = "Alta" | "Média" | "Baixa";
+export type TrackId = "estagio" | "faculdade" | "ia-dev";
 
 export interface Trilha {
   id: string;
@@ -11,6 +12,7 @@ export interface Trilha {
 export interface Card {
   id: string;
   col: ColumnId;
+  track: TrackId;
   title: string;
   desc?: string;
   prio: Priority;
@@ -34,6 +36,20 @@ export const PRIO_COLORS: Record<Priority, { bg: string; fg: string }> = {
   "Baixa": { bg: "#EAF3DE", fg: "#27500A" },
 };
 
+export interface Track {
+  id: TrackId;
+  name: string;
+  bg: string;
+  border: string;
+  fg: string;
+}
+
+export const TRACKS: Track[] = [
+  { id: "estagio", name: "Estágio", bg: "#EEEDFE", border: "#7F77DD", fg: "#3C3489" },
+  { id: "faculdade", name: "Faculdade", bg: "#E1F5EE", border: "#1D9E75", fg: "#085041" },
+  { id: "ia-dev", name: "IA / Dev", bg: "#FAEEDA", border: "#EF9F27", fg: "#633806" },
+];
+
 // Stable default trilha ids so seed cards reference them
 export const DEFAULT_TRILHAS: Trilha[] = [
   { id: "estagio", name: "Estágio", bg: "#EEEDFE", fg: "#3C3489" },
@@ -54,17 +70,24 @@ export const TRILHA_COLOR_PRESETS: { bg: string; fg: string }[] = [
 ];
 
 export const SEED_CARDS: Omit<Card, "id">[] = [
-  { col: "inprogress", title: "Integração com API de estágio", desc: "Conectar endpoint REST ao módulo de relatórios.", prio: "Alta", date: "2026-05-15", tags: ["estagio", "dev"] },
-  { col: "todo", title: "Relatório de BD — EscolaPrometheus", desc: "Entrega do projeto SQL Server com triggers e procedures.", prio: "Alta", date: "2026-05-20", tags: ["faculdade"] },
-  { col: "backlog", title: "Agente de análise de PDFs com IA", desc: "Usar Claude API para extrair dados de extratos bancários.", prio: "Média", date: "2026-06-01", tags: ["ia", "dev"] },
-  { col: "todo", title: "CRUD biblioteca — C# console", desc: "Finalizar Sistema de Biblioteca Leia Mais.", prio: "Média", date: "2026-05-25", tags: ["dev"] },
-  { col: "review", title: "Flutter — Mobile Dev (UNINASSAU)", desc: "Entregar o app da disciplina do Prof. Joseph.", prio: "Alta", date: "2026-05-18", tags: ["faculdade"] },
-  { col: "backlog", title: "Roadmap FinScan — fase 2", desc: "Planejar suporte a múltiplas contas e gráficos.", prio: "Baixa", date: "2026-06-15", tags: ["ia", "dev"] },
-  { col: "done", title: "Setup Docker SQL Server (MacBook)", desc: "Configurado e testado com mssql extension.", prio: "Baixa", date: "2026-05-01", tags: ["dev"] },
+  { track: "estagio", col: "inprogress", title: "Integração com API de estágio", desc: "Conectar endpoint REST ao módulo de relatórios.", prio: "Alta", date: "2026-05-15", tags: ["estagio", "dev"] },
+  { track: "faculdade", col: "todo", title: "Relatório de BD — EscolaPrometheus", desc: "Entrega do projeto SQL Server com triggers e procedures.", prio: "Alta", date: "2026-05-20", tags: ["faculdade"] },
+  { track: "ia-dev", col: "backlog", title: "Agente de análise de PDFs com IA", desc: "Usar Claude API para extrair dados de extratos bancários.", prio: "Média", date: "2026-06-01", tags: ["ia", "dev"] },
+  { track: "ia-dev", col: "todo", title: "CRUD biblioteca — C# console", desc: "Finalizar Sistema de Biblioteca Leia Mais.", prio: "Média", date: "2026-05-25", tags: ["dev"] },
+  { track: "faculdade", col: "review", title: "Flutter — Mobile Dev (UNINASSAU)", desc: "Entregar o app da disciplina do Prof. Joseph.", prio: "Alta", date: "2026-05-18", tags: ["faculdade"] },
+  { track: "ia-dev", col: "backlog", title: "Roadmap FinScan — fase 2", desc: "Planejar suporte a múltiplas contas e gráficos.", prio: "Baixa", date: "2026-06-15", tags: ["ia", "dev"] },
+  { track: "estagio", col: "done", title: "Setup Docker SQL Server (MacBook)", desc: "Configurado e testado com mssql extension.", prio: "Baixa", date: "2026-05-01", tags: ["dev"] },
 ];
 
 const CARDS_KEY = "kanban-cards-v1";
 const TRILHAS_KEY = "kanban-trilhas-v1";
+const COLLAPSED_KEY = "kanban-collapsed-tracks-v1";
+
+function inferTrack(tags: string[]): TrackId {
+  if (tags.includes("faculdade")) return "faculdade";
+  if (tags.includes("estagio")) return "estagio";
+  return "ia-dev";
+}
 
 export function loadCards(): Card[] {
   if (typeof window === "undefined") return [];
@@ -75,7 +98,12 @@ export function loadCards(): Card[] {
       localStorage.setItem(CARDS_KEY, JSON.stringify(seeded));
       return seeded;
     }
-    return JSON.parse(raw) as Card[];
+    const parsed = JSON.parse(raw) as Card[];
+    // Migrate older cards without `track`
+    return parsed.map((c) => ({
+      ...c,
+      track: (c.track as TrackId) ?? inferTrack(c.tags ?? []),
+    }));
   } catch {
     return [];
   }
@@ -103,6 +131,23 @@ export function loadTrilhas(): Trilha[] {
 export function saveTrilhas(trilhas: Trilha[]) {
   if (typeof window === "undefined") return;
   localStorage.setItem(TRILHAS_KEY, JSON.stringify(trilhas));
+}
+
+export function loadCollapsed(): Record<TrackId, boolean> {
+  const empty = { estagio: false, faculdade: false, "ia-dev": false } as Record<TrackId, boolean>;
+  if (typeof window === "undefined") return empty;
+  try {
+    const raw = localStorage.getItem(COLLAPSED_KEY);
+    if (!raw) return empty;
+    return { ...empty, ...JSON.parse(raw) };
+  } catch {
+    return empty;
+  }
+}
+
+export function saveCollapsed(state: Record<TrackId, boolean>) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(COLLAPSED_KEY, JSON.stringify(state));
 }
 
 export function formatDate(iso?: string) {
