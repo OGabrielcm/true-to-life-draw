@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Calendar, Trash2 } from "lucide-react";
-import { Card, COLUMNS, ColumnId, PRIO_COLORS, Trilha, formatDate } from "@/lib/kanban-types";
+import { Card, COLUMNS, ColumnId, PRIO_COLORS, TRACKS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
 
 export function CardDetailModal({
   card,
@@ -12,7 +12,7 @@ export function CardDetailModal({
   card: Card;
   trilhas: Trilha[];
   onClose: () => void;
-  onMove: (id: string, col: ColumnId) => void;
+  onMove: (id: string, col: ColumnId, track?: TrackId) => void;
   onDelete: (id: string) => void;
 }) {
   const [confirm, setConfirm] = useState(false);
@@ -68,7 +68,7 @@ export function CardDetailModal({
         )}
 
         <div className="mt-5">
-          <p className="text-xs font-medium text-muted-foreground">Mover para</p>
+          <p className="text-xs font-medium text-muted-foreground">Mover para coluna</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {COLUMNS.filter((c) => c.id !== card.col).map((c) => (
               <button
@@ -81,6 +81,29 @@ export function CardDetailModal({
                 style={{ borderWidth: "0.5px" }}
               >
                 {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-xs font-medium text-muted-foreground">Mover para swimlane</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {TRACKS.filter((t) => t.id !== card.track).map((t) => (
+              <button
+                key={t.id}
+                onClick={() => {
+                  onMove(card.id, card.col, t.id);
+                  onClose();
+                }}
+                className="rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80"
+                style={{
+                  backgroundColor: t.bg,
+                  color: t.fg,
+                  border: `0.5px solid ${t.border}`,
+                }}
+              >
+                {t.name}
               </button>
             ))}
           </div>
