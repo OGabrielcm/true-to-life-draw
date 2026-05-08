@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Calendar, Trash2 } from "lucide-react";
-import { Card, COLUMNS, ColumnId, PRIO_COLORS, TAG_COLORS, formatDate } from "@/lib/kanban-types";
+import { Card, COLUMNS, ColumnId, PRIO_COLORS, Trilha, formatDate } from "@/lib/kanban-types";
 
 export function CardDetailModal({
   card,
+  trilhas,
   onClose,
   onMove,
   onDelete,
 }: {
   card: Card;
+  trilhas: Trilha[];
   onClose: () => void;
   onMove: (id: string, col: ColumnId) => void;
   onDelete: (id: string) => void;
@@ -40,15 +42,16 @@ export function CardDetailModal({
           >
             {card.prio}
           </span>
-          {card.tags.map((t) => {
-            const c = TAG_COLORS[t];
+          {card.tags.map((tid) => {
+            const t = trilhas.find((x) => x.id === tid);
+            if (!t) return null;
             return (
               <span
-                key={t}
+                key={tid}
                 className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                style={{ backgroundColor: c.bg, color: c.fg }}
+                style={{ backgroundColor: t.bg, color: t.fg }}
               >
-                {t}
+                {t.name}
               </span>
             );
           })}

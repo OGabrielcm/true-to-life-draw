@@ -1,14 +1,16 @@
 import { Calendar } from "lucide-react";
-import { Card, PRIO_COLORS, TAG_COLORS, formatDate } from "@/lib/kanban-types";
+import { Card, PRIO_COLORS, Trilha, formatDate } from "@/lib/kanban-types";
 
 export function CardItem({
   card,
+  trilhas,
   onClick,
   onDragStart,
   onDragEnd,
   isDragging,
 }: {
   card: Card;
+  trilhas: Trilha[];
   onClick: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
@@ -41,15 +43,16 @@ export function CardItem({
         >
           {card.prio}
         </span>
-        {card.tags.map((t) => {
-          const c = TAG_COLORS[t];
+        {card.tags.map((tid) => {
+          const t = trilhas.find((x) => x.id === tid);
+          if (!t) return null;
           return (
             <span
-              key={t}
+              key={tid}
               className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{ backgroundColor: c.bg, color: c.fg }}
+              style={{ backgroundColor: t.bg, color: t.fg }}
             >
-              {t}
+              {t.name}
             </span>
           );
         })}

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { ColumnId, Priority, PRIORITIES, Tag, TAGS, TAG_COLORS, Card } from "@/lib/kanban-types";
+import { ColumnId, Priority, PRIORITIES, Trilha, Card } from "@/lib/kanban-types";
 
 export function AddCardModal({
   column,
+  trilhas,
   onClose,
   onAdd,
 }: {
   column: ColumnId;
+  trilhas: Trilha[];
   onClose: () => void;
   onAdd: (card: Omit<Card, "id">) => void;
 }) {
@@ -14,7 +16,7 @@ export function AddCardModal({
   const [desc, setDesc] = useState("");
   const [prio, setPrio] = useState<Priority>("Média");
   const [date, setDate] = useState("");
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -36,8 +38,8 @@ export function AddCardModal({
     onClose();
   };
 
-  const toggleTag = (t: Tag) =>
-    setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  const toggleTag = (id: string) =>
+    setTags((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
   return (
     <div
@@ -99,28 +101,33 @@ export function AddCardModal({
             </div>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Tags</label>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {TAGS.map((t) => {
-                const active = tags.includes(t);
-                const c = TAG_COLORS[t];
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => toggleTag(t)}
-                    className="rounded-full px-2.5 py-1 text-xs font-medium transition-opacity"
-                    style={{
-                      backgroundColor: active ? c.bg : "transparent",
-                      color: active ? c.fg : "var(--muted-foreground)",
-                      border: `0.5px solid ${active ? c.bg : "var(--border)"}`,
-                    }}
-                  >
-                    {t}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="text-xs font-medium text-muted-foreground">Trilhas</label>
+            {trilhas.length === 0 ? (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Nenhuma trilha cadastrada. Crie uma no botão "Trilhas" no topo.
+              </p>
+            ) : (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {trilhas.map((t) => {
+                  const active = tags.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => toggleTag(t.id)}
+                      className="rounded-full px-2.5 py-1 text-xs font-medium transition-opacity"
+                      style={{
+                        backgroundColor: active ? t.bg : "transparent",
+                        color: active ? t.fg : "var(--muted-foreground)",
+                        border: `0.5px solid ${active ? t.bg : "var(--border)"}`,
+                      }}
+                    >
+                      {t.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
