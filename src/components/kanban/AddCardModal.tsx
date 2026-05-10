@@ -1,24 +1,59 @@
 import { useEffect, useState } from "react";
-import { ColumnId, Priority, PRIORITIES, Trilha, Card, TrackId } from "@/lib/kanban-types";
+import { Star } from "lucide-react";
+import {
+  ColumnId,
+  Priority,
+  PRIORITIES,
+  Trilha,
+  Card,
+  TrackId,
+  TaskType,
+  TRACKS,
+  COLUMNS,
+} from "@/lib/kanban-types";
+
+export interface AddCardSubmit {
+  col: ColumnId;
+  track: TrackId;
+  type: TaskType;
+  parent_id?: string;
+  title: string;
+  desc?: string;
+  prio: Priority;
+  date?: string;
+  starred: boolean;
+  tags: string[];
+}
 
 export function AddCardModal({
   column,
   track,
   trilhas,
+  goals,
+  allowTrackPick = false,
+  allowColPick = false,
   onClose,
   onAdd,
 }: {
   column: ColumnId;
   track: TrackId;
   trilhas: Trilha[];
+  goals: Card[];
+  allowTrackPick?: boolean;
+  allowColPick?: boolean;
   onClose: () => void;
-  onAdd: (card: Omit<Card, "id">) => void;
+  onAdd: (card: AddCardSubmit) => void;
 }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [prio, setPrio] = useState<Priority>("Média");
   const [date, setDate] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [type, setType] = useState<TaskType>("Task");
+  const [trackSel, setTrackSel] = useState<TrackId>(track);
+  const [colSel, setColSel] = useState<ColumnId>(column);
+  const [parentId, setParentId] = useState<string>("");
+  const [starred, setStarred] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -26,16 +61,21 @@ export function AddCardModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const availableGoals = goals.filter((g) => g.track === trackSel);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     onAdd({
-      col: column,
-      track,
+      col: colSel,
+      track: trackSel,
+      type,
+      parent_id: type === "Task" && parentId ? parentId : undefined,
       title: title.trim(),
       desc: desc.trim() || undefined,
       prio,
       date: date || undefined,
+      starred,
       tags,
     });
     onClose();
@@ -47,15 +87,25 @@ export function AddCardModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
       onClick={onClose}
     >
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl"
+        className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="text-base font-medium text-foreground">Adicionar card</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-medium text-foreground">Adicionar card</h2>
+          <button
+            type="button"
+            onClick={() => setStarred((s) => !s)}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Favoritar"
+          >
+            <Star className="h-4 w-4" fill={starred ? "currentColor" : "none"} />
+          </button>
+        </div>
         <div className="mt-4 space-y-3">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Título</label>
@@ -80,6 +130,18 @@ export function AddCardModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value as TaskType)}
+                className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+                style={{ borderWidth: "0.5px" }}
+              >
+                <option value="Task">Task</option>
+                <option value="Goal">Goal</option>
+              </select>
+            </div>
+            <div>
               <label className="text-xs font-medium text-muted-foreground">Prioridade</label>
               <select
                 value={prio}
@@ -92,22 +154,68 @@ export function AddCardModal({
                 ))}
               </select>
             </div>
+          </div>
+          {(allowTrackPick || allowColPick) && (
+            <div className="grid grid-cols-2 gap-3">
+              {allowTrackPick && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Trilha</label>
+                  <select
+                    value={trackSel}
+                    onChange={(e) => { setTrackSel(e.target.value as TrackId); setParentId(""); }}
+                    className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+                    style={{ borderWidth: "0.5px" }}
+                  >
+                    {TRACKS.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              )}
+              {allowColPick && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Coluna</label>
+                  <select
+                    value={colSel}
+                    onChange={(e) => setColSel(e.target.value as ColumnId)}
+                    className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+                    style={{ borderWidth: "0.5px" }}
+                  >
+                    {COLUMNS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Deadline</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+            />
+          </div>
+          {type === "Task" && availableGoals.length > 0 && (
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Deadline</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+              <label className="text-xs font-medium text-muted-foreground">Goal pai (opcional)</label>
+              <select
+                value={parentId}
+                onChange={(e) => setParentId(e.target.value)}
                 className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                 style={{ borderWidth: "0.5px" }}
-              />
+              >
+                <option value="">— Nenhum —</option>
+                {availableGoals.map((g) => (
+                  <option key={g.id} value={g.id}>{g.title}</option>
+                ))}
+              </select>
             </div>
-          </div>
+          )}
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Trilhas</label>
+            <label className="text-xs font-medium text-muted-foreground">Trilhas / tags</label>
             {trilhas.length === 0 ? (
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Nenhuma trilha cadastrada. Crie uma no botão "Trilhas" no topo.
+                Nenhuma trilha cadastrada.
               </p>
             ) : (
               <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -145,7 +253,7 @@ export function AddCardModal({
             type="submit"
             className="rounded-md bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
           >
-            Adicionar
+            Criar
           </button>
         </div>
       </form>
