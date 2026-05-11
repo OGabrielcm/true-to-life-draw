@@ -1,5 +1,5 @@
-import { type ReactNode, useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { type ReactNode, useEffect, useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Plus,
   Search,
@@ -12,9 +12,11 @@ import {
   ChevronDown,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useKanban } from "@/lib/kanban-store";
+import { useAuth } from "@/lib/auth-store";
 import { TRACKS } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 
@@ -25,12 +27,27 @@ const NAV = [
   { to: "/profile", label: "Profile", icon: User },
 ];
 
+function initials(email: string | undefined) {
+  if (!email) return "?";
+  return email.slice(0, 2).toUpperCase();
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggle } = useTheme();
   const { search, setSearch, setCreateOpen, createOpen } = useKanban();
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [tracksOpen, setTracksOpen] = useState(true);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate({ to: "/login" });
+    }
+  }, [user, loading, navigate]);
 
   const scrollToTrack = (id: string) => {
     if (path !== "/") return;
@@ -38,6 +55,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
     setMobileOpen(false);
   };
+
+  const handleSignOut = async () => {
+    setAvatarOpen(false);
+    await signOut();
+    navigate({ to: "/login" });
+  };
+
+  if (loading || !user) return null;
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
@@ -100,6 +125,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             )}
           </div>
+
+          {/* Log Out at bottom */}
+          <button
+            onClick={handleSignOut}
+            className="mt-auto flex items-center gap-2 rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+            Log Out
+          </button>
         </nav>
       </aside>
 
@@ -141,11 +175,47 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <div
-            className="ml-1 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-accent-foreground"
-            title="Usuário"
-          >
-            EU
+
+          {/* Avatar dropdown */}
+          <div className="relative ml-1">
+            <button
+              onClick={() => setAvatarOpen((v) => !v)}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-accent-foreground hover:ring-2 hover:ring-foreground/20"
+              title={user.email}
+            >
+              {initials(user.email)}
+            </button>
+            {avatarOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setAvatarOpen(false)}
+                />
+                <div
+                  className="absolute right-0 top-9 z-20 min-w-[180px] rounded-lg border bg-background py-1 shadow-md"
+                  style={{ borderWidth: "0.5px" }}
+                >
+                  <div className="border-b px-3 py-2 text-xs text-muted-foreground" style={{ borderWidth: "0.5px" }}>
+                    {user.email}
+                  </div>
+                  <Link
+                    to="/profile"
+                    onClick={() => setAvatarOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-muted dark:text-red-400"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Log Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </header>
 

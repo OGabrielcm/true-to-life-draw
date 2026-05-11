@@ -89,76 +89,7 @@ export const SEED_CARDS: Omit<Card, "id" | "created_at" | "updated_at">[] = [
   { track: "ia-dev", col: "backlog", type: "Task", title: "Agente de análise de PDFs com Claude API", prio: "Média", date: "2026-06-01", starred: false, tags: ["ia", "dev"] },
 ];
 
-const CARDS_KEY = "kanban-cards-v2";
-const TRILHAS_KEY = "kanban-trilhas-v1";
 const COLLAPSED_KEY = "kanban-collapsed-tracks-v1";
-
-function inferTrack(tags: string[]): TrackId {
-  if (tags.includes("faculdade")) return "faculdade";
-  if (tags.includes("estagio")) return "estagio";
-  return "ia-dev";
-}
-
-export function loadCards(): Card[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(CARDS_KEY);
-    if (!raw) {
-      const now = new Date().toISOString();
-      const seeded: Card[] = SEED_CARDS.map((c) => ({
-        ...c,
-        id: crypto.randomUUID(),
-        created_at: now,
-        updated_at: now,
-      }));
-      localStorage.setItem(CARDS_KEY, JSON.stringify(seeded));
-      return seeded;
-    }
-    const parsed = JSON.parse(raw) as Partial<Card>[];
-    const now = new Date().toISOString();
-    return parsed.map((c) => ({
-      id: c.id!,
-      col: c.col!,
-      track: (c.track as TrackId) ?? inferTrack(c.tags ?? []),
-      type: (c.type as TaskType) ?? "Task",
-      parent_id: c.parent_id,
-      title: c.title!,
-      desc: c.desc,
-      prio: c.prio!,
-      date: c.date,
-      starred: c.starred ?? false,
-      tags: c.tags ?? [],
-      created_at: c.created_at ?? now,
-      updated_at: c.updated_at ?? now,
-    }));
-  } catch {
-    return [];
-  }
-}
-
-export function saveCards(cards: Card[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
-}
-
-export function loadTrilhas(): Trilha[] {
-  if (typeof window === "undefined") return DEFAULT_TRILHAS;
-  try {
-    const raw = localStorage.getItem(TRILHAS_KEY);
-    if (!raw) {
-      localStorage.setItem(TRILHAS_KEY, JSON.stringify(DEFAULT_TRILHAS));
-      return DEFAULT_TRILHAS;
-    }
-    return JSON.parse(raw) as Trilha[];
-  } catch {
-    return DEFAULT_TRILHAS;
-  }
-}
-
-export function saveTrilhas(trilhas: Trilha[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(TRILHAS_KEY, JSON.stringify(trilhas));
-}
 
 export function loadCollapsed(): Record<TrackId, boolean> {
   const empty = { estagio: false, faculdade: false, "ia-dev": false } as Record<TrackId, boolean>;
