@@ -44,16 +44,16 @@ function DashboardsPage() {
           </div>
         </div>
         <div className="overflow-x-auto rounded-xl border" style={{ borderWidth: "0.5px" }}>
-          <table className="w-full text-sm">
+          <table className="min-w-[680px] w-full text-sm">
             <thead className="bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th className="px-3 py-2 text-left font-medium">Title</th>
-                <th className="px-3 py-2 text-left font-medium">Track</th>
-                <th className="px-3 py-2 text-left font-medium">Status</th>
-                <th className="px-3 py-2 text-left font-medium">Priority</th>
-                <th className="px-3 py-2 text-left font-medium">Deadline</th>
-                <th className="px-3 py-2 text-left font-medium">Updated</th>
-                <th className="px-3 py-2 text-right font-medium">Ações</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Title</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Track</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Status</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Priority</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Deadline</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Updated</th>
+                <th className="px-3 py-2 text-right font-medium whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody>
