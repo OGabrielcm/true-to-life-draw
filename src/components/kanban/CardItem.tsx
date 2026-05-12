@@ -40,9 +40,17 @@ export function CardItem({
     const t = e.touches[0];
     const dx = Math.abs(t.clientX - touchRef.current.startX);
     const dy = Math.abs(t.clientY - touchRef.current.startY);
-    if (!touchRef.current.dragging && (dx > 6 || dy > 6)) {
-      touchRef.current.dragging = true;
-      onDragStart();
+    if (!touchRef.current.dragging) {
+      // Movimento horizontal dominante → deixa o browser rolar a lista de colunas
+      if (dx > 8 && dx > dy * 1.5) {
+        touchRef.current = null;
+        return;
+      }
+      // Movimento vertical dominante → inicia drag
+      if (dy > 8 && dy > dx) {
+        touchRef.current.dragging = true;
+        onDragStart();
+      }
     }
   };
 
@@ -94,7 +102,7 @@ export function CardItem({
         borderWidth: "0.5px",
         opacity: isDragging ? 0.4 : 1,
         borderLeft: isGoal ? "3px solid var(--foreground)" : undefined,
-        touchAction: "none",
+        touchAction: "pan-x",
       }}
     >
       <div className="flex items-start justify-between gap-2">
