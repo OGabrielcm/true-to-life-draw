@@ -176,6 +176,7 @@ function Swimlane({
   return (
     <section
       id={`track-${track.id}`}
+      data-track={track.id}
       className="overflow-hidden rounded-xl border"
       style={{ borderWidth: "0.5px", borderLeft: `4px solid ${track.border}` }}
     >
@@ -199,13 +200,14 @@ function Swimlane({
       </button>
 
       {!collapsed && (
-        <div className="flex gap-3 overflow-x-auto p-3 pb-4" style={{ minWidth: "min-content" }}>
+        <div className="flex gap-3 overflow-x-auto p-3 pb-4" style={{ minWidth: "min-content", touchAction: "pan-x" }}>
           {COLUMNS.map((col) => {
             const colCards = cards.filter((c) => c.col === col.id);
             const isOver = dragOver?.track === track.id && dragOver?.col === col.id;
             return (
               <div
                 key={col.id}
+                data-col={col.id}
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.dataTransfer.dropEffect = "move";
@@ -251,6 +253,7 @@ function Swimlane({
                       onDragStart={() => setDraggingId(c.id)}
                       onDragEnd={() => { setDraggingId(null); setDragOver(null); }}
                       isDragging={draggingId === c.id}
+                      onTouchDrop={(col, track) => { moveCard(c.id, col, track); setDraggingId(null); }}
                     />
                   ))}
                 </div>

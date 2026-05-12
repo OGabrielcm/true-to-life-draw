@@ -1,5 +1,6 @@
+import { useRef } from "react";
 import { Calendar, Star, Target } from "lucide-react";
-import { Card, PRIO_COLORS, Trilha, formatDate } from "@/lib/kanban-types";
+import { Card, ColumnId, PRIO_COLORS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 
 export function CardItem({
@@ -9,6 +10,7 @@ export function CardItem({
   onDragStart,
   onDragEnd,
   isDragging,
+  onTouchDrop,
 }: {
   card: Card;
   trilhas: Trilha[];
@@ -16,6 +18,7 @@ export function CardItem({
   onDragStart: () => void;
   onDragEnd: () => void;
   isDragging: boolean;
+  onTouchDrop?: (col: ColumnId, track: TrackId) => void;
 }) {
   const { theme } = useTheme();
   const prioRaw = PRIO_COLORS[card.prio];
@@ -24,9 +27,58 @@ export function CardItem({
     : { bg: prioRaw.bg, fg: prioRaw.fg };
   const isGoal = card.type === "Goal";
 
+  const touchRef = useRef<{ startX: number; startY: number; dragging: boolean } | null>(null);
+  const justDraggedRef = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchRef.current = { startX: t.clientX, startY: t.clientY, dragging: false };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchRef.current) return;
+    const t = e.touches[0];
+    const dx = Math.abs(t.clientX - touchRef.current.startX);
+    const dy = Math.abs(t.clientY - touchRef.current.startY);
+    if (!touchRef.current.dragging && (dx > 6 || dy > 6)) {
+      touchRef.current.dragging = true;
+      onDragStart();
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const state = touchRef.current;
+    touchRef.current = null;
+    if (!state?.dragging) return;
+
+    justDraggedRef.current = true;
+    const touch = e.changedTouches[0];
+    const el = e.currentTarget as HTMLElement;
+    el.style.visibility = "hidden";
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    el.style.visibility = "";
+
+    const colEl = target?.closest("[data-col]");
+    if (colEl && onTouchDrop) {
+      const col = colEl.getAttribute("data-col") as ColumnId;
+      const trackEl = colEl.closest("[data-track]");
+      const track = trackEl?.getAttribute("data-track") as TrackId;
+      if (col && track) onTouchDrop(col, track);
+    }
+    onDragEnd();
+  };
+
+  const handleClick = () => {
+    if (justDraggedRef.current) {
+      justDraggedRef.current = false;
+      return;
+    }
+    onClick();
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       draggable
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = "move";
@@ -34,11 +86,15 @@ export function CardItem({
         onDragStart();
       }}
       onDragEnd={onDragEnd}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       className="kb-card group w-full cursor-grab text-left rounded-lg border bg-card p-3 transition-all hover:border-foreground/30 active:cursor-grabbing"
       style={{
         borderWidth: "0.5px",
         opacity: isDragging ? 0.4 : 1,
         borderLeft: isGoal ? "3px solid var(--foreground)" : undefined,
+        touchAction: "none",
       }}
     >
       <div className="flex items-start justify-between gap-2">
