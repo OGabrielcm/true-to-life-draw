@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
-import { Plus, Tags, ChevronDown, Layers } from "lucide-react";
+import { Plus, Tags, ChevronDown, Layers, Archive } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
+  ARCHIVE_AFTER_DAYS,
   Card,
   COLUMNS,
   ColumnId,
+  isArchived,
   Track,
   TrackId,
   Trilha,
@@ -34,11 +37,14 @@ export function Board() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return cards.filter((c) => {
+      if (isArchived(c)) return false;
       if (filter !== "__all" && !c.tags.includes(filter)) return false;
       if (q && !c.title.toLowerCase().includes(q) && !(c.desc ?? "").toLowerCase().includes(q)) return false;
       return true;
     });
   }, [cards, filter, search]);
+
+  const archivedCount = useMemo(() => cards.filter(isArchived).length, [cards]);
 
   const goals = useMemo(() => cards.filter((c) => c.type === "Goal"), [cards]);
   const liveOpenCard = openCardId ? cards.find((c) => c.id === openCardId) ?? null : null;
@@ -97,6 +103,19 @@ export function Board() {
 
       <main className="flex-1 overflow-x-auto">
         <div className="flex flex-col gap-4 p-4 sm:p-6">
+          {archivedCount > 0 && (
+            <Link
+              to="/dashboards"
+              className="inline-flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+              style={{ borderWidth: "0.5px" }}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Archive className="h-3.5 w-3.5" />
+                {archivedCount} {archivedCount === 1 ? "card arquivado" : "cards arquivados"} (Done há mais de {ARCHIVE_AFTER_DAYS} dias)
+              </span>
+              <span className="text-foreground/70">Ver no Dashboards →</span>
+            </Link>
+          )}
           {tracks.map((track) => (
             <Swimlane
               key={track.id}

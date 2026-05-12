@@ -141,3 +141,14 @@ export function formatDate(iso?: string) {
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
 }
+
+// Dias após mover para "Done" que o card é considerado arquivado
+// (some do Board, continua visível no Dashboards)
+export const ARCHIVE_AFTER_DAYS = 7;
+
+export function isArchived(card: Card): boolean {
+  if (card.col !== "done") return false;
+  const updated = new Date(card.updated_at).getTime();
+  const cutoff = Date.now() - ARCHIVE_AFTER_DAYS * 24 * 60 * 60 * 1000;
+  return updated < cutoff;
+}

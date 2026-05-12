@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { useKanban } from "@/lib/kanban-store";
 import { CardItem } from "@/components/kanban/CardItem";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
+import { isArchived } from "@/lib/kanban-types";
 
 export const Route = createFileRoute("/for-you")({
   component: ForYouPage,
@@ -17,12 +18,12 @@ function ForYouPage() {
   const recent = useMemo(() => {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return [...cards]
-      .filter((c) => new Date(c.updated_at).getTime() >= cutoff)
+      .filter((c) => !isArchived(c) && new Date(c.updated_at).getTime() >= cutoff)
       .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       .slice(0, 12);
   }, [cards]);
 
-  const starred = useMemo(() => cards.filter((c) => c.starred), [cards]);
+  const starred = useMemo(() => cards.filter((c) => c.starred && !isArchived(c)), [cards]);
   const open = openId ? cards.find((c) => c.id === openId) ?? null : null;
 
   const renderGrid = (list: typeof cards) => (

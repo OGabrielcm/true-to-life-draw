@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Trash2 } from "lucide-react";
+import { Archive, Search, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useKanban } from "@/lib/kanban-store";
-import { COLUMNS, formatDate } from "@/lib/kanban-types";
+import { COLUMNS, formatDate, isArchived } from "@/lib/kanban-types";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
+
+type ArchiveFilter = "all" | "active" | "archived";
 
 export const Route = createFileRoute("/dashboards")({
   component: DashboardsPage,
@@ -14,16 +16,23 @@ export const Route = createFileRoute("/dashboards")({
 function DashboardsPage() {
   const { cards, trilhas, tracks, moveCard, deleteCard, toggleStar } = useKanban();
   const [q, setQ] = useState("");
+  const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
     return [...cards]
       .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-      .filter((c) =>
-        !query || c.title.toLowerCase().includes(query) || (c.desc ?? "").toLowerCase().includes(query),
-      );
-  }, [cards, q]);
+      .filter((c) => {
+        const archived = isArchived(c);
+        if (archiveFilter === "active" && archived) return false;
+        if (archiveFilter === "archived" && !archived) return false;
+        if (query && !c.title.toLowerCase().includes(query) && !(c.desc ?? "").toLowerCase().includes(query)) return false;
+        return true;
+      });
+  }, [cards, q, archiveFilter]);
+
+  const archivedCount = useMemo(() => cards.filter(isArchived).length, [cards]);
 
   const open = openId ? cards.find((c) => c.id === openId) ?? null : null;
 
@@ -32,15 +41,36 @@ function DashboardsPage() {
       <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-base font-semibold">Dashboards</h2>
-          <div className="relative w-full sm:w-auto">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Filtrar..."
-              className="w-full rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40 sm:w-52"
-              style={{ borderWidth: "0.5px" }}
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex overflow-hidden rounded-md border" style={{ borderWidth: "0.5px" }}>
+              {(["all", "active", "archived"] as ArchiveFilter[]).map((opt) => {
+                const active = archiveFilter === opt;
+                const label = opt === "all" ? "Todos" : opt === "active" ? "Ativos" : `Arquivados${archivedCount > 0 ? ` (${archivedCount})` : ""}`;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setArchiveFilter(opt)}
+                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium transition-colors"
+                    style={{
+                      backgroundColor: active ? "var(--foreground)" : "transparent",
+                      color: active ? "var(--background)" : "var(--muted-foreground)",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Filtrar..."
+                className="w-full rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40 sm:w-52"
+                style={{ borderWidth: "0.5px" }}
+              />
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto rounded-xl border" style={{ borderWidth: "0.5px" }}>
@@ -60,15 +90,24 @@ function DashboardsPage() {
               {rows.map((c) => {
                 const track = tracks.find((t) => t.id === c.track);
                 const col = COLUMNS.find((x) => x.id === c.col);
+                const archived = isArchived(c);
                 return (
-                  <tr key={c.id} className="border-t" style={{ borderWidth: "0.5px" }}>
+                  <tr key={c.id} className="border-t" style={{ borderWidth: "0.5px", opacity: archived ? 0.7 : 1 }}>
                     <td className="px-3 py-2">
-                      <button
-                        onClick={() => setOpenId(c.id)}
-                        className="text-left font-medium text-foreground hover:underline"
-                      >
-                        {c.title}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setOpenId(c.id)}
+                          className="text-left font-medium text-foreground hover:underline"
+                        >
+                          {c.title}
+                        </button>
+                        {archived && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            <Archive className="h-2.5 w-2.5" />
+                            Arquivado
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-2">
                       <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: track?.bg, color: track?.fg }}>
