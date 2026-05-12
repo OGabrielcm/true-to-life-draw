@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Plus, Tags, ChevronDown } from "lucide-react";
 import {
   Card,
@@ -173,6 +173,60 @@ function Swimlane({
   const bg = theme === "dark" ? track.darkBg : track.bg;
   const fg = theme === "dark" ? track.darkFg : track.fg;
 
+  // Touch drag state — lives on the scroll container, not on individual cards
+  const touchRef = useRef<{
+    cardId: string;
+    startX: number;
+    startY: number;
+    dragging: boolean;
+  } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    const cardEl = el?.closest("[data-card-id]");
+    const cardId = cardEl?.getAttribute("data-card-id");
+    if (!cardId) return;
+    touchRef.current = { cardId, startX: t.clientX, startY: t.clientY, dragging: false };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchRef.current) return;
+    const t = e.touches[0];
+    const dx = Math.abs(t.clientX - touchRef.current.startX);
+    const dy = Math.abs(t.clientY - touchRef.current.startY);
+    if (!touchRef.current.dragging) {
+      // Horizontal dominante → scroll natural do browser, aborta drag
+      if (dx > 10 && dx > dy * 1.5) {
+        touchRef.current = null;
+        return;
+      }
+      // Vertical dominante → inicia drag do card
+      if (dy > 10 && dy > dx) {
+        touchRef.current.dragging = true;
+        setDraggingId(touchRef.current.cardId);
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const state = touchRef.current;
+    touchRef.current = null;
+    if (!state?.dragging) return;
+
+    const touch = e.changedTouches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const colEl = target?.closest("[data-col]");
+    if (colEl) {
+      const col = colEl.getAttribute("data-col") as ColumnId;
+      const trackEl = colEl.closest("[data-track]");
+      const destTrack = (trackEl?.getAttribute("data-track") ?? track.id) as TrackId;
+      moveCard(state.cardId, col, destTrack);
+    }
+    setDraggingId(null);
+    setDragOver(null);
+  };
+
   return (
     <section
       id={`track-${track.id}`}
@@ -200,7 +254,13 @@ function Swimlane({
       </button>
 
       {!collapsed && (
-        <div className="flex gap-3 overflow-x-auto p-3 pb-4" style={{ minWidth: "min-content", touchAction: "pan-x" }}>
+        <div
+          className="flex gap-3 overflow-x-auto p-3 pb-4"
+          style={{ minWidth: "min-content" }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {COLUMNS.map((col) => {
             const colCards = cards.filter((c) => c.col === col.id);
             const isOver = dragOver?.track === track.id && dragOver?.col === col.id;
@@ -253,7 +313,6 @@ function Swimlane({
                       onDragStart={() => setDraggingId(c.id)}
                       onDragEnd={() => { setDraggingId(null); setDragOver(null); }}
                       isDragging={draggingId === c.id}
-                      onTouchDrop={(col, track) => { moveCard(c.id, col, track); setDraggingId(null); }}
                     />
                   ))}
                 </div>
