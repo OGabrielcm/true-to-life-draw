@@ -44,7 +44,7 @@ export function Board() {
   return (
     <div className="flex flex-col">
       {/* Filter chips */}
-      <div className="sticky top-0 z-[5] border-b bg-background/80 px-4 py-2 backdrop-blur sm:px-6" style={{ borderWidth: "0.5px" }}>
+      <div className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6" style={{ borderWidth: "0.5px" }}>
         <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
           <button
             onClick={() => setFilter("__all")}
@@ -199,7 +199,7 @@ function Swimlane({
       </button>
 
       {!collapsed && (
-        <div className="flex gap-3 overflow-x-auto p-3" style={{ minWidth: "min-content" }}>
+        <div className="flex gap-3 overflow-x-auto p-3 pb-4" style={{ minWidth: "min-content" }}>
           {COLUMNS.map((col) => {
             const colCards = cards.filter((c) => c.col === col.id);
             const isOver = dragOver?.track === track.id && dragOver?.col === col.id;
@@ -222,7 +222,7 @@ function Swimlane({
                   setDragOver(null);
                   setDraggingId(null);
                 }}
-                className="flex w-[260px] shrink-0 flex-col rounded-lg border bg-muted/40 transition-colors sm:w-auto sm:flex-1"
+                className="flex w-[220px] shrink-0 flex-col rounded-lg border bg-muted/40 transition-colors sm:w-[260px] md:w-auto md:flex-1"
                 style={{
                   borderWidth: "0.5px",
                   minWidth: "180px",

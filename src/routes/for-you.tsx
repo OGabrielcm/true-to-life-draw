@@ -48,7 +48,7 @@ function ForYouPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl space-y-8 p-6">
+      <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-6">
         <section>
           <h2 className="mb-3 text-base font-semibold">Recently worked on</h2>
           {recent.length === 0 ? (

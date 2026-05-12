@@ -68,18 +68,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-60 shrink-0 border-r bg-sidebar transition-transform md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 flex-col border-r bg-sidebar transition-transform md:static md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ borderWidth: "0.5px" }}
       >
-        <div className="flex h-12 items-center justify-between px-4 border-b" style={{ borderWidth: "0.5px" }}>
+        <div className="flex h-12 shrink-0 items-center justify-between px-4 border-b" style={{ borderWidth: "0.5px" }}>
           <span className="text-sm font-semibold">🌀 Molas</span>
           <button className="md:hidden" onClick={() => setMobileOpen(false)}>
             <X className="h-4 w-4" />
           </button>
         </div>
-        <nav className="flex flex-col gap-1 p-3 text-sm">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3 text-sm">
           {NAV.map((n) => {
             const active = path === n.to;
             const Icon = n.icon;
@@ -144,14 +144,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Main column */}
       <div className="flex flex-1 flex-col min-w-0">
         <header
-          className="sticky top-0 z-20 flex h-12 items-center gap-2 border-b bg-background/90 px-3 backdrop-blur sm:px-5"
+          className="sticky top-0 z-20 flex h-12 items-center gap-1 border-b bg-background/90 px-3 backdrop-blur sm:gap-2 sm:px-5"
           style={{ borderWidth: "0.5px" }}
         >
           <button className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
           <h1 className="hidden text-sm font-medium sm:block">Gerenciador de Molas</h1>
-          <div className="relative ml-2 flex-1 max-w-md">
+          <div className="relative flex-1 max-w-md">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               value={search}

@@ -44,7 +44,7 @@ function ProfilePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-xl space-y-6 p-6">
+      <div className="mx-auto max-w-xl space-y-6 p-4 sm:p-6">
         <h2 className="text-base font-semibold">Profile</h2>
 
         {/* Account info */}

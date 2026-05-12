@@ -29,16 +29,16 @@ function DashboardsPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl space-y-4 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-base font-semibold">Dashboards</h2>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Filtrar..."
-              className="rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40"
+              className="w-full rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40 sm:w-52"
               style={{ borderWidth: "0.5px" }}
             />
           </div>
@@ -48,11 +48,11 @@ function DashboardsPage() {
             <thead className="bg-muted/50 text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 text-left font-medium">Title</th>
-                <th className="px-3 py-2 text-left font-medium">Track</th>
+                <th className="hidden px-3 py-2 text-left font-medium sm:table-cell">Track</th>
                 <th className="px-3 py-2 text-left font-medium">Status</th>
-                <th className="px-3 py-2 text-left font-medium">Priority</th>
-                <th className="px-3 py-2 text-left font-medium">Deadline</th>
-                <th className="px-3 py-2 text-left font-medium">Updated</th>
+                <th className="hidden px-3 py-2 text-left font-medium md:table-cell">Priority</th>
+                <th className="hidden px-3 py-2 text-left font-medium md:table-cell">Deadline</th>
+                <th className="hidden px-3 py-2 text-left font-medium lg:table-cell">Updated</th>
                 <th className="px-3 py-2 text-right font-medium">Ações</th>
               </tr>
             </thead>
@@ -70,15 +70,15 @@ function DashboardsPage() {
                         {c.title}
                       </button>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="hidden px-3 py-2 sm:table-cell">
                       <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: track?.bg, color: track?.fg }}>
                         {track?.name}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{col?.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{c.prio}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{formatDate(c.date)}</td>
-                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                    <td className="hidden px-3 py-2 text-muted-foreground md:table-cell">{c.prio}</td>
+                    <td className="hidden px-3 py-2 text-muted-foreground md:table-cell">{formatDate(c.date)}</td>
+                    <td className="hidden px-3 py-2 text-xs text-muted-foreground lg:table-cell">
                       {new Date(c.updated_at).toLocaleDateString("pt-BR")}
                     </td>
                     <td className="px-3 py-2 text-right">
