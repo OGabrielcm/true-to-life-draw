@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Search, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useKanban } from "@/lib/kanban-store";
-import { TRACKS, COLUMNS, formatDate } from "@/lib/kanban-types";
+import { COLUMNS, formatDate } from "@/lib/kanban-types";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 
 export const Route = createFileRoute("/dashboards")({
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/dashboards")({
 });
 
 function DashboardsPage() {
-  const { cards, trilhas, moveCard, deleteCard, toggleStar } = useKanban();
+  const { cards, trilhas, tracks, moveCard, deleteCard, toggleStar } = useKanban();
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -58,7 +58,7 @@ function DashboardsPage() {
             </thead>
             <tbody>
               {rows.map((c) => {
-                const track = TRACKS.find((t) => t.id === c.track);
+                const track = tracks.find((t) => t.id === c.track);
                 const col = COLUMNS.find((x) => x.id === c.col);
                 return (
                   <tr key={c.id} className="border-t" style={{ borderWidth: "0.5px" }}>
@@ -110,6 +110,7 @@ function DashboardsPage() {
         <CardDetailModal
           card={open}
           allCards={cards}
+          tracks={tracks}
           trilhas={trilhas}
           onClose={() => setOpenId(null)}
           onMove={moveCard}

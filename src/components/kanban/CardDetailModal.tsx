@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Calendar, Star, Trash2, Target } from "lucide-react";
-import { Card, COLUMNS, ColumnId, PRIO_COLORS, TRACKS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
+import { Card, COLUMNS, ColumnId, PRIO_COLORS, Track, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 
 export function CardDetailModal({
   card,
   allCards,
+  tracks,
   trilhas,
   onClose,
   onMove,
@@ -14,6 +15,7 @@ export function CardDetailModal({
 }: {
   card: Card;
   allCards: Card[];
+  tracks: Track[];
   trilhas: Trilha[];
   onClose: () => void;
   onMove: (id: string, col: ColumnId, track?: TrackId) => void;
@@ -115,7 +117,7 @@ export function CardDetailModal({
         <div className="mt-4">
           <p className="text-xs font-medium text-muted-foreground">Mover para swimlane</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {TRACKS.filter((t) => t.id !== card.track).map((t) => {
+            {tracks.filter((t) => t.id !== card.track).map((t) => {
               const bg = theme === "dark" ? t.darkBg : t.bg;
               const fg = theme === "dark" ? t.darkFg : t.fg;
               return (

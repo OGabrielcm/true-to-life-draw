@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import { Plus, Tags, ChevronDown } from "lucide-react";
+import { Plus, Tags, ChevronDown, Layers } from "lucide-react";
 import {
   Card,
   COLUMNS,
   ColumnId,
-  TRACKS,
   Track,
   TrackId,
   Trilha,
@@ -15,17 +14,20 @@ import { CardItem } from "./CardItem";
 import { AddCardModal } from "./AddCardModal";
 import { CardDetailModal } from "./CardDetailModal";
 import { TrilhasModal } from "./TrilhasModal";
+import { TracksModal } from "./TracksModal";
 
 export function Board() {
   const {
-    cards, trilhas, collapsed, search, filter, setFilter,
+    cards, trilhas, tracks, collapsed, search, filter, setFilter,
     addCard, moveCard, deleteCard, toggleStar, toggleCollapsed,
     createTrilha, updateTrilha, deleteTrilha,
+    createTrack, updateTrack, deleteTrack,
   } = useKanban();
 
   const [adding, setAdding] = useState<{ col: ColumnId; track: TrackId } | null>(null);
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [trilhasOpen, setTrilhasOpen] = useState(false);
+  const [tracksOpen, setTracksOpen] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<{ track: TrackId; col: ColumnId } | null>(null);
 
@@ -82,12 +84,20 @@ export function Board() {
             <Tags className="h-3.5 w-3.5" />
             Trilhas
           </button>
+          <button
+            onClick={() => setTracksOpen(true)}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            style={{ borderWidth: "0.5px" }}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            Tracks
+          </button>
         </div>
       </div>
 
       <main className="flex-1 overflow-x-auto">
         <div className="flex flex-col gap-4 p-4 sm:p-6">
-          {TRACKS.map((track) => (
+          {tracks.map((track) => (
             <Swimlane
               key={track.id}
               track={track}
@@ -104,6 +114,18 @@ export function Board() {
               moveCard={moveCard}
             />
           ))}
+          {tracks.length === 0 && (
+            <div className="rounded-xl border border-dashed p-6 text-center" style={{ borderWidth: "0.5px" }}>
+              <p className="text-sm text-muted-foreground">Nenhuma track ainda.</p>
+              <button
+                onClick={() => setTracksOpen(true)}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Criar primeira track
+              </button>
+            </div>
+          )}
         </div>
       </main>
 
@@ -111,6 +133,7 @@ export function Board() {
         <AddCardModal
           column={adding.col}
           track={adding.track}
+          tracks={tracks}
           trilhas={trilhas}
           goals={goals}
           onClose={() => setAdding(null)}
@@ -121,6 +144,7 @@ export function Board() {
         <CardDetailModal
           card={liveOpenCard}
           allCards={cards}
+          tracks={tracks}
           trilhas={trilhas}
           onClose={() => setOpenCardId(null)}
           onMove={moveCard}
@@ -135,6 +159,15 @@ export function Board() {
           onCreate={createTrilha}
           onUpdate={updateTrilha}
           onDelete={deleteTrilha}
+        />
+      )}
+      {tracksOpen && (
+        <TracksModal
+          tracks={tracks}
+          onClose={() => setTracksOpen(false)}
+          onCreate={createTrack}
+          onUpdate={updateTrack}
+          onDelete={deleteTrack}
         />
       )}
     </div>

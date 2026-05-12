@@ -4,7 +4,6 @@ import { AppShell } from "@/components/shell/AppShell";
 import { useKanban } from "@/lib/kanban-store";
 import { CardItem } from "@/components/kanban/CardItem";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
-import { TRACKS } from "@/lib/kanban-types";
 
 export const Route = createFileRoute("/for-you")({
   component: ForYouPage,
@@ -12,7 +11,7 @@ export const Route = createFileRoute("/for-you")({
 });
 
 function ForYouPage() {
-  const { cards, trilhas, moveCard, deleteCard, toggleStar } = useKanban();
+  const { cards, trilhas, tracks, moveCard, deleteCard, toggleStar } = useKanban();
   const [openId, setOpenId] = useState<string | null>(null);
 
   const recent = useMemo(() => {
@@ -29,7 +28,7 @@ function ForYouPage() {
   const renderGrid = (list: typeof cards) => (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {list.map((c) => {
-        const track = TRACKS.find((t) => t.id === c.track);
+        const track = tracks.find((t) => t.id === c.track);
         return (
           <div key={c.id} className="rounded-lg border p-1" style={{ borderWidth: "0.5px", borderLeft: `3px solid ${track?.border}` }}>
             <CardItem
@@ -66,6 +65,7 @@ function ForYouPage() {
         <CardDetailModal
           card={open}
           allCards={cards}
+          tracks={tracks}
           trilhas={trilhas}
           onClose={() => setOpenId(null)}
           onMove={moveCard}

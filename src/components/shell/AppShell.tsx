@@ -17,7 +17,6 @@ import {
 import { useTheme } from "@/components/theme-provider";
 import { useKanban } from "@/lib/kanban-store";
 import { useAuth } from "@/lib/auth-store";
-import { TRACKS } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 
 const NAV = [
@@ -34,7 +33,7 @@ function initials(email: string | undefined) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggle } = useTheme();
-  const { search, setSearch, setCreateOpen, createOpen } = useKanban();
+  const { search, setSearch, setCreateOpen, createOpen, tracks } = useKanban();
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
@@ -110,7 +109,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
             {tracksOpen && (
               <div className="ml-2 mt-1 flex flex-col gap-1 border-l pl-2" style={{ borderWidth: "0.5px" }}>
-                {TRACKS.map((t) => (
+                {tracks.map((t) => (
                   <Link
                     key={t.id}
                     to="/"

@@ -6,9 +6,9 @@ import {
   PRIORITIES,
   Trilha,
   Card,
+  Track,
   TrackId,
   TaskType,
-  TRACKS,
   COLUMNS,
 } from "@/lib/kanban-types";
 
@@ -28,6 +28,7 @@ export interface AddCardSubmit {
 export function AddCardModal({
   column,
   track,
+  tracks,
   trilhas,
   goals,
   allowTrackPick = false,
@@ -37,6 +38,7 @@ export function AddCardModal({
 }: {
   column: ColumnId;
   track: TrackId;
+  tracks: Track[];
   trilhas: Trilha[];
   goals: Card[];
   allowTrackPick?: boolean;
@@ -166,7 +168,7 @@ export function AddCardModal({
                     className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    {TRACKS.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    {tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
               )}
