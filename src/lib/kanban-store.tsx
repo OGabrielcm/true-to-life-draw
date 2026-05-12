@@ -8,10 +8,12 @@ import {
 } from "react";
 import {
   Card,
+  Column,
   ColumnId,
   Track,
   TrackId,
   Trilha,
+  DEFAULT_COLUMNS,
   DEFAULT_TRACKS,
   DEFAULT_TRILHAS,
   SEED_CARDS_BY_TRACK,
@@ -26,6 +28,7 @@ interface KanbanCtx {
   cards: Card[];
   trilhas: Trilha[];
   tracks: Track[];
+  columns: Column[];
   collapsed: Record<string, boolean>;
   search: string;
   setSearch: (s: string) => void;
@@ -44,6 +47,9 @@ interface KanbanCtx {
   createTrack: (t: Omit<Track, "id" | "order"> & { order?: number }) => void;
   updateTrack: (id: string, data: Omit<Track, "id">) => void;
   deleteTrack: (id: string) => void;
+  createColumn: (name: string) => void;
+  updateColumn: (id: string, name: string) => void;
+  deleteColumn: (id: string) => void;
   createOpen: boolean;
   setCreateOpen: (v: boolean) => void;
 }
@@ -77,6 +83,14 @@ function rowToTrilha(row: Record<string, unknown>): Trilha {
   };
 }
 
+function rowToColumn(row: Record<string, unknown>): Column {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    order: (row.order as number) ?? 0,
+  };
+}
+
 function rowToTrack(row: Record<string, unknown>): Track {
   return {
     id: row.id as string,
@@ -106,6 +120,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [cards, setCards] = useState<Card[]>([]);
   const [trilhas, setTrilhas] = useState<Trilha[]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [columns, setColumns] = useState<Column[]>([]);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("__all");
@@ -119,10 +134,11 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
 
-      const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }] = await Promise.all([
+      const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] = await Promise.all([
         supabase.from("tasks").select("*").order("created_at"),
         supabase.from("trilhas").select("*").order("created_at"),
         supabase.from("tracks").select("*").order("order"),
+        supabase.from("columns").select("*").order("order"),
       ]);
 
       if (cancelled) return;
@@ -169,6 +185,15 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         setTrilhas(dbTrilhas.map(rowToTrilha));
       }
 
+      // Seed columns if user has none
+      if (!dbColumns?.length) {
+        const seededCols = DEFAULT_COLUMNS.map((c) => ({ ...c, user_id: user.id }));
+        const { data: inserted } = await supabase.from("columns").insert(seededCols).select();
+        if (!cancelled) setColumns((inserted ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
+      } else {
+        if (!cancelled) setColumns(dbColumns.map(rowToColumn).sort((a, b) => a.order - b.order));
+      }
+
       if (!cancelled) setLoading(false);
     };
 
@@ -178,6 +203,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         setCards([]);
         setTrilhas([]);
         setTracks([]);
+        setColumns([]);
         setLoading(true);
       }
     });
@@ -198,6 +224,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     cards,
     trilhas,
     tracks,
+    columns,
     collapsed,
     search,
     setSearch,
@@ -363,7 +390,50 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       });
       await supabase.from("tracks").delete().eq("id", id);
     },
-  }), [cards, trilhas, tracks, collapsed, search, filter, createOpen, loading]);
+
+    createColumn: async (name) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const tempId = crypto.randomUUID();
+      const order = columns.length ? Math.max(...columns.map((c) => c.order)) + 1 : 5;
+      const newCol: Column = { id: tempId, name: name.trim(), order };
+      setColumns((cur) => [...cur, newCol].sort((a, b) => a.order - b.order));
+      const { data: inserted, error } = await supabase
+        .from("columns")
+        .insert({ id: tempId, name: name.trim(), order, user_id: user.id })
+        .select()
+        .single();
+      if (error) {
+        setColumns((cur) => cur.filter((c) => c.id !== tempId));
+      } else if (inserted) {
+        setColumns((cur) =>
+          cur.map((c) => (c.id === tempId ? rowToColumn(inserted) : c)).sort((a, b) => a.order - b.order)
+        );
+      }
+    },
+
+    updateColumn: async (id, name) => {
+      setColumns((cur) => cur.map((c) => (c.id === id ? { ...c, name: name.trim() } : c)));
+      await supabase.from("columns").update({ name: name.trim() }).eq("id", id);
+    },
+
+    deleteColumn: async (id) => {
+      const remaining = columns.filter((c) => c.id !== id);
+      const fallback = remaining[0];
+      if (fallback) {
+        const now = new Date().toISOString();
+        setCards((cur) =>
+          cur.map((c) => c.col === id ? { ...c, col: fallback.id, updated_at: now } : c)
+        );
+        await supabase.from("tasks").update({ col: fallback.id, updated_at: now }).eq("col", id);
+      } else {
+        setCards((cur) => cur.filter((c) => c.col !== id));
+        await supabase.from("tasks").delete().eq("col", id);
+      }
+      setColumns(remaining);
+      await supabase.from("columns").delete().eq("id", id);
+    },
+  }), [cards, trilhas, tracks, columns, collapsed, search, filter, createOpen, loading]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

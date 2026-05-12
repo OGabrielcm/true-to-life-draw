@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import {
+  Column,
   ColumnId,
   Priority,
   PRIORITIES,
@@ -9,7 +10,6 @@ import {
   Track,
   TrackId,
   TaskType,
-  COLUMNS,
 } from "@/lib/kanban-types";
 
 export interface AddCardSubmit {
@@ -29,6 +29,7 @@ export function AddCardModal({
   column,
   track,
   tracks,
+  columns,
   trilhas,
   goals,
   allowTrackPick = false,
@@ -39,6 +40,7 @@ export function AddCardModal({
   column: ColumnId;
   track: TrackId;
   tracks: Track[];
+  columns: Column[];
   trilhas: Trilha[];
   goals: Card[];
   allowTrackPick?: boolean;
@@ -181,7 +183,7 @@ export function AddCardModal({
                     className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    {COLUMNS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               )}

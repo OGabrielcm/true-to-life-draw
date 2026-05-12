@@ -1,4 +1,4 @@
-export type ColumnId = "backlog" | "todo" | "inprogress" | "review" | "done";
+export type ColumnId = string;
 export type Priority = "Alta" | "Média" | "Baixa";
 export type TrackId = string;
 export type TaskType = "Task" | "Goal";
@@ -26,12 +26,19 @@ export interface Card {
   updated_at: string;
 }
 
-export const COLUMNS: { id: ColumnId; name: string }[] = [
-  { id: "backlog", name: "Backlog" },
-  { id: "todo", name: "To Do" },
-  { id: "inprogress", name: "In Progress" },
-  { id: "review", name: "Review" },
-  { id: "done", name: "Done" },
+export interface Column {
+  id: ColumnId;
+  name: string;
+  order: number;
+}
+
+// IDs fixos para backwards compatibility com cards existentes
+export const DEFAULT_COLUMNS: Column[] = [
+  { id: "backlog",    name: "Backlog",      order: 0 },
+  { id: "todo",       name: "To Do",        order: 1 },
+  { id: "inprogress", name: "In Progress",  order: 2 },
+  { id: "review",     name: "Review",       order: 3 },
+  { id: "done",       name: "Done",         order: 4 },
 ];
 
 export const PRIORITIES: Priority[] = ["Alta", "Média", "Baixa"];

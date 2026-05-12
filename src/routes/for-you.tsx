@@ -12,7 +12,7 @@ export const Route = createFileRoute("/for-you")({
 });
 
 function ForYouPage() {
-  const { cards, trilhas, tracks, moveCard, deleteCard, toggleStar } = useKanban();
+  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar } = useKanban();
   const [openId, setOpenId] = useState<string | null>(null);
 
   const recent = useMemo(() => {
@@ -67,11 +67,13 @@ function ForYouPage() {
           card={open}
           allCards={cards}
           tracks={tracks}
+          columns={columns}
           trilhas={trilhas}
           onClose={() => setOpenId(null)}
           onMove={moveCard}
           onDelete={deleteCard}
           onToggleStar={toggleStar}
+          onUpdate={updateCard}
         />
       )}
     </AppShell>

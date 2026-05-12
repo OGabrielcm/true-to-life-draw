@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Archive, Search, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useKanban } from "@/lib/kanban-store";
-import { COLUMNS, formatDate, isArchived } from "@/lib/kanban-types";
+import { formatDate, isArchived } from "@/lib/kanban-types";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 
 type ArchiveFilter = "all" | "active" | "archived";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/dashboards")({
 });
 
 function DashboardsPage() {
-  const { cards, trilhas, tracks, moveCard, deleteCard, toggleStar } = useKanban();
+  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar } = useKanban();
   const [q, setQ] = useState("");
   const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -89,7 +89,7 @@ function DashboardsPage() {
             <tbody>
               {rows.map((c) => {
                 const track = tracks.find((t) => t.id === c.track);
-                const col = COLUMNS.find((x) => x.id === c.col);
+                const col = columns.find((x) => x.id === c.col);
                 const archived = isArchived(c);
                 return (
                   <tr key={c.id} className="border-t" style={{ borderWidth: "0.5px", opacity: archived ? 0.7 : 1 }}>
@@ -150,11 +150,13 @@ function DashboardsPage() {
           card={open}
           allCards={cards}
           tracks={tracks}
+          columns={columns}
           trilhas={trilhas}
           onClose={() => setOpenId(null)}
           onMove={moveCard}
           onDelete={deleteCard}
           onToggleStar={toggleStar}
+          onUpdate={updateCard}
         />
       )}
     </AppShell>

@@ -2,19 +2,20 @@ import { AddCardModal } from "./AddCardModal";
 import { useKanban } from "@/lib/kanban-store";
 
 export function CreateCardModal({ onClose }: { onClose: () => void }) {
-  const { trilhas, tracks, cards, addCard } = useKanban();
+  const { trilhas, tracks, columns, cards, addCard } = useKanban();
   const goals = cards.filter((c) => c.type === "Goal");
   const firstTrack = tracks[0]?.id ?? "";
+  const firstColumn = columns[0]?.id ?? "todo";
   if (!firstTrack) {
-    // Sem tracks ainda — fecha o modal automaticamente
     onClose();
     return null;
   }
   return (
     <AddCardModal
-      column="todo"
+      column={firstColumn}
       track={firstTrack}
       tracks={tracks}
+      columns={columns}
       trilhas={trilhas}
       goals={goals}
       allowTrackPick

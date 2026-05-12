@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { Plus, Tags, ChevronDown, Layers, Archive } from "lucide-react";
+import { Plus, Tags, ChevronDown, Layers, Archive, Columns } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
   ARCHIVE_AFTER_DAYS,
   Card,
-  COLUMNS,
+  Column,
   ColumnId,
   isArchived,
   Track,
@@ -18,19 +18,22 @@ import { AddCardModal } from "./AddCardModal";
 import { CardDetailModal } from "./CardDetailModal";
 import { TrilhasModal } from "./TrilhasModal";
 import { TracksModal } from "./TracksModal";
+import { ColumnsModal } from "./ColumnsModal";
 
 export function Board() {
   const {
-    cards, trilhas, tracks, collapsed, search, filter, setFilter,
-    addCard, moveCard, deleteCard, toggleStar, toggleCollapsed,
+    cards, trilhas, tracks, columns, collapsed, search, filter, setFilter,
+    addCard, updateCard, moveCard, deleteCard, toggleStar, toggleCollapsed,
     createTrilha, updateTrilha, deleteTrilha,
     createTrack, updateTrack, deleteTrack,
+    createColumn, updateColumn, deleteColumn,
   } = useKanban();
 
   const [adding, setAdding] = useState<{ col: ColumnId; track: TrackId } | null>(null);
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [trilhasOpen, setTrilhasOpen] = useState(false);
   const [tracksOpen, setTracksOpen] = useState(false);
+  const [columnsOpen, setColumnsOpen] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<{ track: TrackId; col: ColumnId } | null>(null);
 
@@ -98,6 +101,14 @@ export function Board() {
             <Layers className="h-3.5 w-3.5" />
             Tracks
           </button>
+          <button
+            onClick={() => setColumnsOpen(true)}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            style={{ borderWidth: "0.5px" }}
+          >
+            <Columns className="h-3.5 w-3.5" />
+            Colunas
+          </button>
         </div>
       </div>
 
@@ -120,6 +131,7 @@ export function Board() {
             <Swimlane
               key={track.id}
               track={track}
+              columns={columns}
               cards={filtered.filter((c) => c.track === track.id)}
               trilhas={trilhas}
               collapsed={collapsed[track.id]}
@@ -153,6 +165,7 @@ export function Board() {
           column={adding.col}
           track={adding.track}
           tracks={tracks}
+          columns={columns}
           trilhas={trilhas}
           goals={goals}
           onClose={() => setAdding(null)}
@@ -169,6 +182,7 @@ export function Board() {
           onMove={moveCard}
           onDelete={deleteCard}
           onToggleStar={toggleStar}
+          onUpdate={updateCard}
         />
       )}
       {trilhasOpen && (
@@ -189,12 +203,22 @@ export function Board() {
           onDelete={deleteTrack}
         />
       )}
+      {columnsOpen && (
+        <ColumnsModal
+          columns={columns}
+          onClose={() => setColumnsOpen(false)}
+          onCreate={createColumn}
+          onUpdate={updateColumn}
+          onDelete={deleteColumn}
+        />
+      )}
     </div>
   );
 }
 
 function Swimlane({
   track,
+  columns,
   cards,
   trilhas,
   collapsed,
@@ -208,6 +232,7 @@ function Swimlane({
   moveCard,
 }: {
   track: Track;
+  columns: Column[];
   cards: Card[];
   trilhas: Trilha[];
   collapsed: boolean;
@@ -253,7 +278,7 @@ function Swimlane({
 
       {!collapsed && (
         <div className="flex gap-3 overflow-x-auto p-3 pb-4">
-          {COLUMNS.map((col) => {
+          {columns.map((col) => {
             const colCards = cards.filter((c) => c.col === col.id);
             const isOver = dragOver?.track === track.id && dragOver?.col === col.id;
             return (
