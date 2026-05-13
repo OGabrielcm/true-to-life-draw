@@ -11,6 +11,7 @@ import {
   Plus,
   Link2,
   AlertTriangle,
+  LayoutTemplate,
 } from "lucide-react";
 import {
   Card,
@@ -41,6 +42,7 @@ export function CardDetailModal({
   onToggleStar,
   onUpdate,
   onDuplicate,
+  onSaveTemplate,
 }: {
   card: Card;
   allCards: Card[];
@@ -53,9 +55,12 @@ export function CardDetailModal({
   onToggleStar: (id: string) => void;
   onUpdate: (id: string, patch: Partial<Card>) => void;
   onDuplicate?: (id: string) => void;
+  onSaveTemplate?: (card: Card, name: string) => void;
 }) {
   const [confirm, setConfirm] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
   const { theme } = useTheme();
 
   // Edit state
@@ -413,41 +418,97 @@ export function CardDetailModal({
 
         {/* ── RODAPÉ: excluir + fechar ── */}
         {!editing && (
-          <div className="mt-6 flex items-center justify-between">
-            {!confirm ? (
-              <button
-                onClick={() => setConfirm(true)}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Excluir
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Confirmar?</span>
-                <button
-                  onClick={() => {
-                    onDelete(card.id);
-                    onClose();
-                  }}
-                  className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
-                >
-                  Excluir
-                </button>
-                <button
-                  onClick={() => setConfirm(false)}
-                  className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-                >
-                  Cancelar
-                </button>
+          <div className="mt-6 space-y-3">
+            {/* Salvar como template */}
+            {onSaveTemplate && !editing && (
+              <div>
+                {!savingTemplate ? (
+                  <button
+                    onClick={() => {
+                      setSavingTemplate(true);
+                      setTemplateName(card.title);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    style={{ borderWidth: "0.5px" }}
+                  >
+                    <LayoutTemplate className="h-3.5 w-3.5" />
+                    Salvar como template
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      autoFocus
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") setSavingTemplate(false);
+                        if (e.key === "Enter" && templateName.trim()) {
+                          onSaveTemplate(card, templateName.trim());
+                          setSavingTemplate(false);
+                        }
+                      }}
+                      placeholder="Nome do template..."
+                      className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-foreground/40"
+                      style={{ borderWidth: "0.5px" }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (templateName.trim()) {
+                          onSaveTemplate(card, templateName.trim());
+                          setSavingTemplate(false);
+                        }
+                      }}
+                      className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"
+                    >
+                      Salvar
+                    </button>
+                    <button
+                      onClick={() => setSavingTemplate(false)}
+                      className="rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-            <button
-              onClick={onClose}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
-            >
-              Fechar
-            </button>
+
+            <div className="flex items-center justify-between">
+              {!confirm ? (
+                <button
+                  onClick={() => setConfirm(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Excluir
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Confirmar?</span>
+                  <button
+                    onClick={() => {
+                      onDelete(card.id);
+                      onClose();
+                    }}
+                    className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                  >
+                    Excluir
+                  </button>
+                  <button
+                    onClick={() => setConfirm(false)}
+                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={onClose}
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         )}
       </div>

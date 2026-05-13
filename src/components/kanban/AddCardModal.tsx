@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
+import { Star, LayoutTemplate } from "lucide-react";
 import {
   Column,
   ColumnId,
@@ -7,6 +7,7 @@ import {
   PRIORITIES,
   Trilha,
   Card,
+  CardTemplate,
   Track,
   TrackId,
   TaskType,
@@ -32,6 +33,7 @@ export function AddCardModal({
   columns,
   trilhas,
   goals,
+  templates = [],
   allowTrackPick = false,
   allowColPick = false,
   onClose,
@@ -43,6 +45,7 @@ export function AddCardModal({
   columns: Column[];
   trilhas: Trilha[];
   goals: Card[];
+  templates?: CardTemplate[];
   allowTrackPick?: boolean;
   allowColPick?: boolean;
   onClose: () => void;
@@ -58,6 +61,15 @@ export function AddCardModal({
   const [colSel, setColSel] = useState<ColumnId>(column);
   const [parentId, setParentId] = useState<string>("");
   const [starred, setStarred] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  const applyTemplate = (tpl: CardTemplate) => {
+    setType(tpl.type);
+    setPrio(tpl.prio);
+    setDesc(tpl.desc ?? "");
+    setTags(tpl.tags);
+    setShowTemplates(false);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -101,14 +113,52 @@ export function AddCardModal({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-base font-medium text-foreground">Adicionar card</h2>
-          <button
-            type="button"
-            onClick={() => setStarred((s) => !s)}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="Favoritar"
-          >
-            <Star className="h-4 w-4" fill={starred ? "currentColor" : "none"} />
-          </button>
+          <div className="flex items-center gap-2">
+            {templates.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowTemplates((v) => !v)}
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                  title="Usar template"
+                >
+                  <LayoutTemplate className="h-3.5 w-3.5" />
+                  Template
+                </button>
+                {showTemplates && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowTemplates(false)} />
+                    <div
+                      className="absolute right-0 top-8 z-20 w-56 rounded-lg border bg-background py-1 shadow-md"
+                      style={{ borderWidth: "0.5px" }}
+                    >
+                      {templates.map((tpl) => (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          onClick={() => applyTemplate(tpl)}
+                          className="flex w-full flex-col px-3 py-2 text-left hover:bg-muted"
+                        >
+                          <span className="text-xs font-medium text-foreground">{tpl.name}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {tpl.type} · {tpl.prio}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setStarred((s) => !s)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Favoritar"
+            >
+              <Star className="h-4 w-4" fill={starred ? "currentColor" : "none"} />
+            </button>
+          </div>
         </div>
         <div className="mt-4 space-y-3">
           <div>

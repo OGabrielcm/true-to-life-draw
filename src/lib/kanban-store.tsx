@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Card,
+  CardTemplate,
   Column,
   ColumnId,
   Track,
@@ -12,6 +13,8 @@ import {
   SEED_CARDS_BY_TRACK,
   loadCollapsed,
   saveCollapsed,
+  loadTemplates,
+  saveTemplates,
 } from "./kanban-types";
 import { supabase } from "./supabase";
 
@@ -58,6 +61,10 @@ interface KanbanCtx {
   deleteColumn: (id: string) => void;
   createOpen: boolean;
   setCreateOpen: (v: boolean) => void;
+  templates: CardTemplate[];
+  saveTemplate: (card: Card, name: string) => void;
+  updateTemplate: (id: string, name: string) => void;
+  deleteTemplate: (id: string) => void;
 }
 
 const Ctx = createContext<KanbanCtx | null>(null);
@@ -144,6 +151,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [filter, setFilter] = useState("__all");
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState<CardTemplate[]>(loadTemplates);
 
   useEffect(() => {
     let cancelled = false;
@@ -242,6 +250,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveCollapsed(collapsed);
   }, [collapsed]);
 
+  useEffect(() => {
+    saveTemplates(templates);
+  }, [templates]);
+
   const value = useMemo<KanbanCtx>(
     () => ({
       cards,
@@ -256,6 +268,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       loading,
       createOpen,
       setCreateOpen,
+      templates,
 
       addCard: async (data) => {
         const {
@@ -423,6 +436,32 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       toggleCollapsed: (id) => setCollapsed((cur) => ({ ...cur, [id]: !cur[id] })),
 
+      saveTemplate: (card, name) => {
+        const tpl: CardTemplate = {
+          id: crypto.randomUUID(),
+          name: name.trim(),
+          type: card.type,
+          prio: card.prio,
+          desc: card.desc,
+          tags: card.tags,
+          checklist: (card.checklist ?? []).map((i) => ({
+            ...i,
+            id: crypto.randomUUID(),
+            done: false,
+          })),
+          created_at: new Date().toISOString(),
+        };
+        setTemplates((cur) => [...cur, tpl]);
+      },
+
+      updateTemplate: (id, name) => {
+        setTemplates((cur) => cur.map((t) => (t.id === id ? { ...t, name: name.trim() } : t)));
+      },
+
+      deleteTemplate: (id) => {
+        setTemplates((cur) => cur.filter((t) => t.id !== id));
+      },
+
       createTrilha: async (t) => {
         const {
           data: { user },
@@ -577,7 +616,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         await supabase.from("columns").delete().eq("id", id);
       },
     }),
-    [cards, trilhas, tracks, columns, collapsed, search, filter, createOpen, loading],
+    [cards, trilhas, tracks, columns, collapsed, search, filter, createOpen, loading, templates],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

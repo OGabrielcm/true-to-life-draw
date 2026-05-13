@@ -337,6 +337,36 @@ export const SEED_CARDS_BY_TRACK: Record<
   ],
 };
 
+export interface CardTemplate {
+  id: string;
+  name: string;
+  type: TaskType;
+  prio: Priority;
+  desc?: string;
+  date?: string;
+  tags: string[];
+  checklist: ChecklistItem[];
+  created_at: string;
+}
+
+const TEMPLATES_KEY = "kanban-templates-v1";
+
+export function loadTemplates(): CardTemplate[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(TEMPLATES_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveTemplates(templates: CardTemplate[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+}
+
 const COLLAPSED_KEY = "kanban-collapsed-tracks-v1";
 
 export function loadCollapsed(): Record<string, boolean> {

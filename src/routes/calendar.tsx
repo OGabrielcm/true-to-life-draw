@@ -85,6 +85,7 @@ function CalendarPage() {
     deleteCard,
     toggleStar,
     duplicateCard,
+    saveTemplate,
   } = useKanban();
   const { theme } = useTheme();
   const [view, setView] = useState<ViewMode>("month");
@@ -247,6 +248,7 @@ function CalendarPage() {
           onToggleStar={toggleStar}
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
+          onSaveTemplate={saveTemplate}
         />
       )}
     </AppShell>

@@ -47,6 +47,8 @@ export function Board() {
     createColumn,
     updateColumn,
     deleteColumn,
+    saveTemplate,
+    templates,
   } = useKanban();
 
   const [adding, setAdding] = useState<{ col: ColumnId; track: TrackId } | null>(null);
@@ -198,6 +200,7 @@ export function Board() {
           columns={columns}
           trilhas={trilhas}
           goals={goals}
+          templates={templates}
           onClose={() => setAdding(null)}
           onAdd={addCard}
         />
@@ -215,6 +218,7 @@ export function Board() {
           onToggleStar={toggleStar}
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
+          onSaveTemplate={saveTemplate}
         />
       )}
       {trilhasOpen && (

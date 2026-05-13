@@ -14,12 +14,14 @@ import {
   Menu,
   X,
   LogOut,
+  LayoutTemplate,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useKanban } from "@/lib/kanban-store";
 import { useAuth } from "@/lib/auth-store";
 import { getDeadlineStatus } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
+import { TemplatesModal } from "@/components/kanban/TemplatesModal";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
@@ -47,6 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [tracksOpen, setTracksOpen] = useState(true);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -139,6 +142,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             )}
           </div>
+
+          {/* Templates */}
+          <button
+            onClick={() => {
+              setTemplatesOpen(true);
+              setMobileOpen(false);
+            }}
+            className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <LayoutTemplate className="h-4 w-4" />
+            Templates
+          </button>
 
           {/* Log Out at bottom */}
           <button
@@ -262,6 +277,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       {createOpen && <CreateCardModal onClose={() => setCreateOpen(false)} />}
+      {templatesOpen && <TemplatesModal onClose={() => setTemplatesOpen(false)} />}
     </div>
   );
 }

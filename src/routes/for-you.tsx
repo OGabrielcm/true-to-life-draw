@@ -22,6 +22,7 @@ function ForYouPage() {
     deleteCard,
     toggleStar,
     duplicateCard,
+    saveTemplate,
   } = useKanban();
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -96,6 +97,7 @@ function ForYouPage() {
           onToggleStar={toggleStar}
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
+          onSaveTemplate={saveTemplate}
         />
       )}
     </AppShell>

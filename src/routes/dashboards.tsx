@@ -28,6 +28,7 @@ function DashboardsPage() {
     deleteCard,
     toggleStar,
     duplicateCard,
+    saveTemplate,
   } = useKanban();
   const { theme } = useTheme();
   const [q, setQ] = useState("");
@@ -627,6 +628,7 @@ function DashboardsPage() {
           onToggleStar={toggleStar}
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
+          onSaveTemplate={saveTemplate}
         />
       )}
     </AppShell>

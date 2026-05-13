@@ -1,7 +1,7 @@
 # 🗺️ Roadmap — Molas Kanban
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — 3.3 e 3.4 ✅
+> Atualizado em: Maio 2026 — Fase 3 completa ✅
 
 ---
 
@@ -48,6 +48,7 @@
 | Estatísticas do board (KPIs + barras por coluna/prioridade/track) | ✅ |
 | Export CSV / PDF | ✅ |
 | Filtros avançados no board | ✅ |
+| Templates de cards | ✅ |
 
 ---
 
@@ -130,7 +131,7 @@
 - **Consumo de token:** 🟢 Baixo (lógica client-side, sem schema change)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
-### 3.5 Templates de cards
+### ~~3.5 Templates de cards~~ ✅ Implementado
 - **O que é:** Salvar um card como template e reutilizá-lo para tarefas recorrentes
 - **Referência:** Trello, Notion
 - **Consumo de token:** 🟡 Médio (nova tabela + modal)
