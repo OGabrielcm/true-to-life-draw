@@ -1,9 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  Activity,
+  ActivityType,
   Card,
   CardTemplate,
   Column,
   ColumnId,
+  Comment,
+  TimeLog,
   Track,
   TrackId,
   Trilha,
@@ -69,6 +73,15 @@ interface KanbanCtx {
   deleteTemplate: (id: string) => void;
   cardColors: Record<string, string>;
   setCardColor: (cardId: string, color: string) => void;
+  activitiesByCard: Record<string, Activity[]>;
+  commentsByCard: Record<string, Comment[]>;
+  timeLogsByCard: Record<string, TimeLog[]>;
+  loadCardDetails: (cardId: string) => Promise<void>;
+  addComment: (cardId: string, text: string) => Promise<void>;
+  updateComment: (commentId: string, text: string) => Promise<void>;
+  deleteComment: (commentId: string, cardId: string) => Promise<void>;
+  addTimeLog: (cardId: string, minutes: number, note?: string, loggedAt?: string) => Promise<void>;
+  deleteTimeLog: (logId: string, cardId: string) => Promise<void>;
 }
 
 const Ctx = createContext<KanbanCtx | null>(null);
@@ -157,6 +170,39 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<CardTemplate[]>(loadTemplates);
   const [cardColors, setCardColors] = useState<Record<string, string>>(loadCardColors);
+  const [activitiesByCard, setActivitiesByCard] = useState<Record<string, Activity[]>>({});
+  const [commentsByCard, setCommentsByCard] = useState<Record<string, Comment[]>>({});
+  const [timeLogsByCard, setTimeLogsByCard] = useState<Record<string, TimeLog[]>>({});
+
+  const logActivity = async (taskId: string, type: ActivityType, message: string) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const tempId = crypto.randomUUID();
+    const now = new Date().toISOString();
+    const optimistic: Activity = { id: tempId, task_id: taskId, type, message, created_at: now };
+    setActivitiesByCard((cur) => ({
+      ...cur,
+      [taskId]: [optimistic, ...(cur[taskId] ?? [])],
+    }));
+    const { data, error } = await supabase
+      .from("activities")
+      .insert({ task_id: taskId, user_id: user.id, type, message })
+      .select()
+      .single();
+    if (error) {
+      setActivitiesByCard((cur) => ({
+        ...cur,
+        [taskId]: (cur[taskId] ?? []).filter((a) => a.id !== tempId),
+      }));
+    } else if (data) {
+      setActivitiesByCard((cur) => ({
+        ...cur,
+        [taskId]: (cur[taskId] ?? []).map((a) => (a.id === tempId ? (data as Activity) : a)),
+      }));
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -306,21 +352,49 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         if (error) {
           setCards((cur) => cur.filter((c) => c.id !== tempId));
         } else if (inserted) {
-          setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
+          const real = rowToCard(inserted);
+          setCards((cur) => cur.map((c) => (c.id === tempId ? real : c)));
+          logActivity(real.id, "created", `Card criado: "${real.title}"`);
         }
       },
 
       updateCard: async (id, patch) => {
         const now = new Date().toISOString();
+        const before = cards.find((c) => c.id === id);
         setCards((cur) => cur.map((c) => (c.id === id ? { ...c, ...patch, updated_at: now } : c)));
         await supabase
           .from("tasks")
           .update({ ...patch, updated_at: now })
           .eq("id", id);
+        if (before) {
+          if (patch.title !== undefined && patch.title !== before.title) {
+            logActivity(id, "edited", `Título alterado para "${patch.title}"`);
+          }
+          if (patch.desc !== undefined && patch.desc !== before.desc) {
+            logActivity(id, "edited", "Descrição atualizada");
+          }
+          if (patch.prio !== undefined && patch.prio !== before.prio) {
+            logActivity(id, "priority", `Prioridade: ${before.prio} → ${patch.prio}`);
+          }
+          if (patch.date !== undefined && patch.date !== before.date) {
+            logActivity(id, "deadline", patch.date ? `Prazo: ${patch.date}` : "Prazo removido");
+          }
+          if (patch.checklist !== undefined) {
+            logActivity(id, "checklist", "Checklist atualizado");
+          }
+          if (patch.blocked_by !== undefined) {
+            const wasBlocked = (before.blocked_by ?? []).length > 0;
+            const isBlocked = (patch.blocked_by ?? []).length > 0;
+            if (wasBlocked !== isBlocked) {
+              logActivity(id, isBlocked ? "blocked" : "unblocked", isBlocked ? "Dependência adicionada" : "Dependências removidas");
+            }
+          }
+        }
       },
 
       moveCard: async (id, col, track) => {
         const now = new Date().toISOString();
+        const before = cards.find((c) => c.id === id);
         const targetTrack = track ?? cards.find((c) => c.id === id)?.track;
         if (!targetTrack) return;
         // Card que muda de coluna/track vai pro final da nova coluna
@@ -339,6 +413,11 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           ),
         );
         await supabase.from("tasks").update(patch).eq("id", id);
+        if (before && before.col !== col) {
+          const fromName = columns.find((c) => c.id === before.col)?.name ?? before.col;
+          const toName = columns.find((c) => c.id === col)?.name ?? col;
+          logActivity(id, "moved", `Movido: ${fromName} → ${toName}`);
+        }
       },
 
       reorderCard: async (id, target) => {
@@ -404,6 +483,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
             .from("tasks")
             .update({ starred: !card.starred, updated_at: now })
             .eq("id", id);
+          logActivity(id, card.starred ? "unstarred" : "starred", card.starred ? "Removido dos favoritos" : "Marcado como favorito");
         }
       },
 
@@ -440,7 +520,9 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         if (error) {
           setCards((cur) => cur.filter((c) => c.id !== tempId));
         } else if (inserted) {
-          setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
+          const real = rowToCard(inserted);
+          setCards((cur) => cur.map((c) => (c.id === tempId ? real : c)));
+          logActivity(real.id, "duplicated", `Duplicado de "${original.title}"`);
         }
       },
 
@@ -482,6 +564,111 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           }
           return next;
         });
+      },
+
+      activitiesByCard,
+      commentsByCard,
+      timeLogsByCard,
+
+      loadCardDetails: async (cardId) => {
+        const [{ data: acts }, { data: cmts }, { data: logs }] = await Promise.all([
+          supabase
+            .from("activities")
+            .select("*")
+            .eq("task_id", cardId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("comments")
+            .select("*")
+            .eq("task_id", cardId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("time_logs")
+            .select("*")
+            .eq("task_id", cardId)
+            .order("logged_at", { ascending: false }),
+        ]);
+        setActivitiesByCard((cur) => ({ ...cur, [cardId]: (acts ?? []) as Activity[] }));
+        setCommentsByCard((cur) => ({ ...cur, [cardId]: (cmts ?? []) as Comment[] }));
+        setTimeLogsByCard((cur) => ({ ...cur, [cardId]: (logs ?? []) as TimeLog[] }));
+      },
+
+      addComment: async (cardId, text) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const trimmed = text.trim();
+        if (!trimmed) return;
+        const { data, error } = await supabase
+          .from("comments")
+          .insert({ task_id: cardId, user_id: user.id, text: trimmed })
+          .select()
+          .single();
+        if (!error && data) {
+          setCommentsByCard((cur) => ({
+            ...cur,
+            [cardId]: [data as Comment, ...(cur[cardId] ?? [])],
+          }));
+        }
+      },
+
+      updateComment: async (commentId, text) => {
+        const now = new Date().toISOString();
+        const trimmed = text.trim();
+        setCommentsByCard((cur) => {
+          const next: Record<string, Comment[]> = {};
+          for (const k of Object.keys(cur)) {
+            next[k] = cur[k].map((c) =>
+              c.id === commentId ? { ...c, text: trimmed, updated_at: now } : c,
+            );
+          }
+          return next;
+        });
+        await supabase
+          .from("comments")
+          .update({ text: trimmed, updated_at: now })
+          .eq("id", commentId);
+      },
+
+      deleteComment: async (commentId, cardId) => {
+        setCommentsByCard((cur) => ({
+          ...cur,
+          [cardId]: (cur[cardId] ?? []).filter((c) => c.id !== commentId),
+        }));
+        await supabase.from("comments").delete().eq("id", commentId);
+      },
+
+      addTimeLog: async (cardId, minutes, note, loggedAt) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user || minutes <= 0) return;
+        const { data, error } = await supabase
+          .from("time_logs")
+          .insert({
+            task_id: cardId,
+            user_id: user.id,
+            minutes,
+            note: note?.trim() || null,
+            logged_at: loggedAt ?? new Date().toISOString().slice(0, 10),
+          })
+          .select()
+          .single();
+        if (!error && data) {
+          setTimeLogsByCard((cur) => ({
+            ...cur,
+            [cardId]: [data as TimeLog, ...(cur[cardId] ?? [])],
+          }));
+        }
+      },
+
+      deleteTimeLog: async (logId, cardId) => {
+        setTimeLogsByCard((cur) => ({
+          ...cur,
+          [cardId]: (cur[cardId] ?? []).filter((l) => l.id !== logId),
+        }));
+        await supabase.from("time_logs").delete().eq("id", logId);
       },
 
       createTrilha: async (t) => {
@@ -650,6 +837,9 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       loading,
       templates,
       cardColors,
+      activitiesByCard,
+      commentsByCard,
+      timeLogsByCard,
     ],
   );
 

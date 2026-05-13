@@ -337,6 +337,52 @@ export const SEED_CARDS_BY_TRACK: Record<
   ],
 };
 
+export type ActivityType =
+  | "created"
+  | "moved"
+  | "edited"
+  | "starred"
+  | "unstarred"
+  | "checklist"
+  | "deleted_checklist"
+  | "deadline"
+  | "priority"
+  | "blocked"
+  | "unblocked"
+  | "duplicated";
+
+export interface Activity {
+  id: string;
+  task_id: string;
+  type: ActivityType;
+  message: string;
+  created_at: string;
+}
+
+export interface Comment {
+  id: string;
+  task_id: string;
+  text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TimeLog {
+  id: string;
+  task_id: string;
+  minutes: number;
+  note?: string;
+  logged_at: string;
+  created_at: string;
+}
+
+export function formatMinutes(min: number): string {
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
 export interface CardTemplate {
   id: string;
   name: string;

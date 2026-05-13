@@ -1,7 +1,7 @@
 # 🗺️ Roadmap — Molas Kanban
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — Fase 4 completa ✅
+> Atualizado em: Maio 2026 — Todas as fases completas ✅
 
 ---
 
@@ -53,6 +53,9 @@
 | Atalhos de teclado (e=editar, d=deletar, n=novo) | ✅ |
 | Card aging (opacidade por inatividade) | ✅ |
 | Cor de destaque / cover no card | ✅ |
+| Histórico de atividades no card | ✅ |
+| Comentários no card | ✅ |
+| Time tracking (log de horas por card) | ✅ |
 
 ---
 
@@ -153,9 +156,11 @@
 | ~~4.2~~ | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
 | ~~4.3~~ | Card aging (opacidade em cards parados há muito tempo) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
 | ~~4.4~~ | Cor de destaque / cover no card | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
-| 4.5 | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` | ⏳ |
-| 4.6 | Comentários no card | 🔴 Alto | `claude-opus-4-7` | ⏳ |
-| 4.7 | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` | ⏳ |
+| ~~4.5~~ | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` | ✅ |
+| ~~4.6~~ | Comentários no card | 🔴 Alto | `claude-opus-4-7` | ✅ |
+| ~~4.7~~ | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` | ✅ |
+
+> ⚠️ **Migration pendente:** rodar `supabase_activities_comments_time_migration.sql` no Supabase antes de usar 4.5/4.6/4.7.
 
 ---
 

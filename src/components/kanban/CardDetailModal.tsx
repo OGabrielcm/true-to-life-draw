@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   Pencil,
@@ -12,6 +12,9 @@ import {
   Link2,
   AlertTriangle,
   LayoutTemplate,
+  Activity as ActivityIcon,
+  MessageSquare,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -24,6 +27,7 @@ import {
   TrackId,
   Trilha,
   formatDate,
+  formatMinutes,
   getChecklistProgress,
   getGoalProgress,
   isBlocked,
@@ -31,6 +35,7 @@ import {
 import { useTheme } from "@/components/theme-provider";
 import { renderMarkdown } from "@/lib/markdown";
 import { CARD_COLOR_PRESETS } from "@/lib/kanban-types";
+import { useKanban } from "@/lib/kanban-store";
 
 export function CardDetailModal({
   card,
@@ -69,6 +74,11 @@ export function CardDetailModal({
   const [templateName, setTemplateName] = useState("");
   const [colorOpen, setColorOpen] = useState(false);
   const { theme } = useTheme();
+  const { loadCardDetails } = useKanban();
+
+  useEffect(() => {
+    loadCardDetails(card.id);
+  }, [card.id, loadCardDetails]);
 
   // Edit state
   const [editTitle, setEditTitle] = useState(card.title);
@@ -425,6 +435,11 @@ export function CardDetailModal({
           />
         )}
 
+        {/* ── COMENTÁRIOS / TIME TRACKING / ATIVIDADES ── */}
+        {!editing && <CommentsSection cardId={card.id} />}
+        {!editing && <TimeTrackingSection cardId={card.id} />}
+        {!editing && <ActivitySection cardId={card.id} />}
+
         {/* ── MOVER (só em modo view) ── */}
         {!editing && (
           <>
@@ -716,6 +731,301 @@ function ChecklistSection({
           <Plus className="h-3.5 w-3.5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+// ── COMMENTS SECTION ──
+function CommentsSection({ cardId }: { cardId: string }) {
+  const { commentsByCard, addComment, updateComment, deleteComment } = useKanban();
+  const comments = commentsByCard[cardId] ?? [];
+  const [text, setText] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+
+  const submit = () => {
+    if (!text.trim()) return;
+    addComment(cardId, text);
+    setText("");
+  };
+
+  const startEdit = (id: string, current: string) => {
+    setEditingId(id);
+    setEditText(current);
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !editText.trim()) return;
+    updateComment(editingId, editText);
+    setEditingId(null);
+  };
+
+  return (
+    <div className="mt-5">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <MessageSquare className="h-3 w-3" />
+        Comentários {comments.length > 0 && `(${comments.length})`}
+      </p>
+
+      <div className="space-y-1.5">
+        {comments.map((c) => (
+          <div
+            key={c.id}
+            className="group rounded-md border bg-background px-2.5 py-1.5"
+            style={{ borderWidth: "0.5px" }}
+          >
+            {editingId === c.id ? (
+              <div className="flex items-start gap-1.5">
+                <textarea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  rows={2}
+                  className="flex-1 resize-none rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+                  style={{ borderWidth: "0.5px" }}
+                  autoFocus
+                />
+                <button
+                  onClick={saveEdit}
+                  className="rounded p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"
+                >
+                  <Check className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="rounded p-1 text-muted-foreground hover:bg-muted"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="flex-1 whitespace-pre-wrap text-sm text-foreground">{c.text}</p>
+                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100">
+                    <button
+                      onClick={() => startEdit(c.id, c.text)}
+                      className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => deleteComment(c.id, cardId)}
+                      className="rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  {new Date(c.created_at).toLocaleString("pt-BR")}
+                  {c.updated_at !== c.created_at && " (editado)"}
+                </p>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-2 flex items-start gap-1.5">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
+          }}
+          placeholder="Adicionar comentário... (Ctrl+Enter)"
+          rows={2}
+          className="flex-1 resize-none rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+          style={{ borderWidth: "0.5px" }}
+        />
+        <button
+          onClick={submit}
+          disabled={!text.trim()}
+          className="rounded-md bg-foreground p-1.5 text-background hover:opacity-90 disabled:opacity-30"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── TIME TRACKING SECTION ──
+function TimeTrackingSection({ cardId }: { cardId: string }) {
+  const { timeLogsByCard, addTimeLog, deleteTimeLog } = useKanban();
+  const logs = timeLogsByCard[cardId] ?? [];
+  const [adding, setAdding] = useState(false);
+  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [note, setNote] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+
+  const total = useMemo(() => logs.reduce((acc, l) => acc + l.minutes, 0), [logs]);
+
+  const submit = () => {
+    const h = parseInt(hours || "0", 10);
+    const m = parseInt(minutes || "0", 10);
+    const totalMin = (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+    if (totalMin <= 0) return;
+    addTimeLog(cardId, totalMin, note || undefined, date);
+    setHours("");
+    setMinutes("");
+    setNote("");
+    setAdding(false);
+  };
+
+  return (
+    <div className="mt-5">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          Time tracking {logs.length > 0 && `(${logs.length})`}
+        </p>
+        {total > 0 && (
+          <span className="text-xs font-semibold text-foreground">{formatMinutes(total)}</span>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        {logs.map((l) => (
+          <div
+            key={l.id}
+            className="group flex items-center gap-2 rounded-md border bg-background px-2 py-1.5"
+            style={{ borderWidth: "0.5px" }}
+          >
+            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+              {formatMinutes(l.minutes)}
+            </span>
+            <span className="shrink-0 text-[10px] text-muted-foreground">
+              {formatDate(l.logged_at)}
+            </span>
+            {l.note && (
+              <span className="flex-1 truncate text-xs text-foreground/80">{l.note}</span>
+            )}
+            <button
+              onClick={() => deleteTimeLog(l.id, cardId)}
+              className="ml-auto opacity-0 group-hover:opacity-100 rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {!adding ? (
+        <button
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          style={{ borderWidth: "0.5px" }}
+        >
+          <Plus className="h-3 w-3" />
+          Registrar tempo
+        </button>
+      ) : (
+        <div className="mt-2 rounded-md border bg-background p-2" style={{ borderWidth: "0.5px" }}>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <input
+              type="number"
+              min="0"
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}
+              placeholder="h"
+              className="w-14 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+            />
+            <span className="text-xs text-muted-foreground">h</span>
+            <input
+              type="number"
+              min="0"
+              max="59"
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value)}
+              placeholder="m"
+              className="w-14 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+            />
+            <span className="text-xs text-muted-foreground">m</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="rounded-md border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+            />
+          </div>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Nota (opcional)"
+            className="mt-1.5 w-full rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+            style={{ borderWidth: "0.5px" }}
+          />
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <button
+              onClick={submit}
+              className="rounded-md bg-foreground px-2.5 py-1 text-xs font-medium text-background hover:opacity-90"
+            >
+              Salvar
+            </button>
+            <button
+              onClick={() => {
+                setAdding(false);
+                setHours("");
+                setMinutes("");
+                setNote("");
+              }}
+              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ACTIVITY SECTION ──
+function ActivitySection({ cardId }: { cardId: string }) {
+  const { activitiesByCard } = useKanban();
+  const activities = activitiesByCard[cardId] ?? [];
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? activities : activities.slice(0, 5);
+
+  if (activities.length === 0) return null;
+
+  return (
+    <div className="mt-5">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <ActivityIcon className="h-3 w-3" />
+        Atividades ({activities.length})
+      </p>
+      <div className="space-y-0.5">
+        {visible.map((a) => (
+          <div
+            key={a.id}
+            className="flex items-baseline gap-2 rounded px-1 py-0.5 text-xs text-muted-foreground"
+          >
+            <span className="shrink-0 text-[10px] tabular-nums">
+              {new Date(a.created_at).toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            <span className="flex-1 text-foreground/80">{a.message}</span>
+          </div>
+        ))}
+      </div>
+      {activities.length > 5 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-1 text-[10px] font-medium text-muted-foreground hover:text-foreground"
+        >
+          {expanded ? "Mostrar menos" : `Ver todas (${activities.length})`}
+        </button>
+      )}
     </div>
   );
 }
