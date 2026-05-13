@@ -1,6 +1,17 @@
 import { useRef } from "react";
 import { Calendar, CheckSquare, GripVertical, Link2, Star, Target } from "lucide-react";
-import { Card, ColumnId, getChecklistProgress, getDeadlineStatus, getGoalProgress, isBlocked, PRIO_COLORS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
+import {
+  Card,
+  ColumnId,
+  getChecklistProgress,
+  getDeadlineStatus,
+  getGoalProgress,
+  isBlocked,
+  PRIO_COLORS,
+  TrackId,
+  Trilha,
+  formatDate,
+} from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 
 export function CardItem({
@@ -20,13 +31,19 @@ export function CardItem({
   onDragStart: () => void;
   onDragEnd: () => void;
   isDragging: boolean;
-  onTouchDrop?: (target: { col: ColumnId; track: TrackId; beforeId?: string; afterId?: string }) => void;
+  onTouchDrop?: (target: {
+    col: ColumnId;
+    track: TrackId;
+    beforeId?: string;
+    afterId?: string;
+  }) => void;
 }) {
   const { theme } = useTheme();
   const prioRaw = PRIO_COLORS[card.prio];
-  const prio = theme === "dark"
-    ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
-    : { bg: prioRaw.bg, fg: prioRaw.fg };
+  const prio =
+    theme === "dark"
+      ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
+      : { bg: prioRaw.bg, fg: prioRaw.fg };
   const isGoal = card.type === "Goal";
   const deadlineStatus = getDeadlineStatus(card);
   const checklistProgress = getChecklistProgress(card);
@@ -73,7 +90,10 @@ export function CardItem({
       const col = colEl.getAttribute("data-col") as ColumnId;
       const trackEl = colEl.closest("[data-track]");
       const track = trackEl?.getAttribute("data-track") as TrackId;
-      if (!col || !track) { onDragEnd(); return; }
+      if (!col || !track) {
+        onDragEnd();
+        return;
+      }
 
       // Verifica se soltou sobre OUTRO card (para reorder dentro da coluna)
       const overCardEl = target?.closest("[data-card-id]") as HTMLElement | null;
@@ -83,7 +103,9 @@ export function CardItem({
         const rect = overCardEl.getBoundingClientRect();
         const midY = rect.top + rect.height / 2;
         const isAfter = touch.clientY >= midY;
-        onTouchDrop(isAfter ? { col, track, afterId: overCardId } : { col, track, beforeId: overCardId });
+        onTouchDrop(
+          isAfter ? { col, track, afterId: overCardId } : { col, track, beforeId: overCardId },
+        );
       } else {
         // Drop em área vazia → vai pro fim da coluna
         onTouchDrop({ col, track });
@@ -110,12 +132,12 @@ export function CardItem({
         borderLeft: blocked
           ? "3px solid #a855f7"
           : isGoal
-          ? "3px solid var(--foreground)"
-          : deadlineStatus === "overdue"
-          ? "3px solid #ef4444"
-          : deadlineStatus === "today"
-          ? "3px solid #f97316"
-          : undefined,
+            ? "3px solid var(--foreground)"
+            : deadlineStatus === "overdue"
+              ? "3px solid #ef4444"
+              : deadlineStatus === "today"
+                ? "3px solid #f97316"
+                : undefined,
       }}
     >
       {/* Grip handle — só este elemento captura toque para drag */}
@@ -145,7 +167,9 @@ export function CardItem({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-1.5 flex-1">
             {isGoal && <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foreground" />}
-            <h3 className="text-sm font-medium leading-snug text-card-foreground line-clamp-2">{card.title}</h3>
+            <h3 className="text-sm font-medium leading-snug text-card-foreground line-clamp-2">
+              {card.title}
+            </h3>
           </div>
           {card.starred && (
             <Star className="h-3.5 w-3.5 shrink-0 text-yellow-500" fill="currentColor" />
@@ -155,24 +179,27 @@ export function CardItem({
           <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">{card.desc}</p>
         )}
 
-        {isGoal && (() => {
-          const progress = getGoalProgress(card, allCards);
-          if (progress.total === 0) return null;
-          return (
-            <div className="mt-2">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium text-muted-foreground">Progresso</span>
-                <span className="text-[10px] font-semibold text-foreground">{progress.percent}%</span>
+        {isGoal &&
+          (() => {
+            const progress = getGoalProgress(card, allCards);
+            if (progress.total === 0) return null;
+            return (
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-medium text-muted-foreground">Progresso</span>
+                  <span className="text-[10px] font-semibold text-foreground">
+                    {progress.percent}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted/40 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-foreground/60 transition-all duration-300"
+                    style={{ width: `${progress.percent}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-muted/40 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-foreground/60 transition-all duration-300"
-                  style={{ width: `${progress.percent}%` }}
-                />
-              </div>
-            </div>
-          );
-        })()}
+            );
+          })()}
 
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span
@@ -218,17 +245,22 @@ export function CardItem({
             <span
               className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium"
               style={{
-                color: deadlineStatus === "overdue"
-                  ? "#ef4444"
-                  : deadlineStatus === "today"
-                  ? "#f97316"
-                  : deadlineStatus === "soon"
-                  ? "#eab308"
-                  : "var(--muted-foreground)",
+                color:
+                  deadlineStatus === "overdue"
+                    ? "#ef4444"
+                    : deadlineStatus === "today"
+                      ? "#f97316"
+                      : deadlineStatus === "soon"
+                        ? "#eab308"
+                        : "var(--muted-foreground)",
               }}
             >
               <Calendar className="h-3 w-3" />
-              {deadlineStatus === "overdue" ? "Vencido · " : deadlineStatus === "today" ? "Hoje · " : ""}
+              {deadlineStatus === "overdue"
+                ? "Vencido · "
+                : deadlineStatus === "today"
+                  ? "Hoje · "
+                  : ""}
               {formatDate(card.date)}
             </span>
           )}

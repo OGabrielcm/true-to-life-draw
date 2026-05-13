@@ -40,7 +40,8 @@ function SignUpPage() {
           <span className="text-3xl">✉️</span>
           <h1 className="mt-4 text-base font-semibold">Verifique seu email</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Enviamos um link de confirmação para <strong>{email}</strong>. Após confirmar, faça login.
+            Enviamos um link de confirmação para <strong>{email}</strong>. Após confirmar, faça
+            login.
           </p>
           <a
             href="/login"

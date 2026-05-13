@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Card,
   Column,
@@ -22,7 +15,10 @@ import {
 } from "./kanban-types";
 import { supabase } from "./supabase";
 
-type AddInput = Omit<Card, "id" | "created_at" | "updated_at" | "starred" | "checklist" | "blocked_by" | "order"> & {
+type AddInput = Omit<
+  Card,
+  "id" | "created_at" | "updated_at" | "starred" | "checklist" | "blocked_by" | "order"
+> & {
   starred?: boolean;
   checklist?: Card["checklist"];
   blocked_by?: Card["blocked_by"];
@@ -43,7 +39,10 @@ interface KanbanCtx {
   addCard: (data: AddInput) => void;
   updateCard: (id: string, patch: Partial<Card>) => void;
   moveCard: (id: string, col: ColumnId, track?: TrackId) => void;
-  reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
+  reorderCard: (
+    id: string,
+    target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
+  ) => void;
   deleteCard: (id: string) => void;
   toggleStar: (id: string) => void;
   duplicateCard: (id: string) => void;
@@ -150,15 +149,18 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || cancelled) return;
 
-      const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] = await Promise.all([
-        supabase.from("tasks").select("*").order("created_at"),
-        supabase.from("trilhas").select("*").order("created_at"),
-        supabase.from("tracks").select("*").order("order"),
-        supabase.from("columns").select("*").order("order"),
-      ]);
+      const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] =
+        await Promise.all([
+          supabase.from("tasks").select("*").order("created_at"),
+          supabase.from("trilhas").select("*").order("created_at"),
+          supabase.from("tracks").select("*").order("order"),
+          supabase.from("columns").select("*").order("order"),
+        ]);
 
       if (cancelled) return;
 
@@ -208,7 +210,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       if (!dbColumns?.length) {
         const seededCols = DEFAULT_COLUMNS.map((c) => ({ ...c, user_id: user.id }));
         const { data: inserted } = await supabase.from("columns").insert(seededCols).select();
-        if (!cancelled) setColumns((inserted ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
+        if (!cancelled)
+          setColumns((inserted ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
       } else {
         if (!cancelled) setColumns(dbColumns.map(rowToColumn).sort((a, b) => a.order - b.order));
       }
@@ -239,310 +242,343 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveCollapsed(collapsed);
   }, [collapsed]);
 
-  const value = useMemo<KanbanCtx>(() => ({
-    cards,
-    trilhas,
-    tracks,
-    columns,
-    collapsed,
-    search,
-    setSearch,
-    filter,
-    setFilter,
-    loading,
-    createOpen,
-    setCreateOpen,
+  const value = useMemo<KanbanCtx>(
+    () => ({
+      cards,
+      trilhas,
+      tracks,
+      columns,
+      collapsed,
+      search,
+      setSearch,
+      filter,
+      setFilter,
+      loading,
+      createOpen,
+      setCreateOpen,
 
-    addCard: async (data) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const now = new Date().toISOString();
-      const tempId = crypto.randomUUID();
-      const newCard: Card = {
-        ...data,
-        starred: data.starred ?? false,
-        order: nextOrder(cards, data.track, data.col),
-        checklist: data.checklist ?? [],
-        blocked_by: data.blocked_by ?? [],
-        id: tempId,
-        created_at: now,
-        updated_at: now,
-      };
-      setCards((cur) => [...cur, newCard]);
-      const { data: inserted, error } = await supabase
-        .from("tasks")
-        .insert({ ...newCard, user_id: user.id })
-        .select()
-        .single();
-      if (error) {
-        setCards((cur) => cur.filter((c) => c.id !== tempId));
-      } else if (inserted) {
-        setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
-      }
-    },
+      addCard: async (data) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const now = new Date().toISOString();
+        const tempId = crypto.randomUUID();
+        const newCard: Card = {
+          ...data,
+          starred: data.starred ?? false,
+          order: nextOrder(cards, data.track, data.col),
+          checklist: data.checklist ?? [],
+          blocked_by: data.blocked_by ?? [],
+          id: tempId,
+          created_at: now,
+          updated_at: now,
+        };
+        setCards((cur) => [...cur, newCard]);
+        const { data: inserted, error } = await supabase
+          .from("tasks")
+          .insert({ ...newCard, user_id: user.id })
+          .select()
+          .single();
+        if (error) {
+          setCards((cur) => cur.filter((c) => c.id !== tempId));
+        } else if (inserted) {
+          setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
+        }
+      },
 
-    updateCard: async (id, patch) => {
-      const now = new Date().toISOString();
-      setCards((cur) =>
-        cur.map((c) => (c.id === id ? { ...c, ...patch, updated_at: now } : c))
-      );
-      await supabase.from("tasks").update({ ...patch, updated_at: now }).eq("id", id);
-    },
-
-    moveCard: async (id, col, track) => {
-      const now = new Date().toISOString();
-      const targetTrack = track ?? cards.find((c) => c.id === id)?.track;
-      if (!targetTrack) return;
-      // Card que muda de coluna/track vai pro final da nova coluna
-      const newOrder = nextOrder(cards.filter((c) => c.id !== id), targetTrack, col);
-      const patch: Partial<Card> = { col, order: newOrder, updated_at: now };
-      if (track) patch.track = track;
-      setCards((cur) =>
-        cur.map((c) =>
-          c.id === id ? { ...c, col, track: track ?? c.track, order: newOrder, updated_at: now } : c
-        )
-      );
-      await supabase.from("tasks").update(patch).eq("id", id);
-    },
-
-    reorderCard: async (id, target) => {
-      const card = cards.find((c) => c.id === id);
-      if (!card) return;
-      const targetCol = target.col ?? card.col;
-      const targetTrack = target.track ?? card.track;
-      // Pega cards da coluna alvo, ordenados (excluindo o próprio)
-      const sameColumn = cards
-        .filter((c) => c.track === targetTrack && c.col === targetCol && c.id !== id)
-        .sort((a, b) => a.order - b.order);
-
-      let newOrder: number;
-      if (target.beforeId) {
-        const beforeIdx = sameColumn.findIndex((c) => c.id === target.beforeId);
-        if (beforeIdx === -1) return;
-        const before = sameColumn[beforeIdx];
-        const prev = sameColumn[beforeIdx - 1];
-        newOrder = prev ? (prev.order + before.order) / 2 : before.order - 1;
-      } else if (target.afterId) {
-        const afterIdx = sameColumn.findIndex((c) => c.id === target.afterId);
-        if (afterIdx === -1) return;
-        const after = sameColumn[afterIdx];
-        const next = sameColumn[afterIdx + 1];
-        newOrder = next ? (after.order + next.order) / 2 : after.order + 1;
-      } else {
-        newOrder = sameColumn.length ? sameColumn[sameColumn.length - 1].order + 1 : 1;
-      }
-
-      // Sem mudança real
-      const colChanged = targetCol !== card.col;
-      const trackChanged = targetTrack !== card.track;
-      const orderChanged = Math.abs(newOrder - card.order) > 1e-9;
-      if (!colChanged && !trackChanged && !orderChanged) return;
-
-      const now = new Date().toISOString();
-      setCards((cur) =>
-        cur.map((c) =>
-          c.id === id
-            ? { ...c, col: targetCol, track: targetTrack, order: newOrder, updated_at: now }
-            : c
-        )
-      );
-      await supabase
-        .from("tasks")
-        .update({ col: targetCol, track: targetTrack, order: newOrder, updated_at: now })
-        .eq("id", id);
-    },
-
-    deleteCard: async (id) => {
-      setCards((cur) => cur.filter((c) => c.id !== id));
-      await supabase.from("tasks").delete().eq("id", id);
-    },
-
-    toggleStar: async (id) => {
-      const now = new Date().toISOString();
-      setCards((cur) =>
-        cur.map((c) =>
-          c.id === id ? { ...c, starred: !c.starred, updated_at: now } : c
-        )
-      );
-      const card = cards.find((c) => c.id === id);
-      if (card) {
+      updateCard: async (id, patch) => {
+        const now = new Date().toISOString();
+        setCards((cur) => cur.map((c) => (c.id === id ? { ...c, ...patch, updated_at: now } : c)));
         await supabase
           .from("tasks")
-          .update({ starred: !card.starred, updated_at: now })
+          .update({ ...patch, updated_at: now })
           .eq("id", id);
-      }
-    },
+      },
 
-    duplicateCard: async (id) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const original = cards.find((c) => c.id === id);
-      if (!user || !original) return;
-      const now = new Date().toISOString();
-      const tempId = crypto.randomUUID();
-      const newCard: Card = {
-        ...original,
-        id: tempId,
-        title: `${original.title} (copy)`,
-        starred: false,
-        order: nextOrder(cards, original.track, original.col),
-        // Reseta estado de progresso: checklist desmarcado, sem dependências
-        checklist: (original.checklist ?? []).map((i) => ({ ...i, id: crypto.randomUUID(), done: false })),
-        blocked_by: [],
-        created_at: now,
-        updated_at: now,
-      };
-      setCards((cur) => [...cur, newCard]);
-      const { data: inserted, error } = await supabase
-        .from("tasks")
-        .insert({ ...newCard, user_id: user.id })
-        .select()
-        .single();
-      if (error) {
-        setCards((cur) => cur.filter((c) => c.id !== tempId));
-      } else if (inserted) {
-        setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
-      }
-    },
-
-    toggleCollapsed: (id) =>
-      setCollapsed((cur) => ({ ...cur, [id]: !cur[id] })),
-
-    createTrilha: async (t) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const tempId = crypto.randomUUID();
-      setTrilhas((cur) => [...cur, { ...t, id: tempId }]);
-      const { data: inserted, error } = await supabase
-        .from("trilhas")
-        .insert({ ...t, user_id: user.id })
-        .select()
-        .single();
-      if (error) {
-        setTrilhas((cur) => cur.filter((x) => x.id !== tempId));
-      } else if (inserted) {
-        setTrilhas((cur) =>
-          cur.map((x) => (x.id === tempId ? rowToTrilha(inserted) : x))
+      moveCard: async (id, col, track) => {
+        const now = new Date().toISOString();
+        const targetTrack = track ?? cards.find((c) => c.id === id)?.track;
+        if (!targetTrack) return;
+        // Card que muda de coluna/track vai pro final da nova coluna
+        const newOrder = nextOrder(
+          cards.filter((c) => c.id !== id),
+          targetTrack,
+          col,
         );
-      }
-    },
-
-    updateTrilha: async (id, data) => {
-      setTrilhas((cur) => cur.map((t) => (t.id === id ? { ...t, ...data } : t)));
-      await supabase.from("trilhas").update(data).eq("id", id);
-    },
-
-    deleteTrilha: async (id) => {
-      setTrilhas((cur) => cur.filter((t) => t.id !== id));
-      setCards((cur) =>
-        cur.map((c) => ({ ...c, tags: c.tags.filter((x) => x !== id) }))
-      );
-      setFilter((f) => (f === id ? "__all" : f));
-      await supabase.from("trilhas").delete().eq("id", id);
-      await supabase.rpc("remove_tag_from_tasks", { tag_id: id });
-    },
-
-    createTrack: async (input) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const tempId = crypto.randomUUID();
-      const order = input.order ?? (tracks.length ? Math.max(...tracks.map((t) => t.order)) + 1 : 0);
-      const newTrack: Track = { ...input, id: tempId, order };
-      setTracks((cur) => [...cur, newTrack].sort((a, b) => a.order - b.order));
-      const { data: inserted, error } = await supabase
-        .from("tracks")
-        .insert({ ...trackToRow(newTrack), user_id: user.id })
-        .select()
-        .single();
-      if (error) {
-        setTracks((cur) => cur.filter((x) => x.id !== tempId));
-      } else if (inserted) {
-        setTracks((cur) =>
-          cur.map((x) => (x.id === tempId ? rowToTrack(inserted) : x)).sort((a, b) => a.order - b.order)
+        const patch: Partial<Card> = { col, order: newOrder, updated_at: now };
+        if (track) patch.track = track;
+        setCards((cur) =>
+          cur.map((c) =>
+            c.id === id
+              ? { ...c, col, track: track ?? c.track, order: newOrder, updated_at: now }
+              : c,
+          ),
         );
-      }
-    },
+        await supabase.from("tasks").update(patch).eq("id", id);
+      },
 
-    updateTrack: async (id, data) => {
-      setTracks((cur) =>
-        cur.map((t) => (t.id === id ? { ...t, ...data } : t)).sort((a, b) => a.order - b.order)
-      );
-      await supabase.from("tracks").update(trackToRow(data)).eq("id", id);
-    },
+      reorderCard: async (id, target) => {
+        const card = cards.find((c) => c.id === id);
+        if (!card) return;
+        const targetCol = target.col ?? card.col;
+        const targetTrack = target.track ?? card.track;
+        // Pega cards da coluna alvo, ordenados (excluindo o próprio)
+        const sameColumn = cards
+          .filter((c) => c.track === targetTrack && c.col === targetCol && c.id !== id)
+          .sort((a, b) => a.order - b.order);
 
-    deleteTrack: async (id) => {
-      // Move cards desta track para a primeira track restante (se houver)
-      const remaining = tracks.filter((t) => t.id !== id);
-      const fallback = remaining[0];
-      if (fallback) {
+        let newOrder: number;
+        if (target.beforeId) {
+          const beforeIdx = sameColumn.findIndex((c) => c.id === target.beforeId);
+          if (beforeIdx === -1) return;
+          const before = sameColumn[beforeIdx];
+          const prev = sameColumn[beforeIdx - 1];
+          newOrder = prev ? (prev.order + before.order) / 2 : before.order - 1;
+        } else if (target.afterId) {
+          const afterIdx = sameColumn.findIndex((c) => c.id === target.afterId);
+          if (afterIdx === -1) return;
+          const after = sameColumn[afterIdx];
+          const next = sameColumn[afterIdx + 1];
+          newOrder = next ? (after.order + next.order) / 2 : after.order + 1;
+        } else {
+          newOrder = sameColumn.length ? sameColumn[sameColumn.length - 1].order + 1 : 1;
+        }
+
+        // Sem mudança real
+        const colChanged = targetCol !== card.col;
+        const trackChanged = targetTrack !== card.track;
+        const orderChanged = Math.abs(newOrder - card.order) > 1e-9;
+        if (!colChanged && !trackChanged && !orderChanged) return;
+
         const now = new Date().toISOString();
         setCards((cur) =>
           cur.map((c) =>
-            c.track === id ? { ...c, track: fallback.id, updated_at: now } : c
-          )
+            c.id === id
+              ? { ...c, col: targetCol, track: targetTrack, order: newOrder, updated_at: now }
+              : c,
+          ),
         );
-        await supabase.from("tasks").update({ track: fallback.id, updated_at: now }).eq("track", id);
-      } else {
-        // Sem track de fallback: apaga os cards desta track
-        setCards((cur) => cur.filter((c) => c.track !== id));
-        await supabase.from("tasks").delete().eq("track", id);
-      }
-      setTracks(remaining);
-      setCollapsed((cur) => {
-        const next = { ...cur };
-        delete next[id];
-        return next;
-      });
-      await supabase.from("tracks").delete().eq("id", id);
-    },
+        await supabase
+          .from("tasks")
+          .update({ col: targetCol, track: targetTrack, order: newOrder, updated_at: now })
+          .eq("id", id);
+      },
 
-    createColumn: async (name) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const tempId = crypto.randomUUID();
-      const order = columns.length ? Math.max(...columns.map((c) => c.order)) + 1 : 5;
-      const newCol: Column = { id: tempId, name: name.trim(), order };
-      setColumns((cur) => [...cur, newCol].sort((a, b) => a.order - b.order));
-      const { data: inserted, error } = await supabase
-        .from("columns")
-        .insert({ id: tempId, name: name.trim(), order, user_id: user.id })
-        .select()
-        .single();
-      if (error) {
-        setColumns((cur) => cur.filter((c) => c.id !== tempId));
-      } else if (inserted) {
-        setColumns((cur) =>
-          cur.map((c) => (c.id === tempId ? rowToColumn(inserted) : c)).sort((a, b) => a.order - b.order)
-        );
-      }
-    },
+      deleteCard: async (id) => {
+        setCards((cur) => cur.filter((c) => c.id !== id));
+        await supabase.from("tasks").delete().eq("id", id);
+      },
 
-    updateColumn: async (id, data) => {
-      const patch: Record<string, unknown> = {};
-      if (data.name !== undefined) patch.name = data.name.trim();
-      if (data.wip_limit !== undefined) patch.wip_limit = data.wip_limit;
-      setColumns((cur) =>
-        cur.map((c) => (c.id === id ? { ...c, ...(data.name ? { name: data.name.trim() } : {}), ...(data.wip_limit !== undefined ? { wip_limit: data.wip_limit ?? undefined } : {}) } : c))
-      );
-      await supabase.from("columns").update(patch).eq("id", id);
-    },
-
-    deleteColumn: async (id) => {
-      const remaining = columns.filter((c) => c.id !== id);
-      const fallback = remaining[0];
-      if (fallback) {
+      toggleStar: async (id) => {
         const now = new Date().toISOString();
         setCards((cur) =>
-          cur.map((c) => c.col === id ? { ...c, col: fallback.id, updated_at: now } : c)
+          cur.map((c) => (c.id === id ? { ...c, starred: !c.starred, updated_at: now } : c)),
         );
-        await supabase.from("tasks").update({ col: fallback.id, updated_at: now }).eq("col", id);
-      } else {
-        setCards((cur) => cur.filter((c) => c.col !== id));
-        await supabase.from("tasks").delete().eq("col", id);
-      }
-      setColumns(remaining);
-      await supabase.from("columns").delete().eq("id", id);
-    },
-  }), [cards, trilhas, tracks, columns, collapsed, search, filter, createOpen, loading]);
+        const card = cards.find((c) => c.id === id);
+        if (card) {
+          await supabase
+            .from("tasks")
+            .update({ starred: !card.starred, updated_at: now })
+            .eq("id", id);
+        }
+      },
+
+      duplicateCard: async (id) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const original = cards.find((c) => c.id === id);
+        if (!user || !original) return;
+        const now = new Date().toISOString();
+        const tempId = crypto.randomUUID();
+        const newCard: Card = {
+          ...original,
+          id: tempId,
+          title: `${original.title} (copy)`,
+          starred: false,
+          order: nextOrder(cards, original.track, original.col),
+          // Reseta estado de progresso: checklist desmarcado, sem dependências
+          checklist: (original.checklist ?? []).map((i) => ({
+            ...i,
+            id: crypto.randomUUID(),
+            done: false,
+          })),
+          blocked_by: [],
+          created_at: now,
+          updated_at: now,
+        };
+        setCards((cur) => [...cur, newCard]);
+        const { data: inserted, error } = await supabase
+          .from("tasks")
+          .insert({ ...newCard, user_id: user.id })
+          .select()
+          .single();
+        if (error) {
+          setCards((cur) => cur.filter((c) => c.id !== tempId));
+        } else if (inserted) {
+          setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
+        }
+      },
+
+      toggleCollapsed: (id) => setCollapsed((cur) => ({ ...cur, [id]: !cur[id] })),
+
+      createTrilha: async (t) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const tempId = crypto.randomUUID();
+        setTrilhas((cur) => [...cur, { ...t, id: tempId }]);
+        const { data: inserted, error } = await supabase
+          .from("trilhas")
+          .insert({ ...t, user_id: user.id })
+          .select()
+          .single();
+        if (error) {
+          setTrilhas((cur) => cur.filter((x) => x.id !== tempId));
+        } else if (inserted) {
+          setTrilhas((cur) => cur.map((x) => (x.id === tempId ? rowToTrilha(inserted) : x)));
+        }
+      },
+
+      updateTrilha: async (id, data) => {
+        setTrilhas((cur) => cur.map((t) => (t.id === id ? { ...t, ...data } : t)));
+        await supabase.from("trilhas").update(data).eq("id", id);
+      },
+
+      deleteTrilha: async (id) => {
+        setTrilhas((cur) => cur.filter((t) => t.id !== id));
+        setCards((cur) => cur.map((c) => ({ ...c, tags: c.tags.filter((x) => x !== id) })));
+        setFilter((f) => (f === id ? "__all" : f));
+        await supabase.from("trilhas").delete().eq("id", id);
+        await supabase.rpc("remove_tag_from_tasks", { tag_id: id });
+      },
+
+      createTrack: async (input) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const tempId = crypto.randomUUID();
+        const order =
+          input.order ?? (tracks.length ? Math.max(...tracks.map((t) => t.order)) + 1 : 0);
+        const newTrack: Track = { ...input, id: tempId, order };
+        setTracks((cur) => [...cur, newTrack].sort((a, b) => a.order - b.order));
+        const { data: inserted, error } = await supabase
+          .from("tracks")
+          .insert({ ...trackToRow(newTrack), user_id: user.id })
+          .select()
+          .single();
+        if (error) {
+          setTracks((cur) => cur.filter((x) => x.id !== tempId));
+        } else if (inserted) {
+          setTracks((cur) =>
+            cur
+              .map((x) => (x.id === tempId ? rowToTrack(inserted) : x))
+              .sort((a, b) => a.order - b.order),
+          );
+        }
+      },
+
+      updateTrack: async (id, data) => {
+        setTracks((cur) =>
+          cur.map((t) => (t.id === id ? { ...t, ...data } : t)).sort((a, b) => a.order - b.order),
+        );
+        await supabase.from("tracks").update(trackToRow(data)).eq("id", id);
+      },
+
+      deleteTrack: async (id) => {
+        // Move cards desta track para a primeira track restante (se houver)
+        const remaining = tracks.filter((t) => t.id !== id);
+        const fallback = remaining[0];
+        if (fallback) {
+          const now = new Date().toISOString();
+          setCards((cur) =>
+            cur.map((c) => (c.track === id ? { ...c, track: fallback.id, updated_at: now } : c)),
+          );
+          await supabase
+            .from("tasks")
+            .update({ track: fallback.id, updated_at: now })
+            .eq("track", id);
+        } else {
+          // Sem track de fallback: apaga os cards desta track
+          setCards((cur) => cur.filter((c) => c.track !== id));
+          await supabase.from("tasks").delete().eq("track", id);
+        }
+        setTracks(remaining);
+        setCollapsed((cur) => {
+          const next = { ...cur };
+          delete next[id];
+          return next;
+        });
+        await supabase.from("tracks").delete().eq("id", id);
+      },
+
+      createColumn: async (name) => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const tempId = crypto.randomUUID();
+        const order = columns.length ? Math.max(...columns.map((c) => c.order)) + 1 : 5;
+        const newCol: Column = { id: tempId, name: name.trim(), order };
+        setColumns((cur) => [...cur, newCol].sort((a, b) => a.order - b.order));
+        const { data: inserted, error } = await supabase
+          .from("columns")
+          .insert({ id: tempId, name: name.trim(), order, user_id: user.id })
+          .select()
+          .single();
+        if (error) {
+          setColumns((cur) => cur.filter((c) => c.id !== tempId));
+        } else if (inserted) {
+          setColumns((cur) =>
+            cur
+              .map((c) => (c.id === tempId ? rowToColumn(inserted) : c))
+              .sort((a, b) => a.order - b.order),
+          );
+        }
+      },
+
+      updateColumn: async (id, data) => {
+        const patch: Record<string, unknown> = {};
+        if (data.name !== undefined) patch.name = data.name.trim();
+        if (data.wip_limit !== undefined) patch.wip_limit = data.wip_limit;
+        setColumns((cur) =>
+          cur.map((c) =>
+            c.id === id
+              ? {
+                  ...c,
+                  ...(data.name ? { name: data.name.trim() } : {}),
+                  ...(data.wip_limit !== undefined
+                    ? { wip_limit: data.wip_limit ?? undefined }
+                    : {}),
+                }
+              : c,
+          ),
+        );
+        await supabase.from("columns").update(patch).eq("id", id);
+      },
+
+      deleteColumn: async (id) => {
+        const remaining = columns.filter((c) => c.id !== id);
+        const fallback = remaining[0];
+        if (fallback) {
+          const now = new Date().toISOString();
+          setCards((cur) =>
+            cur.map((c) => (c.col === id ? { ...c, col: fallback.id, updated_at: now } : c)),
+          );
+          await supabase.from("tasks").update({ col: fallback.id, updated_at: now }).eq("col", id);
+        } else {
+          setCards((cur) => cur.filter((c) => c.col !== id));
+          await supabase.from("tasks").delete().eq("col", id);
+        }
+        setColumns(remaining);
+        await supabase.from("columns").delete().eq("id", id);
+      },
+    }),
+    [cards, trilhas, tracks, columns, collapsed, search, filter, createOpen, loading],
+  );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -22,11 +22,31 @@ import { ColumnsModal } from "./ColumnsModal";
 
 export function Board() {
   const {
-    cards, trilhas, tracks, columns, collapsed, search, filter, setFilter,
-    addCard, updateCard, moveCard, reorderCard, deleteCard, toggleStar, duplicateCard, toggleCollapsed,
-    createTrilha, updateTrilha, deleteTrilha,
-    createTrack, updateTrack, deleteTrack,
-    createColumn, updateColumn, deleteColumn,
+    cards,
+    trilhas,
+    tracks,
+    columns,
+    collapsed,
+    search,
+    filter,
+    setFilter,
+    addCard,
+    updateCard,
+    moveCard,
+    reorderCard,
+    deleteCard,
+    toggleStar,
+    duplicateCard,
+    toggleCollapsed,
+    createTrilha,
+    updateTrilha,
+    deleteTrilha,
+    createTrack,
+    updateTrack,
+    deleteTrack,
+    createColumn,
+    updateColumn,
+    deleteColumn,
   } = useKanban();
 
   const [adding, setAdding] = useState<{ col: ColumnId; track: TrackId } | null>(null);
@@ -42,7 +62,8 @@ export function Board() {
     return cards.filter((c) => {
       if (isArchived(c)) return false;
       if (filter !== "__all" && !c.tags.includes(filter)) return false;
-      if (q && !c.title.toLowerCase().includes(q) && !(c.desc ?? "").toLowerCase().includes(q)) return false;
+      if (q && !c.title.toLowerCase().includes(q) && !(c.desc ?? "").toLowerCase().includes(q))
+        return false;
       return true;
     });
   }, [cards, filter, search]);
@@ -50,12 +71,15 @@ export function Board() {
   const archivedCount = useMemo(() => cards.filter(isArchived).length, [cards]);
 
   const goals = useMemo(() => cards.filter((c) => c.type === "Goal"), [cards]);
-  const liveOpenCard = openCardId ? cards.find((c) => c.id === openCardId) ?? null : null;
+  const liveOpenCard = openCardId ? (cards.find((c) => c.id === openCardId) ?? null) : null;
 
   return (
     <div className="flex flex-col">
       {/* Filter chips */}
-      <div className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6" style={{ borderWidth: "0.5px" }}>
+      <div
+        className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6"
+        style={{ borderWidth: "0.5px" }}
+      >
         <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
           <button
             onClick={() => setFilter("__all")}
@@ -122,7 +146,8 @@ export function Board() {
             >
               <span className="inline-flex items-center gap-2">
                 <Archive className="h-3.5 w-3.5" />
-                {archivedCount} {archivedCount === 1 ? "card arquivado" : "cards arquivados"} (Done há mais de {ARCHIVE_AFTER_DAYS} dias)
+                {archivedCount} {archivedCount === 1 ? "card arquivado" : "cards arquivados"} (Done
+                há mais de {ARCHIVE_AFTER_DAYS} dias)
               </span>
               <span className="text-foreground/70">Ver no Dashboards →</span>
             </Link>
@@ -148,7 +173,10 @@ export function Board() {
             />
           ))}
           {tracks.length === 0 && (
-            <div className="rounded-xl border border-dashed p-6 text-center" style={{ borderWidth: "0.5px" }}>
+            <div
+              className="rounded-xl border border-dashed p-6 text-center"
+              style={{ borderWidth: "0.5px" }}
+            >
               <p className="text-sm text-muted-foreground">Nenhuma track ainda.</p>
               <button
                 onClick={() => setTracksOpen(true)}
@@ -244,7 +272,10 @@ function CardDropZone({
   setDraggingId: (id: string | null) => void;
   setDragOver: (v: { track: TrackId; col: ColumnId } | null) => void;
   draggingId: string | null;
-  reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
+  reorderCard: (
+    id: string,
+    target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
+  ) => void;
 }) {
   const [dropPos, setDropPos] = useState<"before" | "after" | null>(null);
 
@@ -268,9 +299,8 @@ function CardDropZone({
     e.stopPropagation();
     const id = e.dataTransfer.getData("text/plain");
     if (id && id !== card.id) {
-      const target = dropPos === "before"
-        ? { col, track, beforeId: card.id }
-        : { col, track, afterId: card.id };
+      const target =
+        dropPos === "before" ? { col, track, beforeId: card.id } : { col, track, afterId: card.id };
       reorderCard(id, target);
     }
     setDropPos(null);
@@ -294,9 +324,15 @@ function CardDropZone({
         trilhas={trilhas}
         onClick={onClick}
         onDragStart={() => setDraggingId(card.id)}
-        onDragEnd={() => { setDraggingId(null); setDragOver(null); }}
+        onDragEnd={() => {
+          setDraggingId(null);
+          setDragOver(null);
+        }}
         isDragging={draggingId === card.id}
-        onTouchDrop={(target) => { reorderCard(card.id, target); setDraggingId(null); }}
+        onTouchDrop={(target) => {
+          reorderCard(card.id, target);
+          setDraggingId(null);
+        }}
       />
       {dropPos === "after" && (
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-foreground" />
@@ -336,7 +372,10 @@ function Swimlane({
   setDraggingId: (id: string | null) => void;
   setDragOver: (v: { track: TrackId; col: ColumnId } | null) => void;
   moveCard: (id: string, col: ColumnId, track?: TrackId) => void;
-  reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
+  reorderCard: (
+    id: string,
+    target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
+  ) => void;
 }) {
   const { theme } = useTheme();
   const inProgress = cards.filter((c) => c.col === "inprogress").length;
@@ -399,7 +438,10 @@ function Swimlane({
                 }}
                 className="flex w-[220px] shrink-0 flex-col rounded-lg border bg-muted/40 transition-colors sm:w-[260px] md:w-auto md:flex-1"
                 style={{
-                  borderWidth: col.wip_limit && colCards.length > col.wip_limit ? "2px solid #ef4444" : "0.5px",
+                  borderWidth:
+                    col.wip_limit && colCards.length > col.wip_limit
+                      ? "2px solid #ef4444"
+                      : "0.5px",
                   minWidth: "180px",
                   backgroundColor: isOver
                     ? "color-mix(in oklab, var(--foreground) 8%, var(--muted))"
@@ -408,17 +450,25 @@ function Swimlane({
               >
                 <div className="flex items-center justify-between px-3 pb-2 pt-3">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-medium uppercase tracking-wide" style={{ color: fg }}>
+                    <h3
+                      className="text-xs font-medium uppercase tracking-wide"
+                      style={{ color: fg }}
+                    >
                       {col.name}
                     </h3>
                     <span
                       className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-medium"
                       style={{
-                        color: col.wip_limit && colCards.length > col.wip_limit ? "#ef4444" : "var(--muted-foreground)",
-                        backgroundColor: col.wip_limit && colCards.length > col.wip_limit ? "#fee2e2" : undefined,
+                        color:
+                          col.wip_limit && colCards.length > col.wip_limit
+                            ? "#ef4444"
+                            : "var(--muted-foreground)",
+                        backgroundColor:
+                          col.wip_limit && colCards.length > col.wip_limit ? "#fee2e2" : undefined,
                       }}
                     >
-                      {colCards.length}{col.wip_limit ? `/${col.wip_limit}` : ""}
+                      {colCards.length}
+                      {col.wip_limit ? `/${col.wip_limit}` : ""}
                     </span>
                   </div>
                 </div>

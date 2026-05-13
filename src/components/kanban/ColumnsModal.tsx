@@ -59,7 +59,8 @@ export function ColumnsModal({
       >
         <h2 className="text-base font-medium text-foreground">Gerenciar colunas</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira coluna restante.
+          Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira
+          coluna restante.
         </p>
 
         <div className="mt-4 space-y-2">
@@ -87,7 +88,9 @@ export function ColumnsModal({
                         autoFocus
                       />
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-muted-foreground whitespace-nowrap">WIP Limit:</label>
+                        <label className="text-xs text-muted-foreground whitespace-nowrap">
+                          WIP Limit:
+                        </label>
                         <input
                           type="number"
                           min="1"
@@ -128,7 +131,10 @@ export function ColumnsModal({
                         <>
                           <span className="text-xs text-muted-foreground">Excluir?</span>
                           <button
-                            onClick={() => { onDelete(col.id); setConfirmId(null); }}
+                            onClick={() => {
+                              onDelete(col.id);
+                              setConfirmId(null);
+                            }}
                             className="rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
                           >
                             Sim
@@ -154,7 +160,9 @@ export function ColumnsModal({
                             disabled={columns.length <= 1}
                             className="rounded-md p-1.5 text-red-600 hover:bg-red-50 disabled:opacity-30 dark:hover:bg-red-950/30"
                             aria-label="Excluir"
-                            title={columns.length <= 1 ? "Deve existir ao menos uma coluna" : undefined}
+                            title={
+                              columns.length <= 1 ? "Deve existir ao menos uma coluna" : undefined
+                            }
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

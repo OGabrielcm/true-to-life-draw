@@ -9,6 +9,7 @@ import {
   Star,
   User,
   LayoutDashboard,
+  Calendar,
   ChevronDown,
   Menu,
   X,
@@ -23,6 +24,7 @@ import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 const NAV = [
   { to: "/", label: "Home", icon: Home },
   { to: "/for-you", label: "For You", icon: Star },
+  { to: "/calendar", label: "Calendário", icon: Calendar },
   { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
   { to: "/profile", label: "Profile", icon: User },
 ];
@@ -77,7 +79,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         }`}
         style={{ borderWidth: "0.5px" }}
       >
-        <div className="flex h-12 shrink-0 items-center justify-between px-4 border-b" style={{ borderWidth: "0.5px" }}>
+        <div
+          className="flex h-12 shrink-0 items-center justify-between px-4 border-b"
+          style={{ borderWidth: "0.5px" }}
+        >
           <span className="text-sm font-semibold">🌀 Molas</span>
           <button className="md:hidden" onClick={() => setMobileOpen(false)}>
             <X className="h-4 w-4" />
@@ -93,7 +98,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={n.to}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors ${
-                  active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  active
+                    ? "bg-accent text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -113,7 +120,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               />
             </button>
             {tracksOpen && (
-              <div className="ml-2 mt-1 flex flex-col gap-1 border-l pl-2" style={{ borderWidth: "0.5px" }}>
+              <div
+                className="ml-2 mt-1 flex flex-col gap-1 border-l pl-2"
+                style={{ borderWidth: "0.5px" }}
+              >
                 {tracks.map((t) => (
                   <Link
                     key={t.id}
@@ -142,7 +152,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setMobileOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
       {/* Main column */}
@@ -171,7 +184,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               title={`${urgentCount} card${urgentCount > 1 ? "s" : ""} com prazo vencido ou hoje`}
               className="relative inline-flex items-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -207,15 +226,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
             {avatarOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setAvatarOpen(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setAvatarOpen(false)} />
                 <div
                   className="absolute right-0 top-9 z-20 min-w-[180px] rounded-lg border bg-background py-1 shadow-md"
                   style={{ borderWidth: "0.5px" }}
                 >
-                  <div className="border-b px-3 py-2 text-xs text-muted-foreground" style={{ borderWidth: "0.5px" }}>
+                  <div
+                    className="border-b px-3 py-2 text-xs text-muted-foreground"
+                    style={{ borderWidth: "0.5px" }}
+                  >
                     {user.email}
                   </div>
                   <Link

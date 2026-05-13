@@ -154,7 +154,9 @@ export function AddCardModal({
                 style={{ borderWidth: "0.5px" }}
               >
                 {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
                 ))}
               </select>
             </div>
@@ -166,11 +168,18 @@ export function AddCardModal({
                   <label className="text-xs font-medium text-muted-foreground">Trilha</label>
                   <select
                     value={trackSel}
-                    onChange={(e) => { setTrackSel(e.target.value as TrackId); setParentId(""); }}
+                    onChange={(e) => {
+                      setTrackSel(e.target.value as TrackId);
+                      setParentId("");
+                    }}
                     className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    {tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    {tracks.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -183,7 +192,11 @@ export function AddCardModal({
                     className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    {columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {columns.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -201,7 +214,9 @@ export function AddCardModal({
           </div>
           {type === "Task" && availableGoals.length > 0 && (
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Goal pai (opcional)</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                Goal pai (opcional)
+              </label>
               <select
                 value={parentId}
                 onChange={(e) => setParentId(e.target.value)}
@@ -210,7 +225,9 @@ export function AddCardModal({
               >
                 <option value="">— Nenhum —</option>
                 {availableGoals.map((g) => (
-                  <option key={g.id} value={g.id}>{g.title}</option>
+                  <option key={g.id} value={g.id}>
+                    {g.title}
+                  </option>
                 ))}
               </select>
             </div>
@@ -218,9 +235,7 @@ export function AddCardModal({
           <div>
             <label className="text-xs font-medium text-muted-foreground">Trilhas / tags</label>
             {trilhas.length === 0 ? (
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                Nenhuma trilha cadastrada.
-              </p>
+              <p className="mt-1.5 text-xs text-muted-foreground">Nenhuma trilha cadastrada.</p>
             ) : (
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {trilhas.map((t) => {

@@ -1,7 +1,7 @@
 # 🗺️ Roadmap — Molas Kanban
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026
+> Atualizado em: Maio 2026 — 3.3 e 3.4 ✅
 
 ---
 
@@ -44,6 +44,10 @@
 | WIP Limits por coluna (alerta visual ao ultrapassar) | ✅ |
 | Checklists dentro do card (subtarefas com progresso) | ✅ |
 | Dependências entre cards (bloqueado por) | ✅ |
+| Visão Calendário (mês / semana / lista) | ✅ |
+| Estatísticas do board (KPIs + barras por coluna/prioridade/track) | ✅ |
+| Export CSV / PDF | ✅ |
+| Filtros avançados no board | ✅ |
 
 ---
 
@@ -102,25 +106,25 @@
 
 > Features de visão macro e gestão estratégica.
 
-### 3.1 Visão Calendário
-- **O que é:** Cards com prazo exibidos em um calendário mensal/semanal
+### ~~3.1 Visão Calendário~~ ✅ Implementado
+- **O que é:** Cards com prazo exibidos em um calendário mensal/semanal/lista
 - **Referência:** Trello (Calendar Power-Up), Notion Calendar
-- **Consumo de token:** 🔴 Alto (nova rota, biblioteca de calendário, 4–6 arquivos)
+- **Consumo de token:** 🔴 Alto (nova rota custom, 3 views — sem lib externa)
 - **Modelo recomendado:** `claude-opus-4-7`
 
-### 3.2 Estatísticas do board
+### ~~3.2 Estatísticas do board~~ ✅ Implementado
 - **O que é:** Gráficos de cards por status, taxa de conclusão, cards vencidos
 - **Referência:** JIRA (dashboards), Trello (Butler)
 - **Consumo de token:** 🟡 Médio (nova seção no Dashboards, cálculos client-side)
 - **Modelo recomendado:** `claude-sonnet-4-6[1m]`
 
-### 3.3 Export CSV / PDF
+### ~~3.3 Export CSV / PDF~~ ✅ Implementado
 - **O que é:** Exportar a tabela do Dashboards em CSV ou PDF
 - **Referência:** JIRA, Asana
 - **Consumo de token:** 🟢 Baixo (1 arquivo, biblioteca de export)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
-### 3.4 Filtros avançados no board
+### ~~3.4 Filtros avançados no board~~ ✅ Implementado
 - **O que é:** Filtrar por prazo (vencido, esta semana), prioridade, tipo de card
 - **Referência:** JIRA (JQL), Trello (filtros)
 - **Consumo de token:** 🟢 Baixo (lógica client-side, sem schema change)

@@ -5,7 +5,13 @@
       "Bash(Select-Object FullName)",
       "Bash(npx tsc *)",
       "Bash(bunx tsc *)",
-      "Bash(./node_modules/.bin/tsc --noEmit)"
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(npx eslint *)",
+      "Bash(npm list *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }

@@ -12,7 +12,17 @@ export const Route = createFileRoute("/for-you")({
 });
 
 function ForYouPage() {
-  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar, duplicateCard } = useKanban();
+  const {
+    cards,
+    trilhas,
+    tracks,
+    columns,
+    updateCard,
+    moveCard,
+    deleteCard,
+    toggleStar,
+    duplicateCard,
+  } = useKanban();
   const [openId, setOpenId] = useState<string | null>(null);
 
   const recent = useMemo(() => {
@@ -24,14 +34,18 @@ function ForYouPage() {
   }, [cards]);
 
   const starred = useMemo(() => cards.filter((c) => c.starred && !isArchived(c)), [cards]);
-  const open = openId ? cards.find((c) => c.id === openId) ?? null : null;
+  const open = openId ? (cards.find((c) => c.id === openId) ?? null) : null;
 
   const renderGrid = (list: typeof cards) => (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {list.map((c) => {
         const track = tracks.find((t) => t.id === c.track);
         return (
-          <div key={c.id} className="rounded-lg border p-1" style={{ borderWidth: "0.5px", borderLeft: `3px solid ${track?.border}` }}>
+          <div
+            key={c.id}
+            className="rounded-lg border p-1"
+            style={{ borderWidth: "0.5px", borderLeft: `3px solid ${track?.border}` }}
+          >
             <CardItem
               card={c}
               allCards={cards}
@@ -54,13 +68,19 @@ function ForYouPage() {
           <h2 className="mb-3 text-base font-semibold">Recently worked on</h2>
           {recent.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma atividade nos últimos 7 dias.</p>
-          ) : renderGrid(recent)}
+          ) : (
+            renderGrid(recent)
+          )}
         </section>
         <section>
           <h2 className="mb-3 text-base font-semibold">Starred items</h2>
           {starred.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum card favoritado. Use a estrela no modal de detalhe.</p>
-          ) : renderGrid(starred)}
+            <p className="text-sm text-muted-foreground">
+              Nenhum card favoritado. Use a estrela no modal de detalhe.
+            </p>
+          ) : (
+            renderGrid(starred)
+          )}
         </section>
       </div>
       {open && (

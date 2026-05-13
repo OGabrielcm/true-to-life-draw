@@ -5,9 +5,8 @@ import { useTheme } from "@/components/theme-provider";
 
 function findPreset(t: { bg: string; border: string; fg: string }): TrackColorPreset {
   return (
-    TRACK_COLOR_PRESETS.find(
-      (p) => p.bg === t.bg && p.border === t.border && p.fg === t.fg,
-    ) ?? TRACK_COLOR_PRESETS[0]
+    TRACK_COLOR_PRESETS.find((p) => p.bg === t.bg && p.border === t.border && p.fg === t.fg) ??
+    TRACK_COLOR_PRESETS[0]
   );
 }
 
@@ -116,7 +115,8 @@ export function TracksModal({
       >
         <h2 className="text-base font-medium text-foreground">Gerenciar tracks</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Tracks são as swimlanes do board. Excluir uma track move todos os cards dela para a primeira track restante.
+          Tracks são as swimlanes do board. Excluir uma track move todos os cards dela para a
+          primeira track restante.
         </p>
 
         {/* List */}
@@ -166,7 +166,10 @@ export function TracksModal({
                       className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium"
                       style={{ backgroundColor: bg, color: fg }}
                     >
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.border }} />
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: t.border }}
+                      />
                       {t.name}
                     </span>
                     <div className="ml-auto flex items-center gap-1">

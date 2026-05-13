@@ -1,5 +1,17 @@
 import { useEffect, useState } from "react";
-import { Calendar, Pencil, Star, Trash2, Target, Check, X, Copy, Plus, Link2, AlertTriangle } from "lucide-react";
+import {
+  Calendar,
+  Pencil,
+  Star,
+  Trash2,
+  Target,
+  Check,
+  X,
+  Copy,
+  Plus,
+  Link2,
+  AlertTriangle,
+} from "lucide-react";
 import {
   Card,
   ChecklistItem,
@@ -67,7 +79,10 @@ export function CardDetailModal({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (editing) { setEditing(false); return; }
+        if (editing) {
+          setEditing(false);
+          return;
+        }
         onClose();
       }
     };
@@ -97,12 +112,13 @@ export function CardDetailModal({
   };
 
   const toggleTag = (id: string) =>
-    setEditTags((cur) => cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]);
+    setEditTags((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
   const prioRaw = PRIO_COLORS[editing ? editPrio : card.prio];
-  const prio = theme === "dark"
-    ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
-    : { bg: prioRaw.bg, fg: prioRaw.fg };
+  const prio =
+    theme === "dark"
+      ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
+      : { bg: prioRaw.bg, fg: prioRaw.fg };
   const parent = card.parent_id ? allCards.find((c) => c.id === card.parent_id) : null;
 
   return (
@@ -131,10 +147,17 @@ export function CardDetailModal({
               className="rounded-full border bg-background px-2 py-0.5 text-[10px] font-medium outline-none"
               style={{ borderWidth: "0.5px", backgroundColor: prio.bg, color: prio.fg }}
             >
-              {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+              {PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
             </select>
           )}
-          <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground" style={{ borderWidth: "0.5px" }}>
+          <span
+            className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+            style={{ borderWidth: "0.5px" }}
+          >
             {card.type === "Goal" && <Target className="h-3 w-3" />}
             {card.type}
           </span>
@@ -145,7 +168,11 @@ export function CardDetailModal({
                 const t = trilhas.find((x) => x.id === tid);
                 if (!t) return null;
                 return (
-                  <span key={tid} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: t.bg, color: t.fg }}>
+                  <span
+                    key={tid}
+                    className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    style={{ backgroundColor: t.bg, color: t.fg }}
+                  >
                     {t.name}
                   </span>
                 );
@@ -167,8 +194,7 @@ export function CardDetailModal({
                     {t.name}
                   </button>
                 );
-              })
-          }
+              })}
 
           <div className="ml-auto flex items-center gap-1">
             {!editing && (
@@ -182,7 +208,10 @@ export function CardDetailModal({
                 </button>
                 {onDuplicate && (
                   <button
-                    onClick={() => { onDuplicate(card.id); onClose(); }}
+                    onClick={() => {
+                      onDuplicate(card.id);
+                      onClose();
+                    }}
                     className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                     aria-label="Duplicar"
                   >
@@ -236,7 +265,10 @@ export function CardDetailModal({
               style={{ borderWidth: "0.5px" }}
             />
             {editDate && (
-              <button onClick={() => setEditDate("")} className="text-xs text-muted-foreground hover:text-foreground">
+              <button
+                onClick={() => setEditDate("")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
                 <X className="h-3 w-3" />
               </button>
             )}
@@ -249,26 +281,28 @@ export function CardDetailModal({
           </div>
         )}
 
-        {card.type === "Goal" && (() => {
-          const progress = getGoalProgress(card, allCards);
-          return (
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-medium text-muted-foreground">Progresso</span>
-                <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+        {card.type === "Goal" &&
+          (() => {
+            const progress = getGoalProgress(card, allCards);
+            return (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">Progresso</span>
+                  <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-foreground transition-all duration-300"
+                    style={{ width: `${progress.percent}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 text-xs text-muted-foreground">
+                  {progress.done} de {progress.total} {progress.total === 1 ? "tarefa" : "tarefas"}{" "}
+                  concluída{progress.done !== 1 ? "s" : ""}
+                </div>
               </div>
-              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-foreground transition-all duration-300"
-                  style={{ width: `${progress.percent}%` }}
-                />
-              </div>
-              <div className="mt-1.5 text-xs text-muted-foreground">
-                {progress.done} de {progress.total} {progress.total === 1 ? "tarefa" : "tarefas"} concluída{progress.done !== 1 ? "s" : ""}
-              </div>
-            </div>
-          );
-        })()}
+            );
+          })()}
 
         {/* ── DESCRIÇÃO ── */}
         {!editing ? (
@@ -328,36 +362,50 @@ export function CardDetailModal({
             <div className="mt-5">
               <p className="text-xs font-medium text-muted-foreground">Mover para coluna</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {columns.filter((c) => c.id !== card.col).map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => { onMove(card.id, c.id); onClose(); }}
-                    className="rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted"
-                    style={{ borderWidth: "0.5px" }}
-                  >
-                    {c.name}
-                  </button>
-                ))}
+                {columns
+                  .filter((c) => c.id !== card.col)
+                  .map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        onMove(card.id, c.id);
+                        onClose();
+                      }}
+                      className="rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted"
+                      style={{ borderWidth: "0.5px" }}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
               </div>
             </div>
 
             <div className="mt-4">
               <p className="text-xs font-medium text-muted-foreground">Mover para swimlane</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {tracks.filter((t) => t.id !== card.track).map((t) => {
-                  const bg = theme === "dark" ? t.darkBg : t.bg;
-                  const fg = theme === "dark" ? t.darkFg : t.fg;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => { onMove(card.id, card.col, t.id); onClose(); }}
-                      className="rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80"
-                      style={{ backgroundColor: bg, color: fg, border: `0.5px solid ${t.border}` }}
-                    >
-                      {t.name}
-                    </button>
-                  );
-                })}
+                {tracks
+                  .filter((t) => t.id !== card.track)
+                  .map((t) => {
+                    const bg = theme === "dark" ? t.darkBg : t.bg;
+                    const fg = theme === "dark" ? t.darkFg : t.fg;
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => {
+                          onMove(card.id, card.col, t.id);
+                          onClose();
+                        }}
+                        className="rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80"
+                        style={{
+                          backgroundColor: bg,
+                          color: fg,
+                          border: `0.5px solid ${t.border}`,
+                        }}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           </>
@@ -378,7 +426,10 @@ export function CardDetailModal({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Confirmar?</span>
                 <button
-                  onClick={() => { onDelete(card.id); onClose(); }}
+                  onClick={() => {
+                    onDelete(card.id);
+                    onClose();
+                  }}
                   className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
                 >
                   Excluir
@@ -467,7 +518,10 @@ function ChecklistSection({
 
       <div className="space-y-1">
         {items.map((item) => (
-          <div key={item.id} className="group flex items-center gap-2 rounded-md px-1 py-1 hover:bg-muted/40">
+          <div
+            key={item.id}
+            className="group flex items-center gap-2 rounded-md px-1 py-1 hover:bg-muted/40"
+          >
             <input
               type="checkbox"
               checked={item.done}
@@ -487,10 +541,16 @@ function ChecklistSection({
                   style={{ borderWidth: "0.5px" }}
                   autoFocus
                 />
-                <button onClick={saveEdit} className="rounded p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30">
+                <button
+                  onClick={saveEdit}
+                  className="rounded p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"
+                >
                   <Check className="h-3 w-3" />
                 </button>
-                <button onClick={() => setEditingId(null)} className="rounded p-1 text-muted-foreground hover:bg-muted">
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="rounded p-1 text-muted-foreground hover:bg-muted"
+                >
                   <X className="h-3 w-3" />
                 </button>
               </>
@@ -556,14 +616,14 @@ function DependenciesSection({
   const blocked = isBlocked(card, allCards);
 
   // Cards disponíveis para adicionar (não inclui o próprio e nem os já adicionados)
-  const available = allCards.filter(
-    (c) =>
-      c.id !== card.id &&
-      !blockedBy.includes(c.id) &&
-      (search.trim()
-        ? c.title.toLowerCase().includes(search.trim().toLowerCase())
-        : true)
-  ).slice(0, 8);
+  const available = allCards
+    .filter(
+      (c) =>
+        c.id !== card.id &&
+        !blockedBy.includes(c.id) &&
+        (search.trim() ? c.title.toLowerCase().includes(search.trim().toLowerCase()) : true),
+    )
+    .slice(0, 8);
 
   const addBlocker = (id: string) => {
     onUpdate([...blockedBy, id]);
@@ -603,7 +663,9 @@ function DependenciesSection({
                 className={`h-2 w-2 shrink-0 rounded-full ${resolved ? "bg-green-500" : "bg-red-500"}`}
                 title={resolved ? "Concluído" : "Pendente"}
               />
-              <span className={`flex-1 truncate text-sm ${resolved ? "text-muted-foreground line-through" : "text-foreground"}`}>
+              <span
+                className={`flex-1 truncate text-sm ${resolved ? "text-muted-foreground line-through" : "text-foreground"}`}
+              >
                 {b.title}
               </span>
               <button
@@ -638,7 +700,10 @@ function DependenciesSection({
               autoFocus
             />
             <button
-              onClick={() => { setAdding(false); setSearch(""); }}
+              onClick={() => {
+                setAdding(false);
+                setSearch("");
+              }}
               className="rounded p-1 text-muted-foreground hover:bg-muted"
             >
               <X className="h-3.5 w-3.5" />
