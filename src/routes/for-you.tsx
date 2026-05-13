@@ -23,6 +23,8 @@ function ForYouPage() {
     toggleStar,
     duplicateCard,
     saveTemplate,
+    cardColors,
+    setCardColor,
   } = useKanban();
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -98,6 +100,8 @@ function ForYouPage() {
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
           onSaveTemplate={saveTemplate}
+          onSetCardColor={setCardColor}
+          cardColor={cardColors[open?.id ?? ""]}
         />
       )}
     </AppShell>

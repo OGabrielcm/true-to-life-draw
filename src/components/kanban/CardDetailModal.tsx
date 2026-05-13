@@ -29,6 +29,8 @@ import {
   isBlocked,
 } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
+import { renderMarkdown } from "@/lib/markdown";
+import { CARD_COLOR_PRESETS } from "@/lib/kanban-types";
 
 export function CardDetailModal({
   card,
@@ -43,6 +45,8 @@ export function CardDetailModal({
   onUpdate,
   onDuplicate,
   onSaveTemplate,
+  onSetCardColor,
+  cardColor,
 }: {
   card: Card;
   allCards: Card[];
@@ -56,11 +60,14 @@ export function CardDetailModal({
   onUpdate: (id: string, patch: Partial<Card>) => void;
   onDuplicate?: (id: string) => void;
   onSaveTemplate?: (card: Card, name: string) => void;
+  onSetCardColor?: (cardId: string, color: string) => void;
+  cardColor?: string;
 }) {
   const [confirm, setConfirm] = useState(false);
   const [editing, setEditing] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [colorOpen, setColorOpen] = useState(false);
   const { theme } = useTheme();
 
   // Edit state
@@ -90,10 +97,18 @@ export function CardDetailModal({
         }
         onClose();
       }
+      if (e.key === "e" && !editing && !savingTemplate) {
+        e.preventDefault();
+        setEditing(true);
+      }
+      if (e.key === "d" && !editing && !savingTemplate) {
+        e.preventDefault();
+        setConfirm(true);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, editing]);
+  }, [onClose, editing, savingTemplate]);
 
   const saveEdit = () => {
     if (!editTitle.trim()) return;
@@ -202,6 +217,52 @@ export function CardDetailModal({
               })}
 
           <div className="ml-auto flex items-center gap-1">
+            {!editing && onSetCardColor && (
+              <div className="relative">
+                <button
+                  onClick={() => setColorOpen(!colorOpen)}
+                  className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  style={{
+                    backgroundColor: cardColor && cardColor !== "none" ? cardColor : undefined,
+                  }}
+                  title="Cor de destaque"
+                >
+                  <div
+                    className="h-3.5 w-3.5 rounded"
+                    style={{
+                      backgroundColor:
+                        cardColor && cardColor !== "none" ? cardColor : "var(--muted-foreground)",
+                    }}
+                  />
+                </button>
+                {colorOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setColorOpen(false)} />
+                    <div
+                      className="absolute right-0 top-8 z-20 grid w-48 grid-cols-4 gap-1 rounded-lg border bg-background p-2 shadow-md"
+                      style={{ borderWidth: "0.5px" }}
+                    >
+                      {CARD_COLOR_PRESETS.map((preset) => (
+                        <button
+                          key={preset.name}
+                          onClick={() => {
+                            onSetCardColor(card.id, preset.name);
+                            setColorOpen(false);
+                          }}
+                          className="h-6 w-6 rounded transition-transform hover:scale-110"
+                          style={{
+                            backgroundColor: preset.bg,
+                            border:
+                              preset.bg === "transparent" ? "1px dashed var(--border)" : undefined,
+                          }}
+                          title={preset.label}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             {!editing && (
               <>
                 <button
@@ -312,7 +373,10 @@ export function CardDetailModal({
         {/* ── DESCRIÇÃO ── */}
         {!editing ? (
           card.desc && (
-            <p className="mt-3 whitespace-pre-wrap text-sm text-card-foreground/80">{card.desc}</p>
+            <div
+              className="mt-3 text-sm text-card-foreground/80 prose prose-sm dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }}
+            />
           )
         ) : (
           <textarea

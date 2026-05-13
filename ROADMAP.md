@@ -1,7 +1,7 @@
 # 🗺️ Roadmap — Molas Kanban
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — Fase 3 completa ✅
+> Atualizado em: Maio 2026 — Fase 4 completa ✅
 
 ---
 
@@ -49,6 +49,10 @@
 | Export CSV / PDF | ✅ |
 | Filtros avançados no board | ✅ |
 | Templates de cards | ✅ |
+| Markdown na descrição dos cards | ✅ |
+| Atalhos de teclado (e=editar, d=deletar, n=novo) | ✅ |
+| Card aging (opacidade por inatividade) | ✅ |
+| Cor de destaque / cover no card | ✅ |
 
 ---
 
@@ -139,19 +143,19 @@
 
 ---
 
-## 🔵 Fase 4 — Qualidade de vida (Refinamentos)
+## 🔵 Fase 4 — Qualidade de vida (Refinamentos) ✅ Completa
 
 > Pequenos detalhes que elevam a experiência.
 
-| # | Feature | Consumo de token | Modelo recomendado |
-|---|---------|-----------------|-------------------|
-| 4.1 | Markdown na descrição dos cards | 🟢 Baixo | `claude-haiku-4-5-20251001` |
-| 4.2 | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo | `claude-haiku-4-5-20251001` |
-| 4.3 | Card aging (opacidade em cards parados há muito tempo) | 🟢 Baixo | `claude-haiku-4-5-20251001` |
-| 4.4 | Cor de destaque / cover no card | 🟢 Baixo | `claude-haiku-4-5-20251001` |
-| 4.5 | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` |
-| 4.6 | Comentários no card | 🔴 Alto | `claude-opus-4-7` |
-| 4.7 | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` |
+| # | Feature | Consumo de token | Modelo recomendado | Status |
+|---|---------|-----------------|-------------------|--------|
+| ~~4.1~~ | Markdown na descrição dos cards | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
+| ~~4.2~~ | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
+| ~~4.3~~ | Card aging (opacidade em cards parados há muito tempo) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
+| ~~4.4~~ | Cor de destaque / cover no card | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
+| 4.5 | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` | ⏳ |
+| 4.6 | Comentários no card | 🔴 Alto | `claude-opus-4-7` | ⏳ |
+| 4.7 | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` | ⏳ |
 
 ---
 

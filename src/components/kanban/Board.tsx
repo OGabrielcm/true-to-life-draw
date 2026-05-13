@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Plus, Tags, ChevronDown, Layers, Archive, Columns } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -49,6 +49,8 @@ export function Board() {
     deleteColumn,
     saveTemplate,
     templates,
+    cardColors,
+    setCardColor,
   } = useKanban();
 
   const [adding, setAdding] = useState<{ col: ColumnId; track: TrackId } | null>(null);
@@ -74,6 +76,21 @@ export function Board() {
 
   const goals = useMemo(() => cards.filter((c) => c.type === "Goal"), [cards]);
   const liveOpenCard = openCardId ? (cards.find((c) => c.id === openCardId) ?? null) : null;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "n" && !openCardId && !adding && !trilhasOpen && !tracksOpen && !columnsOpen) {
+        e.preventDefault();
+        const firstTrack = tracks[0];
+        const firstCol = columns[0];
+        if (firstTrack && firstCol) {
+          setAdding({ track: firstTrack.id, col: firstCol.id });
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openCardId, adding, trilhasOpen, tracksOpen, columnsOpen, tracks, columns]);
 
   return (
     <div className="flex flex-col">
@@ -219,6 +236,8 @@ export function Board() {
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
           onSaveTemplate={saveTemplate}
+          onSetCardColor={setCardColor}
+          cardColor={cardColors[liveOpenCard?.id ?? ""]}
         />
       )}
       {trilhasOpen && (
@@ -337,6 +356,7 @@ function CardDropZone({
           reorderCard(card.id, target);
           setDraggingId(null);
         }}
+        cardColor={cardColors[card.id]}
       />
       {dropPos === "after" && (
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-foreground" />

@@ -15,6 +15,8 @@ import {
   saveCollapsed,
   loadTemplates,
   saveTemplates,
+  loadCardColors,
+  saveCardColors,
 } from "./kanban-types";
 import { supabase } from "./supabase";
 
@@ -65,6 +67,8 @@ interface KanbanCtx {
   saveTemplate: (card: Card, name: string) => void;
   updateTemplate: (id: string, name: string) => void;
   deleteTemplate: (id: string) => void;
+  cardColors: Record<string, string>;
+  setCardColor: (cardId: string, color: string) => void;
 }
 
 const Ctx = createContext<KanbanCtx | null>(null);
@@ -152,6 +156,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<CardTemplate[]>(loadTemplates);
+  const [cardColors, setCardColors] = useState<Record<string, string>>(loadCardColors);
 
   useEffect(() => {
     let cancelled = false;
@@ -254,6 +259,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveTemplates(templates);
   }, [templates]);
 
+  useEffect(() => {
+    saveCardColors(cardColors);
+  }, [cardColors]);
+
   const value = useMemo<KanbanCtx>(
     () => ({
       cards,
@@ -269,6 +278,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       createOpen,
       setCreateOpen,
       templates,
+      cardColors,
 
       addCard: async (data) => {
         const {
@@ -462,6 +472,18 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         setTemplates((cur) => cur.filter((t) => t.id !== id));
       },
 
+      setCardColor: (cardId, color) => {
+        setCardColors((cur) => {
+          const next = { ...cur };
+          if (color === "none") {
+            delete next[cardId];
+          } else {
+            next[cardId] = color;
+          }
+          return next;
+        });
+      },
+
       createTrilha: async (t) => {
         const {
           data: { user },
@@ -616,7 +638,19 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         await supabase.from("columns").delete().eq("id", id);
       },
     }),
-    [cards, trilhas, tracks, columns, collapsed, search, filter, createOpen, loading, templates],
+    [
+      cards,
+      trilhas,
+      tracks,
+      columns,
+      collapsed,
+      search,
+      filter,
+      createOpen,
+      loading,
+      templates,
+      cardColors,
+    ],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

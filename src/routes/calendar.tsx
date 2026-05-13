@@ -86,6 +86,8 @@ function CalendarPage() {
     toggleStar,
     duplicateCard,
     saveTemplate,
+    cardColors,
+    setCardColor,
   } = useKanban();
   const { theme } = useTheme();
   const [view, setView] = useState<ViewMode>("month");
@@ -249,6 +251,8 @@ function CalendarPage() {
           onUpdate={updateCard}
           onDuplicate={duplicateCard}
           onSaveTemplate={saveTemplate}
+          onSetCardColor={setCardColor}
+          cardColor={cardColors[open?.id ?? ""]}
         />
       )}
     </AppShell>

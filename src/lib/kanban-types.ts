@@ -350,6 +350,34 @@ export interface CardTemplate {
 }
 
 const TEMPLATES_KEY = "kanban-templates-v1";
+const CARD_COLORS_KEY = "kanban-card-colors-v1";
+
+export const CARD_COLOR_PRESETS = [
+  { name: "none", bg: "transparent", label: "Nenhuma" },
+  { name: "red", bg: "#ef4444", label: "Vermelho" },
+  { name: "orange", bg: "#f97316", label: "Laranja" },
+  { name: "yellow", bg: "#eab308", label: "Amarelo" },
+  { name: "green", bg: "#22c55e", label: "Verde" },
+  { name: "blue", bg: "#3b82f6", label: "Azul" },
+  { name: "purple", bg: "#a855f7", label: "Roxo" },
+  { name: "pink", bg: "#ec4899", label: "Rosa" },
+];
+
+export function loadCardColors(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(CARD_COLORS_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+export function saveCardColors(colors: Record<string, string>) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(CARD_COLORS_KEY, JSON.stringify(colors));
+}
 
 export function loadTemplates(): CardTemplate[] {
   if (typeof window === "undefined") return [];
@@ -446,4 +474,14 @@ export function isBlocked(card: Card, allCards: Card[]): boolean {
     const blocker = allCards.find((c) => c.id === blockerId);
     return blocker && blocker.col !== "done";
   });
+}
+
+export function getCardAging(card: Card): number {
+  const updated = new Date(card.updated_at).getTime();
+  const now = Date.now();
+  const daysSinceUpdate = Math.floor((now - updated) / (1000 * 60 * 60 * 24));
+  if (daysSinceUpdate < 7) return 1;
+  if (daysSinceUpdate < 14) return 0.7;
+  if (daysSinceUpdate < 30) return 0.5;
+  return 0.3;
 }

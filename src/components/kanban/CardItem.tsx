@@ -7,6 +7,7 @@ import {
   getDeadlineStatus,
   getGoalProgress,
   isBlocked,
+  getCardAging,
   PRIO_COLORS,
   TrackId,
   Trilha,
@@ -23,6 +24,7 @@ export function CardItem({
   onDragEnd,
   isDragging,
   onTouchDrop,
+  cardColor,
 }: {
   card: Card;
   allCards: Card[];
@@ -37,6 +39,7 @@ export function CardItem({
     beforeId?: string;
     afterId?: string;
   }) => void;
+  cardColor?: string;
 }) {
   const { theme } = useTheme();
   const prioRaw = PRIO_COLORS[card.prio];
@@ -122,13 +125,15 @@ export function CardItem({
     onClick();
   };
 
+  const aging = getCardAging(card);
+
   return (
     <div
       data-card-id={card.id}
-      className="kb-card relative w-full rounded-lg border bg-card transition-all hover:border-foreground/30"
+      className="kb-card relative w-full overflow-hidden rounded-lg border bg-card transition-all hover:border-foreground/30"
       style={{
         borderWidth: "0.5px",
-        opacity: isDragging ? 0.4 : 1,
+        opacity: isDragging ? 0.4 * aging : aging,
         borderLeft: blocked
           ? "3px solid #a855f7"
           : isGoal
@@ -140,6 +145,9 @@ export function CardItem({
                 : undefined,
       }}
     >
+      {cardColor && cardColor !== "none" && (
+        <div className="h-1" style={{ backgroundColor: cardColor }} />
+      )}
       {/* Grip handle — só este elemento captura toque para drag */}
       <div
         onTouchStart={handleGripTouchStart}
