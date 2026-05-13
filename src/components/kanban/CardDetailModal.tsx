@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Calendar, Pencil, Star, Trash2, Target, Check, X } from "lucide-react";
+import { Calendar, Pencil, Star, Trash2, Target, Check, X, Copy, Plus, Link2, AlertTriangle } from "lucide-react";
 import {
   Card,
+  ChecklistItem,
   Column,
   ColumnId,
   PRIORITIES,
@@ -10,6 +11,9 @@ import {
   TrackId,
   Trilha,
   formatDate,
+  getChecklistProgress,
+  getGoalProgress,
+  isBlocked,
 } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 
@@ -24,6 +28,7 @@ export function CardDetailModal({
   onDelete,
   onToggleStar,
   onUpdate,
+  onDuplicate,
 }: {
   card: Card;
   allCards: Card[];
@@ -35,6 +40,7 @@ export function CardDetailModal({
   onDelete: (id: string) => void;
   onToggleStar: (id: string) => void;
   onUpdate: (id: string, patch: Partial<Card>) => void;
+  onDuplicate?: (id: string) => void;
 }) {
   const [confirm, setConfirm] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -166,13 +172,24 @@ export function CardDetailModal({
 
           <div className="ml-auto flex items-center gap-1">
             {!editing && (
-              <button
-                onClick={() => setEditing(true)}
-                className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Editar"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
+              <>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Editar"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                {onDuplicate && (
+                  <button
+                    onClick={() => { onDuplicate(card.id); onClose(); }}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Duplicar"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </>
             )}
             <button
               onClick={() => onToggleStar(card.id)}
@@ -232,6 +249,27 @@ export function CardDetailModal({
           </div>
         )}
 
+        {card.type === "Goal" && (() => {
+          const progress = getGoalProgress(card, allCards);
+          return (
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-medium text-muted-foreground">Progresso</span>
+                <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-foreground transition-all duration-300"
+                  style={{ width: `${progress.percent}%` }}
+                />
+              </div>
+              <div className="mt-1.5 text-xs text-muted-foreground">
+                {progress.done} de {progress.total} {progress.total === 1 ? "tarefa" : "tarefas"} concluída{progress.done !== 1 ? "s" : ""}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ── DESCRIÇÃO ── */}
         {!editing ? (
           card.desc && (
@@ -265,6 +303,23 @@ export function CardDetailModal({
               Cancelar
             </button>
           </div>
+        )}
+
+        {/* ── CHECKLIST ── */}
+        {!editing && (
+          <ChecklistSection
+            card={card}
+            onUpdate={(items) => onUpdate(card.id, { checklist: items })}
+          />
+        )}
+
+        {/* ── DEPENDÊNCIAS ── */}
+        {!editing && (
+          <DependenciesSection
+            card={card}
+            allCards={allCards}
+            onUpdate={(blockedBy) => onUpdate(card.id, { blocked_by: blockedBy })}
+          />
         )}
 
         {/* ── MOVER (só em modo view) ── */}
@@ -345,6 +400,267 @@ export function CardDetailModal({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── CHECKLIST SECTION ──
+function ChecklistSection({
+  card,
+  onUpdate,
+}: {
+  card: Card;
+  onUpdate: (items: ChecklistItem[]) => void;
+}) {
+  const items = card.checklist ?? [];
+  const [newText, setNewText] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const progress = getChecklistProgress(card);
+
+  const addItem = () => {
+    const text = newText.trim();
+    if (!text) return;
+    const newItem: ChecklistItem = { id: crypto.randomUUID(), text, done: false };
+    onUpdate([...items, newItem]);
+    setNewText("");
+  };
+
+  const toggle = (id: string) => {
+    onUpdate(items.map((i) => (i.id === id ? { ...i, done: !i.done } : i)));
+  };
+
+  const remove = (id: string) => {
+    onUpdate(items.filter((i) => i.id !== id));
+  };
+
+  const startEdit = (item: ChecklistItem) => {
+    setEditingId(item.id);
+    setEditText(item.text);
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !editText.trim()) return;
+    onUpdate(items.map((i) => (i.id === editingId ? { ...i, text: editText.trim() } : i)));
+    setEditingId(null);
+  };
+
+  return (
+    <div className="mt-5">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Checklist {items.length > 0 && `(${progress.done}/${progress.total})`}
+        </p>
+        {items.length > 0 && (
+          <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+        )}
+      </div>
+
+      {items.length > 0 && (
+        <div className="mb-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-foreground transition-all duration-300"
+            style={{ width: `${progress.percent}%` }}
+          />
+        </div>
+      )}
+
+      <div className="space-y-1">
+        {items.map((item) => (
+          <div key={item.id} className="group flex items-center gap-2 rounded-md px-1 py-1 hover:bg-muted/40">
+            <input
+              type="checkbox"
+              checked={item.done}
+              onChange={() => toggle(item.id)}
+              className="h-3.5 w-3.5 shrink-0 cursor-pointer accent-foreground"
+            />
+            {editingId === item.id ? (
+              <>
+                <input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveEdit();
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                  className="flex-1 rounded-md border bg-background px-2 py-0.5 text-sm outline-none focus:border-foreground/40"
+                  style={{ borderWidth: "0.5px" }}
+                  autoFocus
+                />
+                <button onClick={saveEdit} className="rounded p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30">
+                  <Check className="h-3 w-3" />
+                </button>
+                <button onClick={() => setEditingId(null)} className="rounded p-1 text-muted-foreground hover:bg-muted">
+                  <X className="h-3 w-3" />
+                </button>
+              </>
+            ) : (
+              <>
+                <span
+                  onClick={() => startEdit(item)}
+                  className={`flex-1 cursor-text text-sm ${item.done ? "line-through text-muted-foreground" : "text-foreground"}`}
+                >
+                  {item.text}
+                </span>
+                <button
+                  onClick={() => remove(item.id)}
+                  className="opacity-0 group-hover:opacity-100 rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-2 flex items-center gap-1.5">
+        <input
+          value={newText}
+          onChange={(e) => setNewText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addItem()}
+          placeholder="Adicionar item..."
+          className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+          style={{ borderWidth: "0.5px" }}
+        />
+        <button
+          onClick={addItem}
+          disabled={!newText.trim()}
+          className="rounded-md bg-foreground p-1.5 text-background hover:opacity-90 disabled:opacity-30"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── DEPENDENCIES SECTION ──
+function DependenciesSection({
+  card,
+  allCards,
+  onUpdate,
+}: {
+  card: Card;
+  allCards: Card[];
+  onUpdate: (blockedBy: string[]) => void;
+}) {
+  const blockedBy = card.blocked_by ?? [];
+  const [adding, setAdding] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const blockers = blockedBy
+    .map((id) => allCards.find((c) => c.id === id))
+    .filter((c): c is Card => Boolean(c));
+
+  const blocked = isBlocked(card, allCards);
+
+  // Cards disponíveis para adicionar (não inclui o próprio e nem os já adicionados)
+  const available = allCards.filter(
+    (c) =>
+      c.id !== card.id &&
+      !blockedBy.includes(c.id) &&
+      (search.trim()
+        ? c.title.toLowerCase().includes(search.trim().toLowerCase())
+        : true)
+  ).slice(0, 8);
+
+  const addBlocker = (id: string) => {
+    onUpdate([...blockedBy, id]);
+    setSearch("");
+    setAdding(false);
+  };
+
+  const removeBlocker = (id: string) => {
+    onUpdate(blockedBy.filter((b) => b !== id));
+  };
+
+  return (
+    <div className="mt-5">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1.5">
+          <Link2 className="h-3 w-3" />
+          Bloqueado por {blockers.length > 0 && `(${blockers.length})`}
+        </p>
+        {blocked && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-950/40 dark:text-red-300">
+            <AlertTriangle className="h-3 w-3" />
+            Bloqueado
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        {blockers.map((b) => {
+          const resolved = b.col === "done";
+          return (
+            <div
+              key={b.id}
+              className="group flex items-center gap-2 rounded-md border bg-background px-2 py-1.5"
+              style={{ borderWidth: "0.5px" }}
+            >
+              <span
+                className={`h-2 w-2 shrink-0 rounded-full ${resolved ? "bg-green-500" : "bg-red-500"}`}
+                title={resolved ? "Concluído" : "Pendente"}
+              />
+              <span className={`flex-1 truncate text-sm ${resolved ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                {b.title}
+              </span>
+              <button
+                onClick={() => removeBlocker(b.id)}
+                className="opacity-0 group-hover:opacity-100 rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {!adding ? (
+        <button
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          style={{ borderWidth: "0.5px" }}
+        >
+          <Plus className="h-3 w-3" />
+          Adicionar dependência
+        </button>
+      ) : (
+        <div className="mt-2 rounded-md border bg-background p-2" style={{ borderWidth: "0.5px" }}>
+          <div className="flex items-center gap-1.5">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar card..."
+              className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+              autoFocus
+            />
+            <button
+              onClick={() => { setAdding(false); setSearch(""); }}
+              className="rounded p-1 text-muted-foreground hover:bg-muted"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="mt-1.5 max-h-40 space-y-0.5 overflow-y-auto">
+            {available.length === 0 ? (
+              <p className="px-1 py-1 text-xs text-muted-foreground">Nenhum card encontrado.</p>
+            ) : (
+              available.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => addBlocker(c.id)}
+                  className="block w-full truncate rounded px-2 py-1 text-left text-sm hover:bg-muted"
+                >
+                  {c.title}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

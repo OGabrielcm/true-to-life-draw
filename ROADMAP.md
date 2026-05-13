@@ -39,6 +39,11 @@
 | Colunas customizáveis (criar, renomear, excluir colunas do board) | ✅ |
 | Reordenação de cards dentro da coluna (desktop + mobile) | ✅ |
 | Notificações de prazo (badge no header, indicador visual nos cards) | ✅ |
+| Progresso automático em Goals (% baseado em Tasks filhas) | ✅ |
+| Duplicar card | ✅ |
+| WIP Limits por coluna (alerta visual ao ultrapassar) | ✅ |
+| Checklists dentro do card (subtarefas com progresso) | ✅ |
+| Dependências entre cards (bloqueado por) | ✅ |
 
 ---
 
@@ -60,35 +65,35 @@
 
 > Features que diferenciam um Kanban básico de uma ferramenta profissional.
 
-### 2.1 Progresso automático nos Goals
+### ~~2.1 Progresso automático nos Goals~~ ✅ Implementado
 - **O que é:** % de conclusão calculada a partir das Tasks filhas (tasks done / total tasks)
 - **Referência:** JIRA (Epic progress), Linear
 - **Consumo de token:** 🟢 Baixo (lógica client-side, sem schema change)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
-### 2.2 Duplicar card
+### ~~2.2 Duplicar card~~ ✅ Implementado
 - **O que é:** Botão para copiar um card existente como ponto de partida
 - **Referência:** Trello, Notion
 - **Consumo de token:** 🟢 Baixo (1–2 arquivos)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
-### 2.3 WIP Limits (limite de cards por coluna)
+### ~~2.3 WIP Limits (limite de cards por coluna)~~ ✅ Implementado
 - **O que é:** Definir máximo de cards por coluna; alerta visual ao ultrapassar
 - **Por que importa:** Pilar do Kanban clássico — força o fluxo e evita gargalos
 - **Referência:** Kanban clássico, Jira Software
 - **Consumo de token:** 🟢 Baixo (config local + indicador visual)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
-### 2.4 Checklists dentro do card
+### ~~2.4 Checklists dentro do card~~ ✅ Implementado
 - **O que é:** Lista de itens com checkbox dentro de um card (subtarefas leves)
 - **Referência:** Trello (checklist), Notion
 - **Consumo de token:** 🔴 Alto (novo campo JSONB no Supabase + UI)
 - **Modelo recomendado:** `claude-opus-4-7`
 
-### 2.5 Dependências entre cards
+### ~~2.5 Dependências entre cards~~ ✅ Implementado
 - **O que é:** Marcar um card como "bloqueado por" outro card
 - **Referência:** JIRA (issue links), Linear
-- **Consumo de token:** 🔴 Alto (nova tabela de relações + UI)
+- **Consumo de token:** 🔴 Alto (campo array no Supabase + UI)
 - **Modelo recomendado:** `claude-opus-4-7`
 
 ---

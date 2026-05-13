@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import { Calendar, GripVertical, Star, Target } from "lucide-react";
-import { Card, ColumnId, getDeadlineStatus, PRIO_COLORS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
+import { Calendar, CheckSquare, GripVertical, Link2, Star, Target } from "lucide-react";
+import { Card, ColumnId, getChecklistProgress, getDeadlineStatus, getGoalProgress, isBlocked, PRIO_COLORS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 
 export function CardItem({
   card,
+  allCards,
   trilhas,
   onClick,
   onDragStart,
@@ -13,6 +14,7 @@ export function CardItem({
   onTouchDrop,
 }: {
   card: Card;
+  allCards: Card[];
   trilhas: Trilha[];
   onClick: () => void;
   onDragStart: () => void;
@@ -27,6 +29,8 @@ export function CardItem({
     : { bg: prioRaw.bg, fg: prioRaw.fg };
   const isGoal = card.type === "Goal";
   const deadlineStatus = getDeadlineStatus(card);
+  const checklistProgress = getChecklistProgress(card);
+  const blocked = isBlocked(card, allCards);
 
   const touchRef = useRef<{ startX: number; startY: number; dragging: boolean } | null>(null);
   const justDraggedRef = useRef(false);
@@ -103,7 +107,9 @@ export function CardItem({
       style={{
         borderWidth: "0.5px",
         opacity: isDragging ? 0.4 : 1,
-        borderLeft: isGoal
+        borderLeft: blocked
+          ? "3px solid #a855f7"
+          : isGoal
           ? "3px solid var(--foreground)"
           : deadlineStatus === "overdue"
           ? "3px solid #ef4444"
@@ -148,6 +154,26 @@ export function CardItem({
         {card.desc && (
           <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">{card.desc}</p>
         )}
+
+        {isGoal && (() => {
+          const progress = getGoalProgress(card, allCards);
+          if (progress.total === 0) return null;
+          return (
+            <div className="mt-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-medium text-muted-foreground">Progresso</span>
+                <span className="text-[10px] font-semibold text-foreground">{progress.percent}%</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted/40 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-foreground/60 transition-all duration-300"
+                  style={{ width: `${progress.percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span
             className="rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -155,6 +181,26 @@ export function CardItem({
           >
             {card.prio}
           </span>
+          {blocked && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+              style={{ backgroundColor: "#f3e8ff", color: "#7e22ce" }}
+              title="Bloqueado por dependências pendentes"
+            >
+              <Link2 className="h-2.5 w-2.5" />
+              Bloqueado
+            </span>
+          )}
+          {checklistProgress.total > 0 && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+              style={{ borderWidth: "0.5px" }}
+              title={`${checklistProgress.done} de ${checklistProgress.total} concluídos`}
+            >
+              <CheckSquare className="h-2.5 w-2.5" />
+              {checklistProgress.done}/{checklistProgress.total}
+            </span>
+          )}
           {card.tags.map((tid) => {
             const t = trilhas.find((x) => x.id === tid);
             if (!t) return null;

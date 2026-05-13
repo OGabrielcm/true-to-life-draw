@@ -12,7 +12,7 @@ export const Route = createFileRoute("/for-you")({
 });
 
 function ForYouPage() {
-  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar } = useKanban();
+  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar, duplicateCard } = useKanban();
   const [openId, setOpenId] = useState<string | null>(null);
 
   const recent = useMemo(() => {
@@ -34,6 +34,7 @@ function ForYouPage() {
           <div key={c.id} className="rounded-lg border p-1" style={{ borderWidth: "0.5px", borderLeft: `3px solid ${track?.border}` }}>
             <CardItem
               card={c}
+              allCards={cards}
               trilhas={trilhas}
               onClick={() => setOpenId(c.id)}
               onDragStart={() => {}}
@@ -74,6 +75,7 @@ function ForYouPage() {
           onDelete={deleteCard}
           onToggleStar={toggleStar}
           onUpdate={updateCard}
+          onDuplicate={duplicateCard}
         />
       )}
     </AppShell>

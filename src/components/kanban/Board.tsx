@@ -23,7 +23,7 @@ import { ColumnsModal } from "./ColumnsModal";
 export function Board() {
   const {
     cards, trilhas, tracks, columns, collapsed, search, filter, setFilter,
-    addCard, updateCard, moveCard, reorderCard, deleteCard, toggleStar, toggleCollapsed,
+    addCard, updateCard, moveCard, reorderCard, deleteCard, toggleStar, duplicateCard, toggleCollapsed,
     createTrilha, updateTrilha, deleteTrilha,
     createTrack, updateTrack, deleteTrack,
     createColumn, updateColumn, deleteColumn,
@@ -133,6 +133,7 @@ export function Board() {
               track={track}
               columns={columns}
               cards={filtered.filter((c) => c.track === track.id)}
+              allCards={cards}
               trilhas={trilhas}
               collapsed={collapsed[track.id]}
               onToggleCollapsed={() => toggleCollapsed(track.id)}
@@ -178,12 +179,14 @@ export function Board() {
           card={liveOpenCard}
           allCards={cards}
           tracks={tracks}
+          columns={columns}
           trilhas={trilhas}
           onClose={() => setOpenCardId(null)}
           onMove={moveCard}
           onDelete={deleteCard}
           onToggleStar={toggleStar}
           onUpdate={updateCard}
+          onDuplicate={duplicateCard}
         />
       )}
       {trilhasOpen && (
@@ -222,6 +225,7 @@ export function Board() {
 // visual ANTES ou DEPOIS do card durante o drag.
 function CardDropZone({
   card,
+  allCards,
   trilhas,
   track,
   col,
@@ -232,6 +236,7 @@ function CardDropZone({
   reorderCard,
 }: {
   card: Card;
+  allCards: Card[];
   trilhas: Trilha[];
   track: TrackId;
   col: ColumnId;
@@ -285,6 +290,7 @@ function CardDropZone({
       )}
       <CardItem
         card={card}
+        allCards={allCards}
         trilhas={trilhas}
         onClick={onClick}
         onDragStart={() => setDraggingId(card.id)}
@@ -303,6 +309,7 @@ function Swimlane({
   track,
   columns,
   cards,
+  allCards,
   trilhas,
   collapsed,
   onToggleCollapsed,
@@ -318,6 +325,7 @@ function Swimlane({
   track: Track;
   columns: Column[];
   cards: Card[];
+  allCards: Card[];
   trilhas: Trilha[];
   collapsed: boolean;
   onToggleCollapsed: () => void;
@@ -391,7 +399,7 @@ function Swimlane({
                 }}
                 className="flex w-[220px] shrink-0 flex-col rounded-lg border bg-muted/40 transition-colors sm:w-[260px] md:w-auto md:flex-1"
                 style={{
-                  borderWidth: "0.5px",
+                  borderWidth: col.wip_limit && colCards.length > col.wip_limit ? "2px solid #ef4444" : "0.5px",
                   minWidth: "180px",
                   backgroundColor: isOver
                     ? "color-mix(in oklab, var(--foreground) 8%, var(--muted))"
@@ -403,8 +411,14 @@ function Swimlane({
                     <h3 className="text-xs font-medium uppercase tracking-wide" style={{ color: fg }}>
                       {col.name}
                     </h3>
-                    <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {colCards.length}
+                    <span
+                      className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-medium"
+                      style={{
+                        color: col.wip_limit && colCards.length > col.wip_limit ? "#ef4444" : "var(--muted-foreground)",
+                        backgroundColor: col.wip_limit && colCards.length > col.wip_limit ? "#fee2e2" : undefined,
+                      }}
+                    >
+                      {colCards.length}{col.wip_limit ? `/${col.wip_limit}` : ""}
                     </span>
                   </div>
                 </div>
@@ -413,6 +427,7 @@ function Swimlane({
                     <CardDropZone
                       key={c.id}
                       card={c}
+                      allCards={allCards}
                       trilhas={trilhas}
                       track={track.id}
                       col={col.id}

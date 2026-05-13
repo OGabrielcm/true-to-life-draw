@@ -22,7 +22,12 @@ import {
 } from "./kanban-types";
 import { supabase } from "./supabase";
 
-type AddInput = Omit<Card, "id" | "created_at" | "updated_at" | "starred"> & { starred?: boolean };
+type AddInput = Omit<Card, "id" | "created_at" | "updated_at" | "starred" | "checklist" | "blocked_by" | "order"> & {
+  starred?: boolean;
+  checklist?: Card["checklist"];
+  blocked_by?: Card["blocked_by"];
+  order?: number;
+};
 
 interface KanbanCtx {
   cards: Card[];
@@ -41,6 +46,7 @@ interface KanbanCtx {
   reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
   deleteCard: (id: string) => void;
   toggleStar: (id: string) => void;
+  duplicateCard: (id: string) => void;
   toggleCollapsed: (id: TrackId) => void;
   createTrilha: (t: Omit<Trilha, "id">) => void;
   updateTrilha: (id: string, data: Omit<Trilha, "id">) => void;
@@ -49,7 +55,7 @@ interface KanbanCtx {
   updateTrack: (id: string, data: Omit<Track, "id">) => void;
   deleteTrack: (id: string) => void;
   createColumn: (name: string) => void;
-  updateColumn: (id: string, name: string) => void;
+  updateColumn: (id: string, data: { name?: string; wip_limit?: number | null }) => void;
   deleteColumn: (id: string) => void;
   createOpen: boolean;
   setCreateOpen: (v: boolean) => void;
@@ -71,6 +77,8 @@ function rowToCard(row: Record<string, unknown>): Card {
     starred: (row.starred as boolean) ?? false,
     tags: (row.tags as string[]) ?? [],
     order: (row.order as number) ?? 0,
+    checklist: (row.checklist as Card["checklist"]) ?? [],
+    blocked_by: (row.blocked_by as string[]) ?? [],
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -98,6 +106,7 @@ function rowToColumn(row: Record<string, unknown>): Column {
     id: row.id as string,
     name: row.name as string,
     order: (row.order as number) ?? 0,
+    wip_limit: row.wip_limit as number | undefined,
   };
 }
 
@@ -253,6 +262,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         ...data,
         starred: data.starred ?? false,
         order: nextOrder(cards, data.track, data.col),
+        checklist: data.checklist ?? [],
+        blocked_by: data.blocked_by ?? [],
         id: tempId,
         created_at: now,
         updated_at: now,
@@ -359,6 +370,37 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           .from("tasks")
           .update({ starred: !card.starred, updated_at: now })
           .eq("id", id);
+      }
+    },
+
+    duplicateCard: async (id) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const original = cards.find((c) => c.id === id);
+      if (!user || !original) return;
+      const now = new Date().toISOString();
+      const tempId = crypto.randomUUID();
+      const newCard: Card = {
+        ...original,
+        id: tempId,
+        title: `${original.title} (copy)`,
+        starred: false,
+        order: nextOrder(cards, original.track, original.col),
+        // Reseta estado de progresso: checklist desmarcado, sem dependências
+        checklist: (original.checklist ?? []).map((i) => ({ ...i, id: crypto.randomUUID(), done: false })),
+        blocked_by: [],
+        created_at: now,
+        updated_at: now,
+      };
+      setCards((cur) => [...cur, newCard]);
+      const { data: inserted, error } = await supabase
+        .from("tasks")
+        .insert({ ...newCard, user_id: user.id })
+        .select()
+        .single();
+      if (error) {
+        setCards((cur) => cur.filter((c) => c.id !== tempId));
+      } else if (inserted) {
+        setCards((cur) => cur.map((c) => (c.id === tempId ? rowToCard(inserted) : c)));
       }
     },
 
@@ -474,9 +516,14 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       }
     },
 
-    updateColumn: async (id, name) => {
-      setColumns((cur) => cur.map((c) => (c.id === id ? { ...c, name: name.trim() } : c)));
-      await supabase.from("columns").update({ name: name.trim() }).eq("id", id);
+    updateColumn: async (id, data) => {
+      const patch: Record<string, unknown> = {};
+      if (data.name !== undefined) patch.name = data.name.trim();
+      if (data.wip_limit !== undefined) patch.wip_limit = data.wip_limit;
+      setColumns((cur) =>
+        cur.map((c) => (c.id === id ? { ...c, ...(data.name ? { name: data.name.trim() } : {}), ...(data.wip_limit !== undefined ? { wip_limit: data.wip_limit ?? undefined } : {}) } : c))
+      );
+      await supabase.from("columns").update(patch).eq("id", id);
     },
 
     deleteColumn: async (id) => {

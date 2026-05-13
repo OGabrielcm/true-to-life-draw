@@ -10,6 +10,12 @@ export interface Trilha {
   fg: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface Card {
   id: string;
   col: ColumnId;
@@ -23,6 +29,8 @@ export interface Card {
   starred: boolean;
   tags: string[]; // trilha ids (legacy filter system)
   order: number; // ordem dentro da coluna (float, permite inserir entre cards sem renumerar)
+  checklist: ChecklistItem[];
+  blocked_by: string[]; // ids de cards que bloqueiam este card
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +39,7 @@ export interface Column {
   id: ColumnId;
   name: string;
   order: number;
+  wip_limit?: number; // undefined = sem limite
 }
 
 // IDs fixos para backwards compatibility com cards existentes
@@ -109,20 +118,20 @@ export const TRILHA_COLOR_PRESETS: { bg: string; fg: string }[] = [
 // Seed cards: usam slug das tracks padrão (mapeados após inserção)
 export const SEED_CARDS_BY_TRACK: Record<string, Omit<Card, "id" | "created_at" | "updated_at" | "track">[]> = {
   "Estágio": [
-    { col: "inprogress", type: "Task", title: "Integração com API REST do módulo de relatórios", desc: "Conectar endpoint ao painel de visualização.", prio: "Alta", date: "2026-05-15", starred: false, tags: ["estagio", "dev"], order: 1 },
-    { col: "todo", type: "Task", title: "Revisar documentação técnica do cliente", prio: "Média", date: "2026-05-22", starred: false, tags: ["estagio"], order: 1 },
-    { col: "backlog", type: "Task", title: "Proposta de melhoria no pipeline de CI/CD", prio: "Baixa", starred: false, tags: ["estagio", "dev"], order: 1 },
+    { col: "inprogress", type: "Task", title: "Integração com API REST do módulo de relatórios", desc: "Conectar endpoint ao painel de visualização.", prio: "Alta", date: "2026-05-15", starred: false, tags: ["estagio", "dev"], order: 1, checklist: [], blocked_by: [] },
+    { col: "todo", type: "Task", title: "Revisar documentação técnica do cliente", prio: "Média", date: "2026-05-22", starred: false, tags: ["estagio"], order: 1, checklist: [], blocked_by: [] },
+    { col: "backlog", type: "Task", title: "Proposta de melhoria no pipeline de CI/CD", prio: "Baixa", starred: false, tags: ["estagio", "dev"], order: 1, checklist: [], blocked_by: [] },
   ],
   "Faculdade": [
-    { col: "review", type: "Task", title: "Flutter — Mobile Dev (Prof. Joseph)", desc: "Entregar o app da disciplina.", prio: "Alta", date: "2026-05-18", starred: true, tags: ["faculdade"], order: 1 },
-    { col: "todo", type: "Task", title: "Relatório BD — EscolaPrometheus", desc: "SQL Server com triggers, procedures e modelo relacional.", prio: "Alta", date: "2026-05-20", starred: false, tags: ["faculdade"], order: 1 },
-    { col: "todo", type: "Task", title: "Prova — Redes de Computadores", desc: "Revisar camadas OSI, TCP/IP e subnetting.", prio: "Média", date: "2026-05-28", starred: false, tags: ["faculdade"], order: 2 },
+    { col: "review", type: "Task", title: "Flutter — Mobile Dev (Prof. Joseph)", desc: "Entregar o app da disciplina.", prio: "Alta", date: "2026-05-18", starred: true, tags: ["faculdade"], order: 1, checklist: [], blocked_by: [] },
+    { col: "todo", type: "Task", title: "Relatório BD — EscolaPrometheus", desc: "SQL Server com triggers, procedures e modelo relacional.", prio: "Alta", date: "2026-05-20", starred: false, tags: ["faculdade"], order: 1, checklist: [], blocked_by: [] },
+    { col: "todo", type: "Task", title: "Prova — Redes de Computadores", desc: "Revisar camadas OSI, TCP/IP e subnetting.", prio: "Média", date: "2026-05-28", starred: false, tags: ["faculdade"], order: 2, checklist: [], blocked_by: [] },
   ],
   "IA / Dev": [
-    { col: "inprogress", type: "Goal", title: "FinScan — fase 2", desc: "Suporte a múltiplas contas e gráficos.", prio: "Alta", date: "2026-06-15", starred: true, tags: ["ia", "dev"], order: 1 },
-    { col: "inprogress", type: "Task", title: "FinScan — parser de PDF Nubank", desc: "Corrigir bug de extração de transações.", prio: "Alta", date: "2026-05-16", starred: false, tags: ["ia", "dev"], order: 2 },
-    { col: "todo", type: "Task", title: "CRUD biblioteca — C# console", desc: "Finalizar Sistema de Biblioteca Leia Mais.", prio: "Média", date: "2026-05-25", starred: false, tags: ["dev"], order: 1 },
-    { col: "backlog", type: "Task", title: "Agente de análise de PDFs com Claude API", prio: "Média", date: "2026-06-01", starred: false, tags: ["ia", "dev"], order: 1 },
+    { col: "inprogress", type: "Goal", title: "FinScan — fase 2", desc: "Suporte a múltiplas contas e gráficos.", prio: "Alta", date: "2026-06-15", starred: true, tags: ["ia", "dev"], order: 1, checklist: [], blocked_by: [] },
+    { col: "inprogress", type: "Task", title: "FinScan — parser de PDF Nubank", desc: "Corrigir bug de extração de transações.", prio: "Alta", date: "2026-05-16", starred: false, tags: ["ia", "dev"], order: 2, checklist: [], blocked_by: [] },
+    { col: "todo", type: "Task", title: "CRUD biblioteca — C# console", desc: "Finalizar Sistema de Biblioteca Leia Mais.", prio: "Média", date: "2026-05-25", starred: false, tags: ["dev"], order: 1, checklist: [], blocked_by: [] },
+    { col: "backlog", type: "Task", title: "Agente de análise de PDFs com Claude API", prio: "Média", date: "2026-06-01", starred: false, tags: ["ia", "dev"], order: 1, checklist: [], blocked_by: [] },
   ],
 };
 
@@ -174,4 +183,32 @@ export function getDeadlineStatus(card: Card): DeadlineStatus {
   if (diffDays === 0) return "today";
   if (diffDays <= 3) return "soon";
   return null;
+}
+
+// Calcula o progresso de um Goal baseado em suas Tasks filhas
+export function getGoalProgress(goal: Card, allCards: Card[]): { done: number; total: number; percent: number } {
+  const children = allCards.filter((c) => c.parent_id === goal.id);
+  if (children.length === 0) return { done: 0, total: 0, percent: 0 };
+  const done = children.filter((c) => c.col === "done").length;
+  const percent = Math.round((done / children.length) * 100);
+  return { done, total: children.length, percent };
+}
+
+// Calcula o progresso do checklist de um card
+export function getChecklistProgress(card: Card): { done: number; total: number; percent: number } {
+  const items = card.checklist ?? [];
+  if (items.length === 0) return { done: 0, total: 0, percent: 0 };
+  const done = items.filter((i) => i.done).length;
+  const percent = Math.round((done / items.length) * 100);
+  return { done, total: items.length, percent };
+}
+
+// Verifica se um card está bloqueado por dependências não-resolvidas
+export function isBlocked(card: Card, allCards: Card[]): boolean {
+  const blockers = card.blocked_by ?? [];
+  if (blockers.length === 0) return false;
+  return blockers.some((blockerId) => {
+    const blocker = allCards.find((c) => c.id === blockerId);
+    return blocker && blocker.col !== "done";
+  });
 }

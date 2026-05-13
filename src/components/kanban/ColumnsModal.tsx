@@ -12,11 +12,12 @@ export function ColumnsModal({
   columns: Column[];
   onClose: () => void;
   onCreate: (name: string) => void;
-  onUpdate: (id: string, name: string) => void;
+  onUpdate: (id: string, data: { name?: string; wip_limit?: number | null }) => void;
   onDelete: (id: string) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editWipLimit, setEditWipLimit] = useState<string>("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
 
@@ -29,11 +30,13 @@ export function ColumnsModal({
   const startEdit = (col: Column) => {
     setEditingId(col.id);
     setEditName(col.name);
+    setEditWipLimit(col.wip_limit ? String(col.wip_limit) : "");
   };
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
-    onUpdate(editingId, editName.trim());
+    const wip = editWipLimit.trim() ? parseInt(editWipLimit.trim(), 10) : null;
+    onUpdate(editingId, { name: editName.trim(), wip_limit: wip });
     setEditingId(null);
   };
 
@@ -74,24 +77,39 @@ export function ColumnsModal({
               >
                 {isEditing ? (
                   <>
-                    <input
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                      className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-                      style={{ borderWidth: "0.5px" }}
-                      autoFocus
-                    />
+                    <div className="flex-1 flex flex-col gap-2">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && saveEdit()}
+                        className="rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+                        style={{ borderWidth: "0.5px" }}
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-muted-foreground whitespace-nowrap">WIP Limit:</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="99"
+                          value={editWipLimit}
+                          onChange={(e) => setEditWipLimit(e.target.value)}
+                          placeholder="Sem limite"
+                          className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
+                          style={{ borderWidth: "0.5px" }}
+                        />
+                      </div>
+                    </div>
                     <button
                       onClick={saveEdit}
-                      className="rounded-md p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"
+                      className="rounded-md p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 shrink-0"
                       aria-label="Salvar"
                     >
                       <Check className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted shrink-0"
                       aria-label="Cancelar"
                     >
                       <X className="h-4 w-4" />
@@ -99,7 +117,12 @@ export function ColumnsModal({
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 text-sm font-medium text-foreground">{col.name}</span>
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-foreground">{col.name}</span>
+                      {col.wip_limit && (
+                        <div className="text-xs text-muted-foreground">WIP: {col.wip_limit}</div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1">
                       {isConfirming ? (
                         <>

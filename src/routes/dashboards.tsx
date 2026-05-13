@@ -14,7 +14,7 @@ export const Route = createFileRoute("/dashboards")({
 });
 
 function DashboardsPage() {
-  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar } = useKanban();
+  const { cards, trilhas, tracks, columns, updateCard, moveCard, deleteCard, toggleStar, duplicateCard } = useKanban();
   const [q, setQ] = useState("");
   const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -157,6 +157,7 @@ function DashboardsPage() {
           onDelete={deleteCard}
           onToggleStar={toggleStar}
           onUpdate={updateCard}
+          onDuplicate={duplicateCard}
         />
       )}
     </AppShell>
