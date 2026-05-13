@@ -23,7 +23,7 @@ import { ColumnsModal } from "./ColumnsModal";
 export function Board() {
   const {
     cards, trilhas, tracks, columns, collapsed, search, filter, setFilter,
-    addCard, updateCard, moveCard, deleteCard, toggleStar, toggleCollapsed,
+    addCard, updateCard, moveCard, reorderCard, deleteCard, toggleStar, toggleCollapsed,
     createTrilha, updateTrilha, deleteTrilha,
     createTrack, updateTrack, deleteTrack,
     createColumn, updateColumn, deleteColumn,
@@ -143,6 +143,7 @@ export function Board() {
               setDraggingId={setDraggingId}
               setDragOver={setDragOver}
               moveCard={moveCard}
+              reorderCard={reorderCard}
             />
           ))}
           {tracks.length === 0 && (
@@ -216,6 +217,88 @@ export function Board() {
   );
 }
 
+// Envolve um CardItem com drop zone que detecta posição (metade superior/inferior)
+// e dispara reorderCard com beforeId/afterId correspondente. Mostra uma linha
+// visual ANTES ou DEPOIS do card durante o drag.
+function CardDropZone({
+  card,
+  trilhas,
+  track,
+  col,
+  onClick,
+  setDraggingId,
+  setDragOver,
+  draggingId,
+  reorderCard,
+}: {
+  card: Card;
+  trilhas: Trilha[];
+  track: TrackId;
+  col: ColumnId;
+  onClick: () => void;
+  setDraggingId: (id: string | null) => void;
+  setDragOver: (v: { track: TrackId; col: ColumnId } | null) => void;
+  draggingId: string | null;
+  reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
+}) {
+  const [dropPos, setDropPos] = useState<"before" | "after" | null>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    // Detecta se o mouse está na metade superior ou inferior do card
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    setDropPos(e.clientY < midY ? "before" : "after");
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setDropPos(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = e.dataTransfer.getData("text/plain");
+    if (id && id !== card.id) {
+      const target = dropPos === "before"
+        ? { col, track, beforeId: card.id }
+        : { col, track, afterId: card.id };
+      reorderCard(id, target);
+    }
+    setDropPos(null);
+    setDraggingId(null);
+    setDragOver(null);
+  };
+
+  return (
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="relative"
+    >
+      {dropPos === "before" && (
+        <div className="absolute -top-1 left-0 right-0 h-0.5 rounded-full bg-foreground" />
+      )}
+      <CardItem
+        card={card}
+        trilhas={trilhas}
+        onClick={onClick}
+        onDragStart={() => setDraggingId(card.id)}
+        onDragEnd={() => { setDraggingId(null); setDragOver(null); }}
+        isDragging={draggingId === card.id}
+        onTouchDrop={(target) => { reorderCard(card.id, target); setDraggingId(null); }}
+      />
+      {dropPos === "after" && (
+        <div className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-foreground" />
+      )}
+    </div>
+  );
+}
+
 function Swimlane({
   track,
   columns,
@@ -230,6 +313,7 @@ function Swimlane({
   setDraggingId,
   setDragOver,
   moveCard,
+  reorderCard,
 }: {
   track: Track;
   columns: Column[];
@@ -244,6 +328,7 @@ function Swimlane({
   setDraggingId: (id: string | null) => void;
   setDragOver: (v: { track: TrackId; col: ColumnId } | null) => void;
   moveCard: (id: string, col: ColumnId, track?: TrackId) => void;
+  reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
 }) {
   const { theme } = useTheme();
   const inProgress = cards.filter((c) => c.col === "inprogress").length;
@@ -279,7 +364,9 @@ function Swimlane({
       {!collapsed && (
         <div className="flex gap-3 overflow-x-auto p-3 pb-4">
           {columns.map((col) => {
-            const colCards = cards.filter((c) => c.col === col.id);
+            const colCards = cards
+              .filter((c) => c.col === col.id)
+              .sort((a, b) => a.order - b.order);
             const isOver = dragOver?.track === track.id && dragOver?.col === col.id;
             return (
               <div
@@ -295,6 +382,7 @@ function Swimlane({
                   if (isOver) setDragOver(null);
                 }}
                 onDrop={(e) => {
+                  // Drop em área vazia da coluna (não em cima de um card) → vai pro fim
                   e.preventDefault();
                   const id = e.dataTransfer.getData("text/plain");
                   if (id) moveCard(id, col.id, track.id);
@@ -322,15 +410,17 @@ function Swimlane({
                 </div>
                 <div className="flex flex-1 flex-col gap-2 px-2 pb-2">
                   {colCards.map((c) => (
-                    <CardItem
+                    <CardDropZone
                       key={c.id}
                       card={c}
                       trilhas={trilhas}
+                      track={track.id}
+                      col={col.id}
                       onClick={() => onOpenCard(c)}
-                      onDragStart={() => setDraggingId(c.id)}
-                      onDragEnd={() => { setDraggingId(null); setDragOver(null); }}
-                      isDragging={draggingId === c.id}
-                      onTouchDrop={(col, track) => { moveCard(c.id, col, track); setDraggingId(null); }}
+                      setDraggingId={setDraggingId}
+                      setDragOver={setDragOver}
+                      draggingId={draggingId}
+                      reorderCard={reorderCard}
                     />
                   ))}
                 </div>

@@ -22,6 +22,7 @@ export interface Card {
   date?: string;
   starred: boolean;
   tags: string[]; // trilha ids (legacy filter system)
+  order: number; // ordem dentro da coluna (float, permite inserir entre cards sem renumerar)
   created_at: string;
   updated_at: string;
 }
@@ -108,20 +109,20 @@ export const TRILHA_COLOR_PRESETS: { bg: string; fg: string }[] = [
 // Seed cards: usam slug das tracks padrão (mapeados após inserção)
 export const SEED_CARDS_BY_TRACK: Record<string, Omit<Card, "id" | "created_at" | "updated_at" | "track">[]> = {
   "Estágio": [
-    { col: "inprogress", type: "Task", title: "Integração com API REST do módulo de relatórios", desc: "Conectar endpoint ao painel de visualização.", prio: "Alta", date: "2026-05-15", starred: false, tags: ["estagio", "dev"] },
-    { col: "todo", type: "Task", title: "Revisar documentação técnica do cliente", prio: "Média", date: "2026-05-22", starred: false, tags: ["estagio"] },
-    { col: "backlog", type: "Task", title: "Proposta de melhoria no pipeline de CI/CD", prio: "Baixa", starred: false, tags: ["estagio", "dev"] },
+    { col: "inprogress", type: "Task", title: "Integração com API REST do módulo de relatórios", desc: "Conectar endpoint ao painel de visualização.", prio: "Alta", date: "2026-05-15", starred: false, tags: ["estagio", "dev"], order: 1 },
+    { col: "todo", type: "Task", title: "Revisar documentação técnica do cliente", prio: "Média", date: "2026-05-22", starred: false, tags: ["estagio"], order: 1 },
+    { col: "backlog", type: "Task", title: "Proposta de melhoria no pipeline de CI/CD", prio: "Baixa", starred: false, tags: ["estagio", "dev"], order: 1 },
   ],
   "Faculdade": [
-    { col: "review", type: "Task", title: "Flutter — Mobile Dev (Prof. Joseph)", desc: "Entregar o app da disciplina.", prio: "Alta", date: "2026-05-18", starred: true, tags: ["faculdade"] },
-    { col: "todo", type: "Task", title: "Relatório BD — EscolaPrometheus", desc: "SQL Server com triggers, procedures e modelo relacional.", prio: "Alta", date: "2026-05-20", starred: false, tags: ["faculdade"] },
-    { col: "todo", type: "Task", title: "Prova — Redes de Computadores", desc: "Revisar camadas OSI, TCP/IP e subnetting.", prio: "Média", date: "2026-05-28", starred: false, tags: ["faculdade"] },
+    { col: "review", type: "Task", title: "Flutter — Mobile Dev (Prof. Joseph)", desc: "Entregar o app da disciplina.", prio: "Alta", date: "2026-05-18", starred: true, tags: ["faculdade"], order: 1 },
+    { col: "todo", type: "Task", title: "Relatório BD — EscolaPrometheus", desc: "SQL Server com triggers, procedures e modelo relacional.", prio: "Alta", date: "2026-05-20", starred: false, tags: ["faculdade"], order: 1 },
+    { col: "todo", type: "Task", title: "Prova — Redes de Computadores", desc: "Revisar camadas OSI, TCP/IP e subnetting.", prio: "Média", date: "2026-05-28", starred: false, tags: ["faculdade"], order: 2 },
   ],
   "IA / Dev": [
-    { col: "inprogress", type: "Goal", title: "FinScan — fase 2", desc: "Suporte a múltiplas contas e gráficos.", prio: "Alta", date: "2026-06-15", starred: true, tags: ["ia", "dev"] },
-    { col: "inprogress", type: "Task", title: "FinScan — parser de PDF Nubank", desc: "Corrigir bug de extração de transações.", prio: "Alta", date: "2026-05-16", starred: false, tags: ["ia", "dev"] },
-    { col: "todo", type: "Task", title: "CRUD biblioteca — C# console", desc: "Finalizar Sistema de Biblioteca Leia Mais.", prio: "Média", date: "2026-05-25", starred: false, tags: ["dev"] },
-    { col: "backlog", type: "Task", title: "Agente de análise de PDFs com Claude API", prio: "Média", date: "2026-06-01", starred: false, tags: ["ia", "dev"] },
+    { col: "inprogress", type: "Goal", title: "FinScan — fase 2", desc: "Suporte a múltiplas contas e gráficos.", prio: "Alta", date: "2026-06-15", starred: true, tags: ["ia", "dev"], order: 1 },
+    { col: "inprogress", type: "Task", title: "FinScan — parser de PDF Nubank", desc: "Corrigir bug de extração de transações.", prio: "Alta", date: "2026-05-16", starred: false, tags: ["ia", "dev"], order: 2 },
+    { col: "todo", type: "Task", title: "CRUD biblioteca — C# console", desc: "Finalizar Sistema de Biblioteca Leia Mais.", prio: "Média", date: "2026-05-25", starred: false, tags: ["dev"], order: 1 },
+    { col: "backlog", type: "Task", title: "Agente de análise de PDFs com Claude API", prio: "Média", date: "2026-06-01", starred: false, tags: ["ia", "dev"], order: 1 },
   ],
 };
 
@@ -158,4 +159,19 @@ export function isArchived(card: Card): boolean {
   const updated = new Date(card.updated_at).getTime();
   const cutoff = Date.now() - ARCHIVE_AFTER_DAYS * 24 * 60 * 60 * 1000;
   return updated < cutoff;
+}
+
+export type DeadlineStatus = "overdue" | "today" | "soon" | null;
+
+// Retorna o status do prazo de um card (ignora cards done/arquivados)
+export function getDeadlineStatus(card: Card): DeadlineStatus {
+  if (!card.date || card.col === "done") return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(card.date + "T00:00:00");
+  const diffDays = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return "overdue";
+  if (diffDays === 0) return "today";
+  if (diffDays <= 3) return "soon";
+  return null;
 }

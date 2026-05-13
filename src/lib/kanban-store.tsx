@@ -38,6 +38,7 @@ interface KanbanCtx {
   addCard: (data: AddInput) => void;
   updateCard: (id: string, patch: Partial<Card>) => void;
   moveCard: (id: string, col: ColumnId, track?: TrackId) => void;
+  reorderCard: (id: string, target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string }) => void;
   deleteCard: (id: string) => void;
   toggleStar: (id: string) => void;
   toggleCollapsed: (id: TrackId) => void;
@@ -69,9 +70,18 @@ function rowToCard(row: Record<string, unknown>): Card {
     date: row.date as string | undefined,
     starred: (row.starred as boolean) ?? false,
     tags: (row.tags as string[]) ?? [],
+    order: (row.order as number) ?? 0,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
+}
+
+// Calcula o próximo `order` para um card recém-criado em (track, col):
+// um a mais que o maior existente naquela coluna+track.
+function nextOrder(cards: Card[], track: TrackId, col: ColumnId): number {
+  const inSameCol = cards.filter((c) => c.track === track && c.col === col);
+  if (inSameCol.length === 0) return 1;
+  return Math.max(...inSameCol.map((c) => c.order)) + 1;
 }
 
 function rowToTrilha(row: Record<string, unknown>): Trilha {
@@ -242,6 +252,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       const newCard: Card = {
         ...data,
         starred: data.starred ?? false,
+        order: nextOrder(cards, data.track, data.col),
         id: tempId,
         created_at: now,
         updated_at: now,
@@ -269,14 +280,65 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
     moveCard: async (id, col, track) => {
       const now = new Date().toISOString();
-      const patch: Partial<Card> = { col, updated_at: now };
+      const targetTrack = track ?? cards.find((c) => c.id === id)?.track;
+      if (!targetTrack) return;
+      // Card que muda de coluna/track vai pro final da nova coluna
+      const newOrder = nextOrder(cards.filter((c) => c.id !== id), targetTrack, col);
+      const patch: Partial<Card> = { col, order: newOrder, updated_at: now };
       if (track) patch.track = track;
       setCards((cur) =>
         cur.map((c) =>
-          c.id === id ? { ...c, col, track: track ?? c.track, updated_at: now } : c
+          c.id === id ? { ...c, col, track: track ?? c.track, order: newOrder, updated_at: now } : c
         )
       );
       await supabase.from("tasks").update(patch).eq("id", id);
+    },
+
+    reorderCard: async (id, target) => {
+      const card = cards.find((c) => c.id === id);
+      if (!card) return;
+      const targetCol = target.col ?? card.col;
+      const targetTrack = target.track ?? card.track;
+      // Pega cards da coluna alvo, ordenados (excluindo o próprio)
+      const sameColumn = cards
+        .filter((c) => c.track === targetTrack && c.col === targetCol && c.id !== id)
+        .sort((a, b) => a.order - b.order);
+
+      let newOrder: number;
+      if (target.beforeId) {
+        const beforeIdx = sameColumn.findIndex((c) => c.id === target.beforeId);
+        if (beforeIdx === -1) return;
+        const before = sameColumn[beforeIdx];
+        const prev = sameColumn[beforeIdx - 1];
+        newOrder = prev ? (prev.order + before.order) / 2 : before.order - 1;
+      } else if (target.afterId) {
+        const afterIdx = sameColumn.findIndex((c) => c.id === target.afterId);
+        if (afterIdx === -1) return;
+        const after = sameColumn[afterIdx];
+        const next = sameColumn[afterIdx + 1];
+        newOrder = next ? (after.order + next.order) / 2 : after.order + 1;
+      } else {
+        newOrder = sameColumn.length ? sameColumn[sameColumn.length - 1].order + 1 : 1;
+      }
+
+      // Sem mudança real
+      const colChanged = targetCol !== card.col;
+      const trackChanged = targetTrack !== card.track;
+      const orderChanged = Math.abs(newOrder - card.order) > 1e-9;
+      if (!colChanged && !trackChanged && !orderChanged) return;
+
+      const now = new Date().toISOString();
+      setCards((cur) =>
+        cur.map((c) =>
+          c.id === id
+            ? { ...c, col: targetCol, track: targetTrack, order: newOrder, updated_at: now }
+            : c
+        )
+      );
+      await supabase
+        .from("tasks")
+        .update({ col: targetCol, track: targetTrack, order: newOrder, updated_at: now })
+        .eq("id", id);
     },
 
     deleteCard: async (id) => {

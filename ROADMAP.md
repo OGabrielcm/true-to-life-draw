@@ -37,6 +37,8 @@
 | Responsividade mobile | ✅ |
 | Edição de cards (título, descrição, prazo, prioridade, tags) | ✅ |
 | Colunas customizáveis (criar, renomear, excluir colunas do board) | ✅ |
+| Reordenação de cards dentro da coluna (desktop + mobile) | ✅ |
+| Notificações de prazo (badge no header, indicador visual nos cards) | ✅ |
 
 ---
 
@@ -48,19 +50,9 @@
 
 ### ~~1.2 Colunas customizáveis~~ ✅ Implementado
 
-### 1.3 Reordenação dentro da coluna
-- **O que é:** Arrastar cards para cima/baixo dentro de uma mesma coluna para priorizar
-- **Por que é crítico:** Sem ordem, o card mais prioritário se perde entre os outros
-- **Referência:** Todos os Kanbans profissionais
-- **Consumo de token:** 🔴 Alto (campo `order` no DB + lógica de reordenação)
-- **Modelo recomendado:** `claude-opus-4-7`
+### ~~1.3 Reordenação dentro da coluna~~ ✅ Implementado
 
-### 1.4 Notificações de prazo
-- **O que é:** Alerta visual (badge no header) quando um card tem deadline hoje ou vencido
-- **Por que é crítico:** Prazos vencem silenciosamente sem nenhum aviso
-- **Referência:** JIRA (due date alerts), Trello (card aging)
-- **Consumo de token:** 🟡 Médio (lógica client-side, sem migration)
-- **Modelo recomendado:** `claude-sonnet-4-6[1m]`
+### ~~1.4 Notificações de prazo~~ ✅ Implementado
 
 ---
 

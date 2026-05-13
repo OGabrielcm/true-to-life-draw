@@ -17,6 +17,7 @@ import {
 import { useTheme } from "@/components/theme-provider";
 import { useKanban } from "@/lib/kanban-store";
 import { useAuth } from "@/lib/auth-store";
+import { getDeadlineStatus } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 
 const NAV = [
@@ -33,7 +34,11 @@ function initials(email: string | undefined) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggle } = useTheme();
-  const { search, setSearch, setCreateOpen, createOpen, tracks } = useKanban();
+  const { search, setSearch, setCreateOpen, createOpen, tracks, cards } = useKanban();
+  const urgentCount = cards.filter((c) => {
+    const s = getDeadlineStatus(c);
+    return s === "overdue" || s === "today";
+  }).length;
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
@@ -160,6 +165,22 @@ export function AppShell({ children }: { children: ReactNode }) {
               style={{ borderWidth: "0.5px" }}
             />
           </div>
+          {urgentCount > 0 && (
+            <Link
+              to="/dashboards"
+              title={`${urgentCount} card${urgentCount > 1 ? "s" : ""} com prazo vencido ou hoje`}
+              className="relative inline-flex items-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                {urgentCount > 9 ? "9+" : urgentCount}
+              </span>
+            </Link>
+          )}
           <button
             onClick={() => setCreateOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"

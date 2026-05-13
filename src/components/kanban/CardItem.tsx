@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Calendar, GripVertical, Star, Target } from "lucide-react";
-import { Card, ColumnId, PRIO_COLORS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
+import { Card, ColumnId, getDeadlineStatus, PRIO_COLORS, TrackId, Trilha, formatDate } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 
 export function CardItem({
@@ -18,7 +18,7 @@ export function CardItem({
   onDragStart: () => void;
   onDragEnd: () => void;
   isDragging: boolean;
-  onTouchDrop?: (col: ColumnId, track: TrackId) => void;
+  onTouchDrop?: (target: { col: ColumnId; track: TrackId; beforeId?: string; afterId?: string }) => void;
 }) {
   const { theme } = useTheme();
   const prioRaw = PRIO_COLORS[card.prio];
@@ -26,6 +26,7 @@ export function CardItem({
     ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
     : { bg: prioRaw.bg, fg: prioRaw.fg };
   const isGoal = card.type === "Goal";
+  const deadlineStatus = getDeadlineStatus(card);
 
   const touchRef = useRef<{ startX: number; startY: number; dragging: boolean } | null>(null);
   const justDraggedRef = useRef(false);
@@ -68,7 +69,21 @@ export function CardItem({
       const col = colEl.getAttribute("data-col") as ColumnId;
       const trackEl = colEl.closest("[data-track]");
       const track = trackEl?.getAttribute("data-track") as TrackId;
-      if (col && track) onTouchDrop(col, track);
+      if (!col || !track) { onDragEnd(); return; }
+
+      // Verifica se soltou sobre OUTRO card (para reorder dentro da coluna)
+      const overCardEl = target?.closest("[data-card-id]") as HTMLElement | null;
+      const overCardId = overCardEl?.getAttribute("data-card-id");
+      if (overCardEl && overCardId && overCardId !== card.id) {
+        // Detecta se foi na metade superior (before) ou inferior (after)
+        const rect = overCardEl.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const isAfter = touch.clientY >= midY;
+        onTouchDrop(isAfter ? { col, track, afterId: overCardId } : { col, track, beforeId: overCardId });
+      } else {
+        // Drop em área vazia → vai pro fim da coluna
+        onTouchDrop({ col, track });
+      }
     }
     onDragEnd();
   };
@@ -83,11 +98,18 @@ export function CardItem({
 
   return (
     <div
+      data-card-id={card.id}
       className="kb-card relative w-full rounded-lg border bg-card transition-all hover:border-foreground/30"
       style={{
         borderWidth: "0.5px",
         opacity: isDragging ? 0.4 : 1,
-        borderLeft: isGoal ? "3px solid var(--foreground)" : undefined,
+        borderLeft: isGoal
+          ? "3px solid var(--foreground)"
+          : deadlineStatus === "overdue"
+          ? "3px solid #ef4444"
+          : deadlineStatus === "today"
+          ? "3px solid #f97316"
+          : undefined,
       }}
     >
       {/* Grip handle — só este elemento captura toque para drag */}
@@ -147,8 +169,20 @@ export function CardItem({
             );
           })}
           {card.date && (
-            <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+            <span
+              className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium"
+              style={{
+                color: deadlineStatus === "overdue"
+                  ? "#ef4444"
+                  : deadlineStatus === "today"
+                  ? "#f97316"
+                  : deadlineStatus === "soon"
+                  ? "#eab308"
+                  : "var(--muted-foreground)",
+              }}
+            >
               <Calendar className="h-3 w-3" />
+              {deadlineStatus === "overdue" ? "Vencido · " : deadlineStatus === "today" ? "Hoje · " : ""}
               {formatDate(card.date)}
             </span>
           )}
