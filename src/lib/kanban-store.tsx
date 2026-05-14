@@ -265,7 +265,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       // Seed trilhas if user has none
       if (!dbTrilhas?.length) {
-        const seededTrilhas = DEFAULT_TRILHAS.map((t) => ({ ...t, user_id: user.id }));
+        const seededTrilhas = DEFAULT_TRILHAS.map(({ id: _id, ...t }) => ({ ...t, user_id: user.id }));
         const { data: inserted } = await supabase.from("trilhas").insert(seededTrilhas).select();
         if (!cancelled) setTrilhas((inserted ?? []).map(rowToTrilha));
       } else {
