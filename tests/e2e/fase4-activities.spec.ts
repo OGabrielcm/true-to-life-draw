@@ -10,12 +10,13 @@ test.describe.serial("4.5 — Histórico de atividades", () => {
 
   test("setup: cria card de teste", async ({ page }) => {
     await createCard(page, CARD_TITLE);
+    // Aguarda logActivity completar o insert assíncrono
+    await page.waitForTimeout(3_000);
   });
 
   test("registra atividade 'criado' ao abrir card", async ({ page }) => {
     await openCard(page, CARD_TITLE);
-    // Atividades são carregadas assincronamente — aguarda e rola até a seção
-    await page.waitForTimeout(2_000);
+    await page.waitForTimeout(1_500);
     const modal = page.locator(".max-w-lg");
     await modal.evaluate((el) => el.scrollTo(0, el.scrollHeight));
     await expect(page.getByText(/Atividades \(\d+\)/)).toBeVisible({ timeout: 10_000 });

@@ -338,6 +338,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) return;
+        currentUserIdRef.current = user.id;
         const now = new Date().toISOString();
         const tempId = crypto.randomUUID();
         const newCard: Card = {
