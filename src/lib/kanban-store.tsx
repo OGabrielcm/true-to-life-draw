@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
   ActivityType,
@@ -174,11 +174,13 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [commentsByCard, setCommentsByCard] = useState<Record<string, Comment[]>>({});
   const [timeLogsByCard, setTimeLogsByCard] = useState<Record<string, TimeLog[]>>({});
 
-  const logActivity = async (taskId: string, type: ActivityType, message: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+  const currentUserIdRef = useRef<string | null>(null);
+
+  const logActivityRef = useRef<(taskId: string, type: ActivityType, message: string) => Promise<void>>(async () => {});
+
+  const logActivityFn = async (taskId: string, type: ActivityType, message: string) => {
+    const userId = currentUserIdRef.current;
+    if (!userId) return;
     const tempId = crypto.randomUUID();
     const now = new Date().toISOString();
     const optimistic: Activity = { id: tempId, task_id: taskId, type, message, created_at: now };
@@ -188,7 +190,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     }));
     const { data, error } = await supabase
       .from("activities")
-      .insert({ task_id: taskId, user_id: user.id, type, message })
+      .insert({ task_id: taskId, user_id: userId, type, message })
       .select()
       .single();
     if (error) {
@@ -204,6 +206,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  logActivityRef.current = logActivityFn;
+  const logActivity = (taskId: string, type: ActivityType, message: string) =>
+    logActivityRef.current(taskId, type, message);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -212,6 +218,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user || cancelled) return;
+      currentUserIdRef.current = user.id;
 
       const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] =
         await Promise.all([
@@ -309,7 +316,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveCardColors(cardColors);
   }, [cardColors]);
 
-  const value = useMemo<KanbanCtx>(
+  const value = useMemo<Omit<KanbanCtx, "activitiesByCard" | "commentsByCard" | "timeLogsByCard">>(
     () => ({
       cards,
       trilhas,
@@ -565,10 +572,6 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           return next;
         });
       },
-
-      activitiesByCard,
-      commentsByCard,
-      timeLogsByCard,
 
       loadCardDetails: async (cardId) => {
         const [{ data: acts }, { data: cmts }, { data: logs }] = await Promise.all([
@@ -837,13 +840,15 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       loading,
       templates,
       cardColors,
-      activitiesByCard,
-      commentsByCard,
-      timeLogsByCard,
     ],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  const fullValue = useMemo(
+    () => ({ ...value, activitiesByCard, commentsByCard, timeLogsByCard }),
+    [value, activitiesByCard, commentsByCard, timeLogsByCard],
+  );
+
+  return <Ctx.Provider value={fullValue}>{children}</Ctx.Provider>;
 }
 
 export function useKanban() {

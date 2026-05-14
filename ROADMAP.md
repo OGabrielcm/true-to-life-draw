@@ -1,7 +1,17 @@
 # 🗺️ Roadmap — Molas Kanban
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — Todas as fases completas ✅
+> Atualizado em: Maio 2026 — Todas as fases completas ✅ · Testes E2E (Fase 4) em andamento
+
+---
+
+## Infraestrutura de desenvolvimento
+
+| Ferramenta | Status | Uso |
+|-----------|--------|-----|
+| **Supabase MCP** | ✅ Conectado | Queries, migrations e logs direto no Claude Code |
+| **Vercel MCP** | ✅ Conectado | Deployments, logs de runtime e projetos |
+| **Playwright E2E** | ✅ Configurado | Testes de interface em `tests/e2e/` — porta 5174 |
 
 ---
 
@@ -150,17 +160,39 @@
 
 > Pequenos detalhes que elevam a experiência.
 
-| # | Feature | Consumo de token | Modelo recomendado | Status |
-|---|---------|-----------------|-------------------|--------|
-| ~~4.1~~ | Markdown na descrição dos cards | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
-| ~~4.2~~ | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
-| ~~4.3~~ | Card aging (opacidade em cards parados há muito tempo) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
-| ~~4.4~~ | Cor de destaque / cover no card | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ |
-| ~~4.5~~ | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` | ✅ |
-| ~~4.6~~ | Comentários no card | 🔴 Alto | `claude-opus-4-7` | ✅ |
-| ~~4.7~~ | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` | ✅ |
+| # | Feature | Consumo de token | Modelo recomendado | Impl. | Teste E2E |
+|---|---------|-----------------|-------------------|-------|-----------|
+| ~~4.1~~ | Markdown na descrição dos cards | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
+| ~~4.2~~ | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
+| ~~4.3~~ | Card aging (opacidade em cards parados há muito tempo) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
+| ~~4.4~~ | Cor de destaque / cover no card | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
+| ~~4.5~~ | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` | ✅ | ✅ `fase4-activities.spec.ts` |
+| ~~4.6~~ | Comentários no card | 🔴 Alto | `claude-opus-4-7` | ✅ | ✅ `fase4-comments.spec.ts` |
+| ~~4.7~~ | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` | ✅ | ✅ `fase4-timetracking.spec.ts` |
 
-> ⚠️ **Migration pendente:** rodar `supabase_activities_comments_time_migration.sql` no Supabase antes de usar 4.5/4.6/4.7.
+> ⚠️ **Migration:** `supabase_activities_comments_time_migration.sql` — já aplicada no Supabase (projeto `smdelyasoqtgcjdbldpf`).
+
+### Cobertura dos testes E2E (Fase 4)
+
+**`4.5 — Histórico de atividades`** · `fase4-activities.spec.ts`
+- Registra atividade `criado` ao abrir card pela primeira vez
+- Registra atividade ao mover card de coluna
+- Registra atividade ao favoritar card
+- Setup / teardown automatizados
+
+**`4.6 — Comentários no card`** · `fase4-comments.spec.ts`
+- Adiciona comentário via Ctrl+Enter
+- Persiste após fechar e reabrir o modal
+- Edita comentário existente inline
+- Deleta comentário e confirma remoção
+
+**`4.7 — Time tracking`** · `fase4-timetracking.spec.ts`
+- Registra 1h 30m com nota e exibe na lista
+- Total acumula corretamente com segundo registro (45m → 2h 15m)
+- Deleta entrada e total volta ao valor anterior (1h 30m)
+- Persiste após reload da página (confirmação no Supabase)
+
+> Para rodar: `npm run dev` em segundo plano → `npx playwright test` (porta 5174)
 
 ---
 

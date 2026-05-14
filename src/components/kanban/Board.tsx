@@ -189,6 +189,7 @@ export function Board() {
               setDragOver={setDragOver}
               moveCard={moveCard}
               reorderCard={reorderCard}
+              cardColors={cardColors}
             />
           ))}
           {tracks.length === 0 && (
@@ -285,6 +286,7 @@ function CardDropZone({
   setDragOver,
   draggingId,
   reorderCard,
+  cardColor,
 }: {
   card: Card;
   allCards: Card[];
@@ -299,6 +301,7 @@ function CardDropZone({
     id: string,
     target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
   ) => void;
+  cardColor?: string;
 }) {
   const [dropPos, setDropPos] = useState<"before" | "after" | null>(null);
 
@@ -356,7 +359,7 @@ function CardDropZone({
           reorderCard(card.id, target);
           setDraggingId(null);
         }}
-        cardColor={cardColors[card.id]}
+        cardColor={cardColor}
       />
       {dropPos === "after" && (
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-foreground" />
@@ -381,6 +384,7 @@ function Swimlane({
   setDragOver,
   moveCard,
   reorderCard,
+  cardColors,
 }: {
   track: Track;
   columns: Column[];
@@ -400,6 +404,7 @@ function Swimlane({
     id: string,
     target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
   ) => void;
+  cardColors: Record<string, string>;
 }) {
   const { theme } = useTheme();
   const inProgress = cards.filter((c) => c.col === "inprogress").length;
@@ -510,6 +515,7 @@ function Swimlane({
                       setDragOver={setDragOver}
                       draggingId={draggingId}
                       reorderCard={reorderCard}
+                      cardColor={cardColors[c.id]}
                     />
                   ))}
                 </div>
