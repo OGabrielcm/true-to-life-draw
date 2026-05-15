@@ -78,13 +78,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 flex-col border-r bg-sidebar transition-transform md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[220px] shrink-0 flex-col border-r bg-sidebar transition-transform md:static md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ borderWidth: "0.5px" }}
       >
         <div
-          className="flex h-12 shrink-0 items-center justify-between px-4 border-b"
+          className="flex h-[52px] shrink-0 items-center justify-between px-4 border-b"
           style={{ borderWidth: "0.5px" }}
         >
           <span className="text-sm font-semibold">🌀 Molas</span>
@@ -177,7 +177,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Main column */}
       <div className="flex flex-1 flex-col min-w-0">
         <header
-          className="sticky top-0 z-20 flex h-12 items-center gap-1 border-b bg-background/90 px-3 backdrop-blur sm:gap-2 sm:px-5"
+          className="sticky top-0 z-20 flex h-[52px] items-center gap-1 border-b bg-background/90 px-3 backdrop-blur sm:gap-2 sm:px-5"
           style={{ borderWidth: "0.5px" }}
         >
           <button className="md:hidden" onClick={() => setMobileOpen(true)}>
@@ -294,7 +294,7 @@ function AppSkeleton() {
     <div className="flex h-screen w-full overflow-hidden bg-background">
       {/* Sidebar skeleton */}
       <div className="hidden w-60 shrink-0 flex-col border-r md:flex" style={{ borderWidth: "0.5px" }}>
-        <div className="flex h-12 items-center gap-2 border-b px-4" style={{ borderWidth: "0.5px" }}>
+        <div className="flex h-[52px] items-center gap-2 border-b px-4" style={{ borderWidth: "0.5px" }}>
           <div className="skeleton-shimmer h-4 w-4 rounded-full" />
           <div className="skeleton-shimmer h-3 w-24 rounded" />
         </div>
@@ -310,7 +310,7 @@ function AppSkeleton() {
       </div>
       {/* Main skeleton */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex h-12 items-center gap-2 border-b px-5" style={{ borderWidth: "0.5px" }}>
+        <div className="flex h-[52px] items-center gap-2 border-b px-5" style={{ borderWidth: "0.5px" }}>
           <div className="skeleton-shimmer h-3 w-32 rounded" />
           <div className="skeleton-shimmer ml-2 h-7 w-64 rounded-md" />
           <div className="skeleton-shimmer ml-auto h-7 w-20 rounded-md" />

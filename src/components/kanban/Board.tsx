@@ -425,7 +425,7 @@ function Swimlane({
       >
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: track.border }} />
-          <h2 className="text-sm font-medium">{track.name}</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>{track.name}</h2>
           <span className="text-xs opacity-70">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
             {inProgress > 0 && ` · ${inProgress} em andamento`}
@@ -480,8 +480,8 @@ function Swimlane({
                 <div className="flex items-center justify-between px-3 pb-2 pt-3">
                   <div className="flex items-center gap-2">
                     <h3
-                      className="text-xs font-medium uppercase tracking-wide"
-                      style={{ color: fg }}
+                      className="text-xs font-medium uppercase"
+                      style={{ color: fg, letterSpacing: "0.08em", fontFamily: "ui-monospace, monospace" }}
                     >
                       {col.name}
                     </h3>

@@ -19,13 +19,14 @@
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  /* Border-radius alinhados com Open Design: sm=4px, default=8px, lg=12px */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
+  --radius-4xl: 20px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -62,7 +63,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem; /* 8px — alinhado com Open Design */
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -142,6 +143,9 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -152,16 +156,24 @@
   --font-display: 'Oswald', sans-serif;
 }
 
-/* Card hover micro-animation */
+/* ── Open Design animations ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* Card hover micro-animation — alinhado com Open Design */
 .kb-card {
   transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .kb-card:hover {
+  border-color: oklch(1 0 0 / 14%) !important; /* --border-md */
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-.dark .kb-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.light .kb-card:hover, :root:not(.dark) .kb-card:hover {
+  border-color: oklch(0 0 0 / 20%) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 /* Skeleton loading animation */
