@@ -11,19 +11,19 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
   });
 
   test("1 — cria trilha nova sem crash", async ({ page }) => {
-    await page.locator("button").filter({ hasText: "Trilhas" }).click();
-    await expect(page.locator("text=Gerenciar trilhas")).toBeVisible({ timeout: 8_000 });
+    await page.locator("button").filter({ hasText: "Tags" }).click();
+    await expect(page.locator("text=Gerenciar tags")).toBeVisible({ timeout: 8_000 });
 
     // O form de nova trilha já está visível no modal
-    const nameInput = page.locator('input[placeholder="Nome da trilha"]');
+    const nameInput = page.locator('input[placeholder="Nome da tag"]');
     await nameInput.waitFor({ state: "visible", timeout: 5_000 });
     await nameInput.fill(TRILHA_NAME);
 
     await page.locator("button:has-text('Criar')").last().click();
     await page.waitForTimeout(500);
 
-    // Trilha aparece na lista
-    await expect(page.locator(".max-w-lg, [role='dialog']").getByText(TRILHA_NAME)).toBeVisible({ timeout: 8_000 });
+    // Trilha aparece na lista do modal
+    await expect(page.getByText(TRILHA_NAME).first()).toBeVisible({ timeout: 8_000 });
     console.log(`✓ Trilha "${TRILHA_NAME}" criada`);
 
     await page.keyboard.press("Escape");
@@ -45,7 +45,7 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
     await page.locator("button:has-text('Criar')").last().click();
     await page.waitForTimeout(500);
 
-    await expect(page.locator(".max-w-lg, [role='dialog']").getByText(TRACK_NAME)).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(TRACK_NAME).first()).toBeVisible({ timeout: 8_000 });
     console.log(`✓ Track "${TRACK_NAME}" criada`);
 
     await page.keyboard.press("Escape");
@@ -84,7 +84,7 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
     await card.waitFor({ state: "visible", timeout: 10_000 });
     await card.click();
 
-    await expect(page.locator(".max-w-lg")).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator(".max-w-2xl")).toBeVisible({ timeout: 8_000 });
     // App ainda no ar
     await expect(page.locator("text=Gerenciador de Molas")).toBeVisible({ timeout: 5_000 });
     console.log("✓ Modal abriu sem crash");
@@ -116,7 +116,7 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
     await page.waitForTimeout(300);
 
     // Exclui trilha
-    await page.locator("button").filter({ hasText: "Trilhas" }).click();
+    await page.locator("button").filter({ hasText: "Tags" }).click();
     await page.waitForTimeout(400);
     const trilhaRow = page.locator("li, .group").filter({ hasText: TRILHA_NAME }).first();
     if (await trilhaRow.count() > 0) {

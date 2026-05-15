@@ -14,7 +14,8 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("adiciona comentário (Ctrl+Enter)", async ({ page }) => {
     await openCard(page, CARD_TITLE);
-    await expect(page.getByText(/^Comentários/)).toBeVisible({ timeout: 5_000 });
+    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page.waitForTimeout(300);
 
     const textarea = page.locator('textarea[placeholder*="Adicionar comentário"]');
     await textarea.fill("Comentário de teste E2E");
@@ -26,12 +27,16 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("persiste após reabrir modal", async ({ page }) => {
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page.waitForTimeout(300);
     await expect(page.locator("text=Comentário de teste E2E")).toBeVisible({ timeout: 8_000 });
     console.log("✓ Comentário persiste");
   });
 
   test("edita comentário existente", async ({ page }) => {
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page.waitForTimeout(300);
     const group = page.locator(".group").filter({ hasText: "Comentário de teste E2E" }).first();
     // Força hover via JS para revelar botões com opacity-0
     await group.hover({ force: true });
@@ -54,6 +59,8 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("deleta comentário", async ({ page }) => {
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page.waitForTimeout(300);
     // Hover forçado para revelar botões com opacity-0
     const group = page.locator(".group").filter({ hasText: /Comentário/ }).first();
     await group.hover({ force: true });

@@ -15,6 +15,8 @@ async function globalSetup() {
   );
   await sb.auth.signInWithPassword({ email, password });
   await sb.from("tasks").delete().like("title", "[E2E-%");
+  await sb.from("trilhas").delete().like("name", "[E2E-%");
+  await sb.from("tracks").delete().like("name", "[E2E-%");
   console.log("✓ Banco limpo de resíduos E2E");
 
   // Salva estado de autenticação para os testes

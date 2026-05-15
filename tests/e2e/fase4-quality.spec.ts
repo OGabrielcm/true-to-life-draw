@@ -22,7 +22,7 @@ test.describe.serial("4.1–4.4 — Quality of Life", () => {
     await descArea.waitFor({ state: "visible", timeout: 5_000 });
     await descArea.fill("**negrito** e _itálico_");
 
-    await page.locator(".max-w-lg button:has-text('Salvar')").first().click();
+    await page.locator(".max-w-2xl button:has-text('Salvar')").first().click();
     await page.waitForTimeout(500);
 
     // Reabre o card para ver o markdown renderizado
@@ -31,7 +31,7 @@ test.describe.serial("4.1–4.4 — Quality of Life", () => {
     await openCard(page, CARD_TITLE);
 
     // Verifica que <strong> foi renderizado
-    await expect(page.locator(".max-w-lg .prose strong").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator(".max-w-2xl .prose strong").first()).toBeVisible({ timeout: 5_000 });
     console.log("✓ 4.1 Markdown renderiza negrito na descrição");
   });
 
@@ -54,7 +54,7 @@ test.describe.serial("4.1–4.4 — Quality of Life", () => {
     await page.keyboard.press("e");
 
     // Em modo editing, o título vira um <input>
-    const titleInput = page.locator(".max-w-lg input[type='text'], .max-w-lg input:not([type])").first();
+    const titleInput = page.locator(".max-w-2xl input[type='text'], .max-w-2xl input:not([type])").first();
     await expect(titleInput).toBeVisible({ timeout: 5_000 });
     console.log("✓ 4.2 Atalho 'e' ativa edição");
 
@@ -88,7 +88,7 @@ test.describe.serial("4.1–4.4 — Quality of Life", () => {
     await page.keyboard.press("Escape");
     await page.waitForTimeout(400);
 
-    const colorBar = page.locator("[data-card-id] div.h-1").first();
+    const colorBar = page.locator("[data-card-id] div.h-\\[3px\\]").first();
     await expect(colorBar).toBeVisible({ timeout: 5_000 });
     console.log("✓ 4.4 Cor de destaque aplicada no card");
   });

@@ -14,6 +14,8 @@ test.describe.serial("4.7 — Time tracking", () => {
 
   test("registra 1h 30m e exibe na lista", async ({ page }) => {
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /TEMPO|Tempo/i }).first().click();
+    await page.waitForTimeout(300);
     await expect(page.getByText(/^Time tracking/)).toBeVisible({ timeout: 5_000 });
     await page.locator("text=Registrar tempo").click();
 
@@ -31,6 +33,8 @@ test.describe.serial("4.7 — Time tracking", () => {
 
   test("total acumula com segundo registro (45m)", async ({ page }) => {
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /TEMPO|Tempo/i }).first().click();
+    await page.waitForTimeout(300);
     await page.locator("text=Registrar tempo").click();
     await expect(page.locator('input[placeholder="h"]')).toBeVisible({ timeout: 5_000 });
     await page.locator('input[placeholder="h"]').fill("0");
@@ -43,6 +47,8 @@ test.describe.serial("4.7 — Time tracking", () => {
 
   test("deleta 45m e total volta a 1h 30m", async ({ page }) => {
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /TEMPO|Tempo/i }).first().click();
+    await page.waitForTimeout(300);
     const logRow = page.locator(".group").filter({ hasText: "45m" }).first();
     await logRow.hover();
     await logRow.locator("button").last().click();
@@ -54,6 +60,8 @@ test.describe.serial("4.7 — Time tracking", () => {
     await page.reload();
     await expect(page.locator("[data-col]").first()).toBeVisible({ timeout: 10_000 });
     await openCard(page, CARD_TITLE);
+    await page.locator(".max-w-2xl button").filter({ hasText: /TEMPO|Tempo/i }).first().click();
+    await page.waitForTimeout(300);
     await expect(page.locator("text=1h 30m").first()).toBeVisible({ timeout: 8_000 });
     await expect(page.locator("text=Trabalho de teste E2E")).toBeVisible({ timeout: 5_000 });
     console.log("✓ Persiste após reload");

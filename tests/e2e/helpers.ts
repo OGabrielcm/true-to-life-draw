@@ -46,6 +46,6 @@ export async function createCard(page: Page, title: string) {
 
 export async function openCard(page: Page, title: string) {
   await page.locator(`text="${title}"`).first().click();
-  await expect(page.locator(".max-w-lg")).toBeVisible({ timeout: 8_000 });
+  await expect(page.locator(".max-w-2xl")).toBeVisible({ timeout: 8_000 });
   await page.waitForTimeout(1_500);
 }
