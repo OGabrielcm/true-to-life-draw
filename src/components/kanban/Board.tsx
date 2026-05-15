@@ -134,7 +134,7 @@ export function Board() {
             style={{ borderWidth: "0.5px" }}
           >
             <Tags className="h-3.5 w-3.5" />
-            Trilhas
+            Tags
           </button>
           <button
             onClick={() => setTracksOpen(true)}

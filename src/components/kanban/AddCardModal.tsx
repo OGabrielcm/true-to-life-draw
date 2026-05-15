@@ -215,7 +215,7 @@ export function AddCardModal({
             <div className="grid grid-cols-2 gap-3">
               {allowTrackPick && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Trilha</label>
+                  <label className="text-xs font-medium text-muted-foreground">Track</label>
                   <select
                     value={trackSel}
                     onChange={(e) => {
@@ -283,9 +283,9 @@ export function AddCardModal({
             </div>
           )}
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Trilhas / tags</label>
+            <label className="text-xs font-medium text-muted-foreground">Tags</label>
             {trilhas.length === 0 ? (
-              <p className="mt-1.5 text-xs text-muted-foreground">Nenhuma trilha cadastrada.</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">Nenhuma tag cadastrada.</p>
             ) : (
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {trilhas.map((t) => {

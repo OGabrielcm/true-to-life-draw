@@ -88,15 +88,15 @@ export function TrilhasModal({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg rounded-xl bg-card p-5 shadow-xl"
       >
-        <h2 className="text-base font-medium text-foreground">Gerenciar trilhas</h2>
+        <h2 className="text-base font-medium text-foreground">Gerenciar tags</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Trilhas categorizam seus cards. Excluir uma trilha remove ela de todos os cards.
+          Tags categorizam seus cards. Excluir uma tag remove ela de todos os cards.
         </p>
 
         {/* List */}
         <div className="mt-4 space-y-2">
           {trilhas.length === 0 && (
-            <p className="text-xs text-muted-foreground">Nenhuma trilha ainda.</p>
+            <p className="text-xs text-muted-foreground">Nenhuma tag ainda.</p>
           )}
           {trilhas.map((t) => {
             const isEditing = editingId === t.id;
@@ -192,12 +192,12 @@ export function TrilhasModal({
           className="mt-4 rounded-lg border bg-muted/40 p-3"
           style={{ borderWidth: "0.5px" }}
         >
-          <p className="text-xs font-medium text-muted-foreground">Nova trilha</p>
+          <p className="text-xs font-medium text-muted-foreground">Nova tag</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nome da trilha"
+              placeholder="Nome da tag"
               className="flex-1 rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus:border-foreground/40"
               style={{ borderWidth: "0.5px", minWidth: "140px" }}
             />
