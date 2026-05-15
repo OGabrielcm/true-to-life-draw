@@ -142,3 +142,48 @@
     color: var(--color-foreground);
   }
 }
+
+/* ── Design refresh — Open Design ── */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&display=swap');
+
+:root {
+  --font-display: 'Oswald', sans-serif;
+}
+
+/* Card hover micro-animation */
+.kb-card {
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.kb-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.dark .kb-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-muted) 25%,
+    color-mix(in oklab, var(--color-muted) 70%, var(--color-background)) 50%,
+    var(--color-muted) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+}
+
+/* Modal slide-in */
+.modal-enter {
+  animation: modalIn 0.18s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

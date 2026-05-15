@@ -130,7 +130,7 @@ export function CardItem({
   return (
     <div
       data-card-id={card.id}
-      className="kb-card relative w-full overflow-hidden rounded-lg border bg-card transition-all hover:border-foreground/30"
+      className="kb-card relative w-full overflow-hidden rounded-lg border bg-card hover:border-foreground/30"
       style={{
         borderWidth: "0.5px",
         opacity: isDragging ? 0.4 * aging : aging,
@@ -145,9 +145,11 @@ export function CardItem({
                 : undefined,
       }}
     >
+      {/* Cover bar — 3px conforme redesign */}
       {cardColor && cardColor !== "none" && (
-        <div className="h-1" style={{ backgroundColor: cardColor }} />
+        <div className="h-[3px] w-full" style={{ backgroundColor: cardColor }} />
       )}
+
       {/* Grip handle — só este elemento captura toque para drag */}
       <div
         onTouchStart={handleGripTouchStart}
@@ -172,10 +174,14 @@ export function CardItem({
         onDragEnd={onDragEnd}
         className="w-full cursor-grab p-3 text-left active:cursor-grabbing pr-7 md:pr-3"
       >
+        {/* Título com font-display (Oswald) */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-1.5 flex-1">
             {isGoal && <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foreground" />}
-            <h3 className="text-sm font-medium leading-snug text-card-foreground line-clamp-2">
+            <h3
+              className="text-sm leading-snug text-card-foreground line-clamp-2 font-medium"
+              style={{ fontFamily: "var(--font-display)", letterSpacing: "0.02em" }}
+            >
               {card.title}
             </h3>
           </div>
@@ -183,8 +189,11 @@ export function CardItem({
             <Star className="h-3.5 w-3.5 shrink-0 text-yellow-500" fill="currentColor" />
           )}
         </div>
+
         {card.desc && (
-          <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">{card.desc}</p>
+          <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {card.desc}
+          </p>
         )}
 
         {isGoal &&
@@ -199,7 +208,7 @@ export function CardItem({
                     {progress.percent}%
                   </span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-muted/40 overflow-hidden">
+                <div className="h-[3px] w-full rounded-full bg-muted/40 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-foreground/60 transition-all duration-300"
                     style={{ width: `${progress.percent}%` }}
@@ -209,17 +218,28 @@ export function CardItem({
             );
           })()}
 
+        {/* Chips — com border colorida conforme redesign */}
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-            style={{ backgroundColor: prio.bg, color: prio.fg }}
+            className="rounded px-1.5 py-0.5 text-[10px] font-medium border"
+            style={{
+              backgroundColor: prio.bg,
+              color: prio.fg,
+              borderColor: prio.fg + "33",
+              fontFamily: "ui-monospace, monospace",
+            }}
           >
             {card.prio}
           </span>
           {blocked && (
             <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{ backgroundColor: "#f3e8ff", color: "#7e22ce" }}
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border"
+              style={{
+                backgroundColor: "rgba(168,85,247,0.12)",
+                color: "#a855f7",
+                borderColor: "rgba(168,85,247,0.25)",
+                fontFamily: "ui-monospace, monospace",
+              }}
               title="Bloqueado por dependências pendentes"
             >
               <Link2 className="h-2.5 w-2.5" />
@@ -228,8 +248,8 @@ export function CardItem({
           )}
           {checklistProgress.total > 0 && (
             <span
-              className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
-              style={{ borderWidth: "0.5px" }}
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground border"
+              style={{ borderWidth: "0.5px", fontFamily: "ui-monospace, monospace" }}
               title={`${checklistProgress.done} de ${checklistProgress.total} concluídos`}
             >
               <CheckSquare className="h-2.5 w-2.5" />
@@ -249,10 +269,15 @@ export function CardItem({
               </span>
             );
           })}
-          {card.date && (
+        </div>
+
+        {/* Footer com deadline */}
+        {card.date && (
+          <div className="mt-2 flex items-center border-t pt-2" style={{ borderWidth: "0.5px" }}>
             <span
-              className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium"
+              className="inline-flex items-center gap-1 text-[10px]"
               style={{
+                fontFamily: "ui-monospace, monospace",
                 color:
                   deadlineStatus === "overdue"
                     ? "#ef4444"
@@ -271,8 +296,8 @@ export function CardItem({
                   : ""}
               {formatDate(card.date)}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </button>
     </div>
   );

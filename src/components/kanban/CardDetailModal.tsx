@@ -29,9 +29,17 @@ import {
   formatDate,
   formatMinutes,
   getChecklistProgress,
+  getDeadlineStatus,
   getGoalProgress,
   isBlocked,
 } from "@/lib/kanban-types";
+
+function getDeadlineColor(status: ReturnType<typeof getDeadlineStatus>): string {
+  if (status === "overdue") return "#ef4444";
+  if (status === "today")   return "#f97316";
+  if (status === "soon")    return "#eab308";
+  return "var(--muted-foreground)";
+}
 import { useTheme } from "@/components/theme-provider";
 import { renderMarkdown } from "@/lib/markdown";
 import { CARD_COLOR_PRESETS } from "@/lib/kanban-types";
@@ -76,6 +84,24 @@ export function CardDetailModal({
   const { theme } = useTheme();
   const { loadCardDetails } = useKanban();
 
+  // Tabs — persiste a aba ativa no localStorage
+  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo";
+  const TABS: { id: TabId; label: string; shortcut: string }[] = [
+    { id: "detalhes",    label: "Detalhes",     shortcut: "1" },
+    { id: "checklist",   label: "Checklist",    shortcut: "2" },
+    { id: "comentarios", label: "Comentários",  shortcut: "3" },
+    { id: "atividade",   label: "Atividade",    shortcut: "4" },
+    { id: "tempo",       label: "Tempo",        shortcut: "5" },
+  ];
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    const saved = localStorage.getItem("molas-modal-tab") as TabId | null;
+    return saved && TABS.some((t) => t.id === saved) ? saved : "detalhes";
+  });
+  const switchTab = (id: TabId) => {
+    setActiveTab(id);
+    localStorage.setItem("molas-modal-tab", id);
+  };
+
   useEffect(() => {
     loadCardDetails(card.id);
   }, [card.id, loadCardDetails]);
@@ -101,10 +127,7 @@ export function CardDetailModal({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (editing) {
-          setEditing(false);
-          return;
-        }
+        if (editing) { setEditing(false); return; }
         onClose();
       }
       if (e.key === "e" && !editing && !savingTemplate) {
@@ -114,6 +137,12 @@ export function CardDetailModal({
       if (e.key === "d" && !editing && !savingTemplate) {
         e.preventDefault();
         setConfirm(true);
+      }
+      // Atalhos 1–5 para trocar de tab
+      const idx = parseInt(e.key) - 1;
+      if (!editing && idx >= 0 && idx < TABS.length) {
+        e.preventDefault();
+        switchTab(TABS[idx].id);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -153,443 +182,243 @@ export function CardDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10"
+      style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
       onClick={editing ? undefined : onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg rounded-xl bg-card p-5 shadow-xl max-h-[90vh] overflow-y-auto"
+        className="modal-enter w-full max-w-2xl rounded-xl bg-card shadow-2xl max-h-[88vh] flex flex-col overflow-hidden"
+        style={{ border: "1px solid rgba(255,255,255,0.1)" }}
       >
-        {/* ── CABEÇALHO: badges + estrela + botão editar ── */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {!editing ? (
+        {/* ── TOPO: eyebrow + título + ações ── */}
+        <div className="p-5 pb-0 flex-shrink-0">
+          {/* Eyebrow: track + tipo + badges */}
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-2" style={{ fontFamily: "ui-monospace, monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5"
               style={{ backgroundColor: prio.bg, color: prio.fg }}
             >
               {card.prio}
             </span>
-          ) : (
-            <select
-              value={editPrio}
-              onChange={(e) => setEditPrio(e.target.value as Card["prio"])}
-              className="rounded-full border bg-background px-2 py-0.5 text-[10px] font-medium outline-none"
-              style={{ borderWidth: "0.5px", backgroundColor: prio.bg, color: prio.fg }}
-            >
-              {PRIORITIES.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          )}
-          <span
-            className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-            style={{ borderWidth: "0.5px" }}
-          >
-            {card.type === "Goal" && <Target className="h-3 w-3" />}
-            {card.type}
-          </span>
-
-          {/* Tags — view ou edit */}
-          {!editing
-            ? card.tags.map((tid) => {
-                const t = trilhas.find((x) => x.id === tid);
-                if (!t) return null;
-                return (
-                  <span
-                    key={tid}
-                    className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                    style={{ backgroundColor: t.bg, color: t.fg }}
-                  >
-                    {t.name}
-                  </span>
-                );
-              })
-            : trilhas.map((t) => {
-                const active = editTags.includes(t.id);
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => toggleTag(t.id)}
-                    className="rounded-full px-2 py-0.5 text-[10px] font-medium transition-opacity"
-                    style={{
-                      backgroundColor: active ? t.bg : "transparent",
-                      color: active ? t.fg : "var(--muted-foreground)",
-                      border: `0.5px solid ${active ? t.bg : "var(--border)"}`,
-                    }}
-                  >
-                    {t.name}
-                  </button>
-                );
-              })}
-
-          <div className="ml-auto flex items-center gap-1">
-            {!editing && onSetCardColor && (
-              <div className="relative">
-                <button
-                  onClick={() => setColorOpen(!colorOpen)}
-                  className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  style={{
-                    backgroundColor: cardColor && cardColor !== "none" ? cardColor : undefined,
-                  }}
-                  title="Cor de destaque"
-                >
-                  <div
-                    className="h-3.5 w-3.5 rounded"
-                    style={{
-                      backgroundColor:
-                        cardColor && cardColor !== "none" ? cardColor : "var(--muted-foreground)",
-                    }}
-                  />
-                </button>
-                {colorOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setColorOpen(false)} />
-                    <div
-                      className="absolute right-0 top-8 z-20 grid w-48 grid-cols-4 gap-1 rounded-lg border bg-background p-2 shadow-md"
-                      style={{ borderWidth: "0.5px" }}
-                    >
-                      {CARD_COLOR_PRESETS.map((preset) => (
-                        <button
-                          key={preset.name}
-                          onClick={() => {
-                            onSetCardColor(card.id, preset.name);
-                            setColorOpen(false);
-                          }}
-                          className="h-6 w-6 rounded transition-transform hover:scale-110"
-                          style={{
-                            backgroundColor: preset.bg,
-                            border:
-                              preset.bg === "transparent" ? "1px dashed var(--border)" : undefined,
-                          }}
-                          title={preset.label}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+            <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5" style={{ borderWidth: "0.5px" }}>
+              {card.type === "Goal" && <Target className="h-3 w-3" />}
+              {card.type}
+            </span>
+            {card.date && (
+              <span className="inline-flex items-center gap-1" style={{ color: getDeadlineColor(getDeadlineStatus(card)) }}>
+                <Calendar className="h-3 w-3" />
+                {formatDate(card.date)}
+              </span>
             )}
-            {!editing && (
-              <>
-                <button
-                  onClick={() => setEditing(true)}
-                  className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label="Editar"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-                {onDuplicate && (
-                  <button
-                    onClick={() => {
-                      onDuplicate(card.id);
-                      onClose();
-                    }}
-                    className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    aria-label="Duplicar"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
+            {card.tags.map((tid) => {
+              const t = trilhas.find((x) => x.id === tid);
+              if (!t) return null;
+              return (
+                <span key={tid} className="rounded-full px-1.5 py-0.5" style={{ backgroundColor: t.bg, color: t.fg }}>{t.name}</span>
+              );
+            })}
+            {/* Ações no canto direito */}
+            <div className="ml-auto flex items-center gap-0.5">
+              {!editing && onSetCardColor && (
+                <div className="relative">
+                  <button onClick={() => setColorOpen(!colorOpen)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Cor de destaque">
+                    <div className="h-3 w-3 rounded" style={{ backgroundColor: cardColor && cardColor !== "none" ? cardColor : "var(--muted-foreground)" }} />
                   </button>
-                )}
-              </>
-            )}
-            <button
-              onClick={() => onToggleStar(card.id)}
-              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Favoritar"
-            >
-              <Star
-                className={`h-4 w-4 ${card.starred ? "text-yellow-500" : ""}`}
-                fill={card.starred ? "currentColor" : "none"}
-              />
-            </button>
+                  {colorOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setColorOpen(false)} />
+                      <div className="absolute right-0 top-8 z-20 grid w-48 grid-cols-4 gap-1 rounded-lg border bg-background p-2 shadow-md" style={{ borderWidth: "0.5px" }}>
+                        {CARD_COLOR_PRESETS.map((preset) => (
+                          <button key={preset.name} onClick={() => { onSetCardColor(card.id, preset.name); setColorOpen(false); }} className="h-6 w-6 rounded transition-transform hover:scale-110" style={{ backgroundColor: preset.bg, border: preset.bg === "transparent" ? "1px dashed var(--border)" : undefined }} title={preset.label} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              {!editing && (
+                <>
+                  <button onClick={() => setEditing(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Editar"><Pencil className="h-3.5 w-3.5" /></button>
+                  {onDuplicate && <button onClick={() => { onDuplicate(card.id); onClose(); }} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Duplicar"><Copy className="h-3.5 w-3.5" /></button>}
+                </>
+              )}
+              <button onClick={() => onToggleStar(card.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Favoritar">
+                <Star className={`h-4 w-4 ${card.starred ? "text-yellow-500" : ""}`} fill={card.starred ? "currentColor" : "none"} />
+              </button>
+              <button onClick={onClose} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Fechar"><X className="h-4 w-4" /></button>
+            </div>
           </div>
+
+          {/* Título */}
+          {!editing ? (
+            <h2 className="text-xl font-semibold text-card-foreground leading-snug" style={{ fontFamily: "var(--font-display)", letterSpacing: "0.02em" }}>{card.title}</h2>
+          ) : (
+            <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2 text-lg font-medium outline-none focus:border-foreground/40" style={{ borderWidth: "0.5px" }} autoFocus />
+          )}
+
+          {parent && <div className="mt-1 text-xs text-muted-foreground">Goal pai: <span className="text-foreground">{parent.title}</span></div>}
+
+          {/* Tabs — só no modo view */}
+          {!editing && (
+            <div className="mt-4 flex gap-0 border-b" style={{ borderWidth: "0.5px", marginLeft: "-20px", marginRight: "-20px", paddingLeft: "20px" }}>
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => switchTab(tab.id)}
+                  className="px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap border-b-2"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: activeTab === tab.id ? "var(--foreground)" : "var(--muted-foreground)",
+                    borderBottomColor: activeTab === tab.id ? "var(--foreground)" : "transparent",
+                    marginBottom: "-1px",
+                  }}
+                >
+                  {tab.label}
+                  <span className="ml-1 opacity-40 text-[9px]" style={{ fontFamily: "ui-monospace, monospace" }}>{tab.shortcut}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* ── TÍTULO ── */}
-        {!editing ? (
-          <h2 className="mt-3 text-lg font-medium text-card-foreground">{card.title}</h2>
-        ) : (
-          <input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="mt-3 w-full rounded-md border bg-background px-3 py-2 text-lg font-medium outline-none focus:border-foreground/40"
-            style={{ borderWidth: "0.5px" }}
-            autoFocus
-          />
-        )}
-
-        {/* ── DATA ── */}
-        {!editing ? (
-          card.date && (
-            <div className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5" />
-              {formatDate(card.date)}
-            </div>
-          )
-        ) : (
-          <div className="mt-2 flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              type="date"
-              value={editDate}
-              onChange={(e) => setEditDate(e.target.value)}
-              className="rounded-md border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
-              style={{ borderWidth: "0.5px" }}
-            />
-            {editDate && (
-              <button
-                onClick={() => setEditDate("")}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </div>
-        )}
-
-        {parent && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Goal pai: <span className="text-foreground">{parent.title}</span>
-          </div>
-        )}
-
-        {card.type === "Goal" &&
-          (() => {
-            const progress = getGoalProgress(card, allCards);
-            return (
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-medium text-muted-foreground">Progresso</span>
-                  <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+        {/* ── CORPO COM SCROLL ── */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {/* Modo edição — mostra tudo inline */}
+          {editing && (
+            <>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <select value={editPrio} onChange={(e) => setEditPrio(e.target.value as Card["prio"])} className="rounded border bg-background px-2 py-1 text-xs outline-none" style={{ borderWidth: "0.5px" }}>
+                    {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="rounded border bg-background px-2 py-1 text-xs outline-none" style={{ borderWidth: "0.5px" }} />
+                    {editDate && <button onClick={() => setEditDate("")} className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
+                  </div>
                 </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-foreground transition-all duration-300"
-                    style={{ width: `${progress.percent}%` }}
-                  />
-                </div>
-                <div className="mt-1.5 text-xs text-muted-foreground">
-                  {progress.done} de {progress.total} {progress.total === 1 ? "tarefa" : "tarefas"}{" "}
-                  concluída{progress.done !== 1 ? "s" : ""}
-                </div>
-              </div>
-            );
-          })()}
-
-        {/* ── DESCRIÇÃO ── */}
-        {!editing ? (
-          card.desc && (
-            <div
-              className="mt-3 text-sm text-card-foreground/80 prose prose-sm dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }}
-            />
-          )
-        ) : (
-          <textarea
-            value={editDesc}
-            onChange={(e) => setEditDesc(e.target.value)}
-            rows={4}
-            placeholder="Descrição (opcional)"
-            className="mt-3 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
-            style={{ borderWidth: "0.5px" }}
-          />
-        )}
-
-        {/* ── BOTÕES SALVAR / CANCELAR ── */}
-        {editing && (
-          <div className="mt-4 flex items-center gap-2">
-            <button
-              onClick={saveEdit}
-              className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"
-            >
-              <Check className="h-3.5 w-3.5" />
-              Salvar
-            </button>
-            <button
-              onClick={cancelEdit}
-              className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-            >
-              Cancelar
-            </button>
-          </div>
-        )}
-
-        {/* ── CHECKLIST ── */}
-        {!editing && (
-          <ChecklistSection
-            card={card}
-            onUpdate={(items) => onUpdate(card.id, { checklist: items })}
-          />
-        )}
-
-        {/* ── DEPENDÊNCIAS ── */}
-        {!editing && (
-          <DependenciesSection
-            card={card}
-            allCards={allCards}
-            onUpdate={(blockedBy) => onUpdate(card.id, { blocked_by: blockedBy })}
-          />
-        )}
-
-        {/* ── COMENTÁRIOS / TIME TRACKING / ATIVIDADES ── */}
-        {!editing && <CommentsSection cardId={card.id} />}
-        {!editing && <TimeTrackingSection cardId={card.id} />}
-        {!editing && <ActivitySection cardId={card.id} />}
-
-        {/* ── MOVER (só em modo view) ── */}
-        {!editing && (
-          <>
-            <div className="mt-5">
-              <p className="text-xs font-medium text-muted-foreground">Mover para coluna</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {columns
-                  .filter((c) => c.id !== card.col)
-                  .map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        onMove(card.id, c.id);
-                        onClose();
-                      }}
-                      className="rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted"
-                      style={{ borderWidth: "0.5px" }}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <p className="text-xs font-medium text-muted-foreground">Mover para swimlane</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {tracks
-                  .filter((t) => t.id !== card.track)
-                  .map((t) => {
-                    const bg = theme === "dark" ? t.darkBg : t.bg;
-                    const fg = theme === "dark" ? t.darkFg : t.fg;
+                <div className="flex flex-wrap gap-1.5">
+                  {trilhas.map((t) => {
+                    const active = editTags.includes(t.id);
                     return (
-                      <button
-                        key={t.id}
-                        onClick={() => {
-                          onMove(card.id, card.col, t.id);
-                          onClose();
-                        }}
-                        className="rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80"
-                        style={{
-                          backgroundColor: bg,
-                          color: fg,
-                          border: `0.5px solid ${t.border}`,
-                        }}
-                      >
+                      <button key={t.id} type="button" onClick={() => toggleTag(t.id)} className="rounded-full px-2 py-0.5 text-[10px] font-medium transition-opacity" style={{ backgroundColor: active ? t.bg : "transparent", color: active ? t.fg : "var(--muted-foreground)", border: `0.5px solid ${active ? t.bg : "var(--border)"}` }}>
                         {t.name}
                       </button>
                     );
                   })}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* ── RODAPÉ: excluir + fechar ── */}
-        {!editing && (
-          <div className="mt-6 space-y-3">
-            {/* Salvar como template */}
-            {onSaveTemplate && !editing && (
-              <div>
-                {!savingTemplate ? (
-                  <button
-                    onClick={() => {
-                      setSavingTemplate(true);
-                      setTemplateName(card.title);
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                    style={{ borderWidth: "0.5px" }}
-                  >
-                    <LayoutTemplate className="h-3.5 w-3.5" />
-                    Salvar como template
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <input
-                      autoFocus
-                      value={templateName}
-                      onChange={(e) => setTemplateName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") setSavingTemplate(false);
-                        if (e.key === "Enter" && templateName.trim()) {
-                          onSaveTemplate(card, templateName.trim());
-                          setSavingTemplate(false);
-                        }
-                      }}
-                      placeholder="Nome do template..."
-                      className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-foreground/40"
-                      style={{ borderWidth: "0.5px" }}
-                    />
-                    <button
-                      onClick={() => {
-                        if (templateName.trim()) {
-                          onSaveTemplate(card, templateName.trim());
-                          setSavingTemplate(false);
-                        }
-                      }}
-                      className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"
-                    >
-                      Salvar
-                    </button>
-                    <button
-                      onClick={() => setSavingTemplate(false)}
-                      className="rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              {!confirm ? (
-                <button
-                  onClick={() => setConfirm(true)}
-                  className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Excluir
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Confirmar?</span>
-                  <button
-                    onClick={() => {
-                      onDelete(card.id);
-                      onClose();
-                    }}
-                    className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
-                  >
-                    Excluir
-                  </button>
-                  <button
-                    onClick={() => setConfirm(false)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-                  >
-                    Cancelar
-                  </button>
                 </div>
+                <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={5} placeholder="Descrição (opcional)" className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40" style={{ borderWidth: "0.5px" }} />
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <button onClick={saveEdit} className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"><Check className="h-3.5 w-3.5" />Salvar</button>
+                <button onClick={cancelEdit} className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted">Cancelar</button>
+              </div>
+            </>
+          )}
+
+          {/* Tab: Detalhes */}
+          {!editing && activeTab === "detalhes" && (
+            <div>
+              {card.type === "Goal" && (() => {
+                const progress = getGoalProgress(card, allCards);
+                return (
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">Progresso</span>
+                      <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+                    </div>
+                    <div className="h-[3px] w-full rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-foreground transition-all duration-300" style={{ width: `${progress.percent}%` }} />
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">{progress.done} de {progress.total} tarefas concluídas</div>
+                  </div>
+                );
+              })()}
+              {card.desc ? (
+                <div className="mb-5 text-sm text-card-foreground/80 prose prose-sm dark:prose-invert" dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }} />
+              ) : (
+                <p className="mb-5 text-xs text-muted-foreground italic">Sem descrição. Pressione <kbd className="rounded border px-1 py-0.5 text-[10px]">e</kbd> para editar.</p>
               )}
-              <button
-                onClick={onClose}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
-              >
-                Fechar
-              </button>
+              {/* Mover coluna/track */}
+              <div className="space-y-4">
+                <div>
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">Mover para coluna</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {columns.filter((c) => c.id !== card.col).map((c) => (
+                      <button key={c.id} onClick={() => { onMove(card.id, c.id); onClose(); }} className="rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted" style={{ borderWidth: "0.5px" }}>{c.name}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">Mover para track</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tracks.filter((t) => t.id !== card.track).map((t) => {
+                      const bg = theme === "dark" ? t.darkBg : t.bg;
+                      const fg = theme === "dark" ? t.darkFg : t.fg;
+                      return (
+                        <button key={t.id} onClick={() => { onMove(card.id, card.col, t.id); onClose(); }} className="rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80" style={{ backgroundColor: bg, color: fg, border: `0.5px solid ${t.border}` }}>{t.name}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Template + Excluir */}
+                <div className="flex items-center gap-2 flex-wrap pt-2 border-t" style={{ borderWidth: "0.5px" }}>
+                  {onSaveTemplate && !savingTemplate && (
+                    <button onClick={() => { setSavingTemplate(true); setTemplateName(card.title); }} className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground" style={{ borderWidth: "0.5px" }}>
+                      <LayoutTemplate className="h-3.5 w-3.5" />Salvar como template
+                    </button>
+                  )}
+                  {savingTemplate && (
+                    <div className="flex items-center gap-2">
+                      <input autoFocus value={templateName} onChange={(e) => setTemplateName(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setSavingTemplate(false); if (e.key === "Enter" && templateName.trim()) { onSaveTemplate!(card, templateName.trim()); setSavingTemplate(false); } }} placeholder="Nome do template..." className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none" style={{ borderWidth: "0.5px" }} />
+                      <button onClick={() => { if (templateName.trim()) { onSaveTemplate!(card, templateName.trim()); setSavingTemplate(false); } }} className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90">Salvar</button>
+                      <button onClick={() => setSavingTemplate(false)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"><X className="h-3.5 w-3.5" /></button>
+                    </div>
+                  )}
+                  <div className="ml-auto">
+                    {!confirm ? (
+                      <button onClick={() => setConfirm(true)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
+                        <Trash2 className="h-3.5 w-3.5" />Excluir
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Confirmar?</span>
+                        <button onClick={() => { onDelete(card.id); onClose(); }} className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700">Excluir</button>
+                        <button onClick={() => setConfirm(false)} className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted">Cancelar</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Tab: Checklist */}
+          {!editing && activeTab === "checklist" && (
+            <div>
+              <ChecklistSection card={card} onUpdate={(items) => onUpdate(card.id, { checklist: items })} />
+              <DependenciesSection card={card} allCards={allCards} onUpdate={(blockedBy) => onUpdate(card.id, { blocked_by: blockedBy })} />
+            </div>
+          )}
+
+          {/* Tab: Comentários */}
+          {!editing && activeTab === "comentarios" && (
+            <CommentsSection cardId={card.id} />
+          )}
+
+          {/* Tab: Atividade */}
+          {!editing && activeTab === "atividade" && (
+            <ActivitySection cardId={card.id} />
+          )}
+
+          {/* Tab: Tempo */}
+          {!editing && activeTab === "tempo" && (
+            <TimeTrackingSection cardId={card.id} />
+          )}
+        </div>
       </div>
     </div>
   );

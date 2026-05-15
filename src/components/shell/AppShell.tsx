@@ -71,7 +71,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/login" });
   };
 
-  if (loading || !user) return null;
+  if (loading) return <AppSkeleton />;
+  if (!user) return null;
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
@@ -189,9 +190,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar tarefas..."
-              className="w-full rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40"
+              className="w-full rounded-md border bg-background py-1.5 pl-8 pr-14 text-xs outline-none focus:border-foreground/40 transition-colors"
               style={{ borderWidth: "0.5px" }}
             />
+            <span
+              className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border px-1 py-0.5 text-[10px] text-muted-foreground"
+              style={{ borderWidth: "0.5px", fontFamily: "ui-monospace, monospace", background: "rgba(128,128,128,0.08)" }}
+            >
+              ⌘K
+            </span>
           </div>
           {urgentCount > 0 && (
             <Link
@@ -278,6 +285,55 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {createOpen && <CreateCardModal onClose={() => setCreateOpen(false)} />}
       {templatesOpen && <TemplatesModal onClose={() => setTemplatesOpen(false)} />}
+    </div>
+  );
+}
+
+function AppSkeleton() {
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      {/* Sidebar skeleton */}
+      <div className="hidden w-60 shrink-0 flex-col border-r md:flex" style={{ borderWidth: "0.5px" }}>
+        <div className="flex h-12 items-center gap-2 border-b px-4" style={{ borderWidth: "0.5px" }}>
+          <div className="skeleton-shimmer h-4 w-4 rounded-full" />
+          <div className="skeleton-shimmer h-3 w-24 rounded" />
+        </div>
+        <div className="flex flex-col gap-2 p-3">
+          {[100, 80, 90, 70, 85].map((w, i) => (
+            <div key={i} className="skeleton-shimmer h-7 rounded-md" style={{ width: `${w}%` }} />
+          ))}
+          <div className="skeleton-shimmer mt-4 h-3 w-16 rounded" />
+          {[90, 75, 80].map((w, i) => (
+            <div key={i} className="skeleton-shimmer h-7 rounded-md" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      </div>
+      {/* Main skeleton */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex h-12 items-center gap-2 border-b px-5" style={{ borderWidth: "0.5px" }}>
+          <div className="skeleton-shimmer h-3 w-32 rounded" />
+          <div className="skeleton-shimmer ml-2 h-7 w-64 rounded-md" />
+          <div className="skeleton-shimmer ml-auto h-7 w-20 rounded-md" />
+          <div className="skeleton-shimmer h-7 w-7 rounded-full" />
+        </div>
+        <div className="flex flex-col gap-8 p-6 overflow-hidden">
+          {[1, 2].map((track) => (
+            <div key={track}>
+              <div className="skeleton-shimmer mb-4 h-5 w-40 rounded" />
+              <div className="flex gap-4 overflow-hidden">
+                {[1, 2, 3].map((col) => (
+                  <div key={col} className="flex w-64 shrink-0 flex-col gap-2">
+                    <div className="skeleton-shimmer h-3 w-20 rounded" />
+                    {[80, 64, 96].slice(0, col === 2 ? 2 : 3).map((h, i) => (
+                      <div key={i} className="skeleton-shimmer rounded-lg" style={{ height: `${h}px` }} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
