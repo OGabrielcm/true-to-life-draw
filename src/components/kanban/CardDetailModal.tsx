@@ -35,9 +35,9 @@ import {
 } from "@/lib/kanban-types";
 
 function getDeadlineColor(status: ReturnType<typeof getDeadlineStatus>): string {
-  if (status === "overdue") return "#ef4444";
-  if (status === "today")   return "#f97316";
-  if (status === "soon")    return "#eab308";
+  if (status === "overdue") return "var(--color-destructive)";
+  if (status === "today")   return "rgb(249 115 22)"; // orange-500
+  if (status === "soon")    return "rgb(234 179 8)";  // yellow-500
   return "var(--muted-foreground)";
 }
 import { useTheme } from "@/components/theme-provider";
@@ -201,7 +201,7 @@ export function CardDetailModal({
             >
               {card.prio}
             </span>
-            <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5" style={{ borderWidth: "0.5px" }}>
+            <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5">
               {card.type === "Goal" && <Target className="h-3 w-3" />}
               {card.type}
             </span>
@@ -228,7 +228,7 @@ export function CardDetailModal({
                   {colorOpen && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setColorOpen(false)} />
-                      <div className="absolute right-0 top-8 z-20 grid w-48 grid-cols-4 gap-1 rounded-lg border bg-background p-2 shadow-md" style={{ borderWidth: "0.5px" }}>
+                      <div className="absolute right-0 top-8 z-20 grid w-48 grid-cols-4 gap-1 rounded-lg border bg-background p-2 shadow-md">
                         {CARD_COLOR_PRESETS.map((preset) => (
                           <button key={preset.name} onClick={() => { onSetCardColor(card.id, preset.name); setColorOpen(false); }} className="h-6 w-6 rounded transition-transform hover:scale-110" style={{ backgroundColor: preset.bg, border: preset.bg === "transparent" ? "1px dashed var(--border)" : undefined }} title={preset.label} />
                         ))}
@@ -254,14 +254,14 @@ export function CardDetailModal({
           {!editing ? (
             <h2 className="text-xl font-semibold text-card-foreground leading-snug" style={{ fontFamily: "var(--font-display)", letterSpacing: "0.02em" }}>{card.title}</h2>
           ) : (
-            <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2 text-lg font-medium outline-none focus:border-foreground/40" style={{ borderWidth: "0.5px" }} autoFocus />
+            <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2 text-lg font-medium outline-none focus:border-foreground/40" autoFocus />
           )}
 
           {parent && <div className="mt-1 text-xs text-muted-foreground">Goal pai: <span className="text-foreground">{parent.title}</span></div>}
 
           {/* Tabs — só no modo view */}
           {!editing && (
-            <div className="mt-4 flex gap-0 border-b" style={{ borderWidth: "0.5px", marginLeft: "-20px", marginRight: "-20px", paddingLeft: "20px" }}>
+            <div className="mt-4 flex gap-0 border-b -mx-5 px-5">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -291,12 +291,12 @@ export function CardDetailModal({
             <>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <select value={editPrio} onChange={(e) => setEditPrio(e.target.value as Card["prio"])} className="rounded border bg-background px-2 py-1 text-xs outline-none" style={{ borderWidth: "0.5px" }}>
+                  <select value={editPrio} onChange={(e) => setEditPrio(e.target.value as Card["prio"])} className="rounded border bg-background px-2 py-1 text-xs outline-none">
                     {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
                   </select>
                   <div className="flex items-center gap-1.5">
                     <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="rounded border bg-background px-2 py-1 text-xs outline-none" style={{ borderWidth: "0.5px" }} />
+                    <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="rounded border bg-background px-2 py-1 text-xs outline-none" />
                     {editDate && <button onClick={() => setEditDate("")} className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
                   </div>
                 </div>
@@ -304,13 +304,13 @@ export function CardDetailModal({
                   {trilhas.map((t) => {
                     const active = editTags.includes(t.id);
                     return (
-                      <button key={t.id} type="button" onClick={() => toggleTag(t.id)} className="rounded-full px-2 py-0.5 text-[10px] font-medium transition-opacity" style={{ backgroundColor: active ? t.bg : "transparent", color: active ? t.fg : "var(--muted-foreground)", border: `0.5px solid ${active ? t.bg : "var(--border)"}` }}>
+                      <button key={t.id} type="button" onClick={() => toggleTag(t.id)} className="rounded-full px-2 py-0.5 text-[10px] font-medium transition-opacity" style={{ backgroundColor: active ? t.bg : "transparent", color: active ? t.fg : "var(--muted-foreground)", border: `1px solid ${active ? t.bg : "var(--border)"}` }}>
                         {t.name}
                       </button>
                     );
                   })}
                 </div>
-                <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={5} placeholder="Descrição (opcional)" className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40" style={{ borderWidth: "0.5px" }} />
+                <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={5} placeholder="Descrição (opcional)" className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40" />
               </div>
               <div className="mt-4 flex items-center gap-2">
                 <button onClick={saveEdit} className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"><Check className="h-3.5 w-3.5" />Salvar</button>
@@ -348,7 +348,7 @@ export function CardDetailModal({
                   <p className="mb-2 text-xs font-medium text-muted-foreground">Mover para coluna</p>
                   <div className="flex flex-wrap gap-1.5">
                     {columns.filter((c) => c.id !== card.col).map((c) => (
-                      <button key={c.id} onClick={() => { onMove(card.id, c.id); onClose(); }} className="rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted" style={{ borderWidth: "0.5px" }}>{c.name}</button>
+                      <button key={c.id} onClick={() => { onMove(card.id, c.id); onClose(); }} className="rounded-sm border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted">{c.name}</button>
                     ))}
                   </div>
                 </div>
@@ -359,21 +359,21 @@ export function CardDetailModal({
                       const bg = theme === "dark" ? t.darkBg : t.bg;
                       const fg = theme === "dark" ? t.darkFg : t.fg;
                       return (
-                        <button key={t.id} onClick={() => { onMove(card.id, card.col, t.id); onClose(); }} className="rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80" style={{ backgroundColor: bg, color: fg, border: `0.5px solid ${t.border}` }}>{t.name}</button>
+                        <button key={t.id} onClick={() => { onMove(card.id, card.col, t.id); onClose(); }} className="rounded-sm px-2.5 py-1 text-xs font-medium hover:opacity-80" style={{ backgroundColor: bg, color: fg, border: `1px solid ${t.border}` }}>{t.name}</button>
                       );
                     })}
                   </div>
                 </div>
                 {/* Template + Excluir */}
-                <div className="flex items-center gap-2 flex-wrap pt-2 border-t" style={{ borderWidth: "0.5px" }}>
+                <div className="flex items-center gap-2 flex-wrap pt-2 border-t">
                   {onSaveTemplate && !savingTemplate && (
-                    <button onClick={() => { setSavingTemplate(true); setTemplateName(card.title); }} className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground" style={{ borderWidth: "0.5px" }}>
+                    <button onClick={() => { setSavingTemplate(true); setTemplateName(card.title); }} className="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
                       <LayoutTemplate className="h-3.5 w-3.5" />Salvar como template
                     </button>
                   )}
                   {savingTemplate && (
                     <div className="flex items-center gap-2">
-                      <input autoFocus value={templateName} onChange={(e) => setTemplateName(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setSavingTemplate(false); if (e.key === "Enter" && templateName.trim()) { onSaveTemplate!(card, templateName.trim()); setSavingTemplate(false); } }} placeholder="Nome do template..." className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none" style={{ borderWidth: "0.5px" }} />
+                      <input autoFocus value={templateName} onChange={(e) => setTemplateName(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setSavingTemplate(false); if (e.key === "Enter" && templateName.trim()) { onSaveTemplate!(card, templateName.trim()); setSavingTemplate(false); } }} placeholder="Nome do template..." className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none" />
                       <button onClick={() => { if (templateName.trim()) { onSaveTemplate!(card, templateName.trim()); setSavingTemplate(false); } }} className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90">Salvar</button>
                       <button onClick={() => setSavingTemplate(false)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"><X className="h-3.5 w-3.5" /></button>
                     </div>
@@ -507,7 +507,7 @@ function ChecklistSection({
                     if (e.key === "Escape") setEditingId(null);
                   }}
                   className="flex-1 rounded-md border bg-background px-2 py-0.5 text-sm outline-none focus:border-foreground/40"
-                  style={{ borderWidth: "0.5px" }}
+                 
                   autoFocus
                 />
                 <button
@@ -550,7 +550,7 @@ function ChecklistSection({
           onKeyDown={(e) => e.key === "Enter" && addItem()}
           placeholder="Adicionar item..."
           className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-          style={{ borderWidth: "0.5px" }}
+         
         />
         <button
           onClick={addItem}
@@ -601,7 +601,7 @@ function CommentsSection({ cardId }: { cardId: string }) {
           <div
             key={c.id}
             className="group rounded-md border bg-background px-2.5 py-1.5"
-            style={{ borderWidth: "0.5px" }}
+           
           >
             {editingId === c.id ? (
               <div className="flex items-start gap-1.5">
@@ -610,7 +610,7 @@ function CommentsSection({ cardId }: { cardId: string }) {
                   onChange={(e) => setEditText(e.target.value)}
                   rows={2}
                   className="flex-1 resize-none rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-                  style={{ borderWidth: "0.5px" }}
+                 
                   autoFocus
                 />
                 <button
@@ -665,7 +665,7 @@ function CommentsSection({ cardId }: { cardId: string }) {
           placeholder="Adicionar comentário... (Ctrl+Enter)"
           rows={2}
           className="flex-1 resize-none rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-          style={{ borderWidth: "0.5px" }}
+         
         />
         <button
           onClick={submit}
@@ -720,7 +720,7 @@ function TimeTrackingSection({ cardId }: { cardId: string }) {
           <div
             key={l.id}
             className="group flex items-center gap-2 rounded-md border bg-background px-2 py-1.5"
-            style={{ borderWidth: "0.5px" }}
+           
           >
             <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
               {formatMinutes(l.minutes)}
@@ -745,13 +745,13 @@ function TimeTrackingSection({ cardId }: { cardId: string }) {
         <button
           onClick={() => setAdding(true)}
           className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-          style={{ borderWidth: "0.5px" }}
+         
         >
           <Plus className="h-3 w-3" />
           Registrar tempo
         </button>
       ) : (
-        <div className="mt-2 rounded-md border bg-background p-2" style={{ borderWidth: "0.5px" }}>
+        <div className="mt-2 rounded-md border bg-background p-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <input
               type="number"
@@ -760,7 +760,7 @@ function TimeTrackingSection({ cardId }: { cardId: string }) {
               onChange={(e) => setHours(e.target.value)}
               placeholder="h"
               className="w-14 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-              style={{ borderWidth: "0.5px" }}
+             
             />
             <span className="text-xs text-muted-foreground">h</span>
             <input
@@ -771,7 +771,7 @@ function TimeTrackingSection({ cardId }: { cardId: string }) {
               onChange={(e) => setMinutes(e.target.value)}
               placeholder="m"
               className="w-14 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-              style={{ borderWidth: "0.5px" }}
+             
             />
             <span className="text-xs text-muted-foreground">m</span>
             <input
@@ -779,7 +779,7 @@ function TimeTrackingSection({ cardId }: { cardId: string }) {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="rounded-md border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
-              style={{ borderWidth: "0.5px" }}
+             
             />
           </div>
           <input
@@ -787,7 +787,7 @@ function TimeTrackingSection({ cardId }: { cardId: string }) {
             onChange={(e) => setNote(e.target.value)}
             placeholder="Nota (opcional)"
             className="mt-1.5 w-full rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-            style={{ borderWidth: "0.5px" }}
+           
           />
           <div className="mt-1.5 flex items-center gap-1.5">
             <button
@@ -921,7 +921,7 @@ function DependenciesSection({
             <div
               key={b.id}
               className="group flex items-center gap-2 rounded-md border bg-background px-2 py-1.5"
-              style={{ borderWidth: "0.5px" }}
+             
             >
               <span
                 className={`h-2 w-2 shrink-0 rounded-full ${resolved ? "bg-green-500" : "bg-red-500"}`}
@@ -947,20 +947,20 @@ function DependenciesSection({
         <button
           onClick={() => setAdding(true)}
           className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-          style={{ borderWidth: "0.5px" }}
+         
         >
           <Plus className="h-3 w-3" />
           Adicionar dependência
         </button>
       ) : (
-        <div className="mt-2 rounded-md border bg-background p-2" style={{ borderWidth: "0.5px" }}>
+        <div className="mt-2 rounded-md border bg-background p-2">
           <div className="flex items-center gap-1.5">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar card..."
               className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
-              style={{ borderWidth: "0.5px" }}
+             
               autoFocus
             />
             <button
