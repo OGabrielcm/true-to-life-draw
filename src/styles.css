@@ -23,6 +23,13 @@
   --font-family-display: var(--font-display);
   --font-family-mono: var(--font-mono);
 
+  /* White opacity scale — gera classes bg-white/5, bg-white/6, bg-white/7, bg-white/10, bg-white/14 */
+  --color-white-5:  rgba(255,255,255,0.05);
+  --color-white-6:  rgba(255,255,255,0.06);
+  --color-white-7:  rgba(255,255,255,0.07);
+  --color-white-10: rgba(255,255,255,0.10);
+  --color-white-14: rgba(255,255,255,0.14);
+
   /* Border-radius alinhados com Open Design: sm=4px, default=8px, lg=12px */
   --radius-sm: 4px;
   --radius-md: 6px;
