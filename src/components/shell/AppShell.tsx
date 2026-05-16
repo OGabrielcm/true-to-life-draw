@@ -278,8 +278,8 @@ function AppSkeleton() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       {/* Sidebar skeleton */}
-      <div className="hidden w-60 shrink-0 flex-col border-r md:flex" style={{ borderWidth: "0.5px" }}>
-        <div className="flex h-[52px] items-center gap-2 border-b px-4" style={{ borderWidth: "0.5px" }}>
+      <div className="hidden w-60 shrink-0 flex-col border-r md:flex">
+        <div className="flex h-[52px] items-center gap-2 border-b px-4">
           <div className="skeleton-shimmer h-4 w-4 rounded-full" />
           <div className="skeleton-shimmer h-3 w-24 rounded" />
         </div>
@@ -295,7 +295,7 @@ function AppSkeleton() {
       </div>
       {/* Main skeleton */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex h-[52px] items-center gap-2 border-b px-5" style={{ borderWidth: "0.5px" }}>
+        <div className="flex h-[52px] items-center gap-2 border-b px-5">
           <div className="skeleton-shimmer h-3 w-32 rounded" />
           <div className="skeleton-shimmer ml-2 h-7 w-64 rounded-md" />
           <div className="skeleton-shimmer ml-auto h-7 w-20 rounded-md" />

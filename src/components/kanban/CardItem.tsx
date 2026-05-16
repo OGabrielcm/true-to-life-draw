@@ -134,13 +134,13 @@ export function CardItem({
       style={{
         opacity: isDragging ? 0.4 * aging : aging,
         borderLeft: blocked
-          ? "3px solid #a855f7"
+          ? "3px solid rgb(168 85 247)"
           : isGoal
             ? "3px solid var(--foreground)"
             : deadlineStatus === "overdue"
-              ? "3px solid #ef4444"
+              ? "3px solid var(--color-destructive)"
               : deadlineStatus === "today"
-                ? "3px solid #f97316"
+                ? "3px solid rgb(249 115 22)"
                 : undefined,
       }}
     >
@@ -233,9 +233,9 @@ export function CardItem({
             <span
               className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
               style={{
-                backgroundColor: "rgba(168,85,247,0.12)",
-                color: "#a855f7",
-                borderColor: "rgba(168,85,247,0.25)",
+                backgroundColor: "rgb(168 85 247 / 0.12)",
+                color: "rgb(168 85 247)",
+                borderColor: "rgb(168 85 247 / 0.25)",
               }}
               title="Bloqueado por dependências pendentes"
             >
