@@ -130,9 +130,8 @@ export function CardItem({
   return (
     <div
       data-card-id={card.id}
-      className="kb-card relative w-full overflow-hidden rounded-lg border bg-card hover:border-foreground/30"
+      className="kb-card relative w-full overflow-hidden rounded-lg border bg-card"
       style={{
-        borderWidth: "0.5px",
         opacity: isDragging ? 0.4 * aging : aging,
         borderLeft: blocked
           ? "3px solid #a855f7"
@@ -221,24 +220,22 @@ export function CardItem({
         {/* Chips — com border colorida conforme redesign */}
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span
-            className="rounded px-1.5 py-0.5 text-[10px] font-medium border"
+            className="rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
             style={{
               backgroundColor: prio.bg,
               color: prio.fg,
               borderColor: prio.fg + "33",
-              fontFamily: "ui-monospace, monospace",
             }}
           >
             {card.prio}
           </span>
           {blocked && (
             <span
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border"
+              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
               style={{
                 backgroundColor: "rgba(168,85,247,0.12)",
                 color: "#a855f7",
                 borderColor: "rgba(168,85,247,0.25)",
-                fontFamily: "ui-monospace, monospace",
               }}
               title="Bloqueado por dependências pendentes"
             >
@@ -248,8 +245,7 @@ export function CardItem({
           )}
           {checklistProgress.total > 0 && (
             <span
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground border"
-              style={{ borderWidth: "0.5px", fontFamily: "ui-monospace, monospace" }}
+              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground border"
               title={`${checklistProgress.done} de ${checklistProgress.total} concluídos`}
             >
               <CheckSquare className="h-2.5 w-2.5" />
@@ -273,20 +269,17 @@ export function CardItem({
 
         {/* Footer com deadline */}
         {card.date && (
-          <div className="mt-2 flex items-center border-t pt-2" style={{ borderWidth: "0.5px" }}>
+          <div className="mt-2 flex items-center border-t pt-2">
             <span
-              className="inline-flex items-center gap-1 text-[10px]"
-              style={{
-                fontFamily: "ui-monospace, monospace",
-                color:
-                  deadlineStatus === "overdue"
-                    ? "#ef4444"
-                    : deadlineStatus === "today"
-                      ? "#f97316"
-                      : deadlineStatus === "soon"
-                        ? "#eab308"
-                        : "var(--muted-foreground)",
-              }}
+              className={`inline-flex items-center gap-1 text-[10px] font-mono ${
+                deadlineStatus === "overdue"
+                  ? "text-destructive"
+                  : deadlineStatus === "today"
+                    ? "text-orange-500"
+                    : deadlineStatus === "soon"
+                      ? "text-yellow-500"
+                      : "text-muted-foreground"
+              }`}
             >
               <Calendar className="h-3 w-3" />
               {deadlineStatus === "overdue"

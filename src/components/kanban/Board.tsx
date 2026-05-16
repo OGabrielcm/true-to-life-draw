@@ -193,16 +193,19 @@ export function Board() {
             />
           ))}
           {tracks.length === 0 && (
-            <div
-              className="rounded-xl border border-dashed p-6 text-center"
-              style={{ borderWidth: "0.5px" }}
-            >
-              <p className="text-sm text-muted-foreground">Nenhuma track ainda.</p>
+            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <Plus className="h-4 w-4" />
+              </div>
+              <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                Nenhuma track ainda
+              </p>
               <button
                 onClick={() => setTracksOpen(true)}
-                className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"
+                className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em", textTransform: "uppercase" }}
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-3 w-3" />
                 Criar primeira track
               </button>
             </div>
@@ -416,17 +419,21 @@ function Swimlane({
       id={`track-${track.id}`}
       data-track={track.id}
       className="overflow-hidden rounded-xl border"
-      style={{ borderWidth: "0.5px", borderLeft: `4px solid ${track.border}` }}
+      style={{ borderLeft: `3px solid ${track.border}` }}
     >
       <button
         onClick={onToggleCollapsed}
-        className="flex w-full items-center justify-between gap-3 rounded-t-xl px-4 py-2.5 text-left transition-opacity hover:opacity-90"
+        className="flex w-full items-center justify-between gap-3 rounded-t-xl px-4 py-3 text-left transition-opacity hover:opacity-90"
         style={{ backgroundColor: bg, color: fg }}
       >
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: track.border }} />
-          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>{track.name}</h2>
-          <span className="text-xs opacity-70">
+        <div className="flex items-center gap-3">
+          <h2
+            className="text-lg font-semibold uppercase"
+            style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}
+          >
+            {track.name}
+          </h2>
+          <span className="font-mono text-[11px] opacity-60">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
             {inProgress > 0 && ` · ${inProgress} em andamento`}
           </span>
@@ -465,12 +472,10 @@ function Swimlane({
                   setDragOver(null);
                   setDraggingId(null);
                 }}
-                className="flex w-[220px] shrink-0 flex-col rounded-lg border bg-muted/40 transition-colors sm:w-[260px] md:w-auto md:flex-1"
+                className={`flex w-[220px] shrink-0 flex-col rounded-lg border transition-colors sm:w-[260px] md:w-auto md:flex-1 ${
+                  col.wip_limit && colCards.length > col.wip_limit ? "border-destructive/50" : ""
+                }`}
                 style={{
-                  borderWidth:
-                    col.wip_limit && colCards.length > col.wip_limit
-                      ? "2px solid #ef4444"
-                      : "0.5px",
                   minWidth: "180px",
                   backgroundColor: isOver
                     ? "color-mix(in oklab, var(--foreground) 8%, var(--muted))"
@@ -480,21 +485,17 @@ function Swimlane({
                 <div className="flex items-center justify-between px-3 pb-2 pt-3">
                   <div className="flex items-center gap-2">
                     <h3
-                      className="text-xs font-medium uppercase"
-                      style={{ color: fg, letterSpacing: "0.08em", fontFamily: "ui-monospace, monospace" }}
+                      className="font-mono text-xs font-medium uppercase"
+                      style={{ color: fg, letterSpacing: "0.08em" }}
                     >
                       {col.name}
                     </h3>
                     <span
-                      className="rounded-full bg-background px-1.5 py-0.5 text-[10px] font-medium"
-                      style={{
-                        color:
-                          col.wip_limit && colCards.length > col.wip_limit
-                            ? "#ef4444"
-                            : "var(--muted-foreground)",
-                        backgroundColor:
-                          col.wip_limit && colCards.length > col.wip_limit ? "#fee2e2" : undefined,
-                      }}
+                      className={`rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium ${
+                        col.wip_limit && colCards.length > col.wip_limit
+                          ? "bg-orange-500/15 text-orange-500"
+                          : "bg-white/7 text-muted-foreground"
+                      }`}
                     >
                       {colCards.length}
                       {col.wip_limit ? `/${col.wip_limit}` : ""}
@@ -521,9 +522,9 @@ function Swimlane({
                 </div>
                 <button
                   onClick={() => onAdd(col.id)}
-                  className="m-2 inline-flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium text-muted-foreground hover:bg-background hover:text-foreground"
+                  className="m-2 inline-flex items-center justify-center gap-1 rounded-sm py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-3 w-3" />
                   Adicionar
                 </button>
               </div>
