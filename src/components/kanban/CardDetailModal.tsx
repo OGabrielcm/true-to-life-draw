@@ -182,19 +182,17 @@ export function CardDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10"
-      style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 bg-black/60 backdrop-blur-sm"
       onClick={editing ? undefined : onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="modal-enter w-full max-w-2xl rounded-xl bg-card shadow-2xl max-h-[88vh] flex flex-col overflow-hidden"
-        style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+        className="modal-enter w-full max-w-2xl rounded-xl bg-card shadow-2xl max-h-[88vh] flex flex-col overflow-hidden border border-border"
       >
         {/* ── TOPO: eyebrow + título + ações ── */}
         <div className="p-5 pb-0 flex-shrink-0">
           {/* Eyebrow: track + tipo + badges */}
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-2" style={{ fontFamily: "ui-monospace, monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-2 font-mono uppercase tracking-widest">
             <span
               className="inline-flex items-center gap-1 rounded px-1.5 py-0.5"
               style={{ backgroundColor: prio.bg, color: prio.fg }}
@@ -266,18 +264,15 @@ export function CardDetailModal({
                 <button
                   key={tab.id}
                   onClick={() => switchTab(tab.id)}
-                  className="px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap border-b-2"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: activeTab === tab.id ? "var(--foreground)" : "var(--muted-foreground)",
-                    borderBottomColor: activeTab === tab.id ? "var(--foreground)" : "transparent",
-                    marginBottom: "-1px",
-                  }}
+                  className={`px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap border-b-2 -mb-px uppercase tracking-wider ${
+                    activeTab === tab.id
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground"
+                  }`}
+                  style={{ fontFamily: "var(--font-display)", letterSpacing: "0.06em" }}
                 >
                   {tab.label}
-                  <span className="ml-1 opacity-40 text-[9px]" style={{ fontFamily: "ui-monospace, monospace" }}>{tab.shortcut}</span>
+                  <span className="ml-1 opacity-40 text-[9px] font-mono">{tab.shortcut}</span>
                 </button>
               ))}
             </div>
