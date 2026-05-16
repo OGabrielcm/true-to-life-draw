@@ -19,6 +19,10 @@
  */
 
 @theme inline {
+  /* Font families — gera classes font-display e font-mono */
+  --font-family-display: var(--font-display);
+  --font-family-mono: var(--font-mono);
+
   /* Border-radius alinhados com Open Design: sm=4px, default=8px, lg=12px */
   --radius-sm: 4px;
   --radius-md: 6px;
