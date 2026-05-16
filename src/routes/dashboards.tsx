@@ -53,7 +53,7 @@ function DashboardsPage() {
 
   const rows = useMemo(() => {
     const isGoal = (cardId: string) =>
-      cards.find((c) => c.id === cardId)?.parent === null && cards.some((c) => c.parent === cardId);
+      cards.find((c) => c.id === cardId)?.parent_id === null && cards.some((c) => c.parent_id === cardId);
 
     const query = q.trim().toLowerCase();
     return [...cards]
@@ -74,7 +74,7 @@ function DashboardsPage() {
           if (deadlineFilter === "overdue" && status !== "overdue") return false;
           if (deadlineFilter === "today" && status !== "today") return false;
           if (deadlineFilter === "this_week") {
-            const diff = getDateDiff(c.date);
+            const diff = getDateDiff(c.date ?? null);
             if (diff === null || diff < 0 || diff > 6) return false;
           }
         }
