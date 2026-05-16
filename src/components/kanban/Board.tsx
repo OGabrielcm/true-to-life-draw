@@ -494,7 +494,7 @@ function Swimlane({
                       className={`rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium ${
                         col.wip_limit && colCards.length > col.wip_limit
                           ? "bg-orange-500/15 text-orange-500"
-                          : "bg-white/7 text-muted-foreground"
+                          : "bg-white-7 text-muted-foreground"
                       }`}
                     >
                       {colCards.length}

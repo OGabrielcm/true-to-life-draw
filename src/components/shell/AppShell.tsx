@@ -109,8 +109,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-2 rounded-sm px-2.5 py-[7px] transition-colors ${
                   active
-                    ? "bg-white/10 text-foreground"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    ? "bg-white-10 text-foreground"
+                    : "text-muted-foreground hover:bg-white-5 hover:text-foreground"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -140,7 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     to="/"
                     hash={`track-${t.id}`}
                     onClick={() => scrollToTrack(t.id)}
-                    className="flex items-center justify-between rounded-sm px-2 py-1 text-xs text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+                    className="flex items-center justify-between rounded-sm px-2 py-1 text-xs text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: t.border }} />
@@ -155,7 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Templates */}
           <button
             onClick={() => { setTemplatesOpen(true); setMobileOpen(false); }}
-            className="mt-1 flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+            className="mt-1 flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
           >
             <LayoutTemplate className="h-3.5 w-3.5 shrink-0" />
             Templates
@@ -164,7 +164,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Log Out */}
           <button
             onClick={handleSignOut}
-            className="mt-auto flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+            className="mt-auto flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
           >
             <LogOut className="h-3.5 w-3.5 shrink-0" />
             Log Out
@@ -195,7 +195,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               placeholder="Buscar tarefas…"
               className="w-full rounded-sm border bg-muted py-1.5 pl-8 pr-12 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground/40 transition-colors"
             />
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-sm border px-1 py-0.5 text-[10px] font-mono text-muted-foreground bg-white/6">
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-sm border px-1 py-0.5 text-[10px] font-mono text-muted-foreground bg-white-6">
               ⌘K
             </span>
           </div>
@@ -205,7 +205,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 to="/dashboards"
                 title={`${urgentCount} card${urgentCount > 1 ? "s" : ""} com prazo vencido ou hoje`}
-                className="relative flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white/7 hover:text-foreground transition-colors"
+                className="relative flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
@@ -232,7 +232,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               onClick={toggle}
               aria-label="Alternar tema"
-              className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white/7 hover:text-foreground transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -241,7 +241,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="relative">
               <button
                 onClick={() => setAvatarOpen((v) => !v)}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-[11px] font-bold text-foreground hover:outline hover:outline-2 hover:outline-white/30 hover:outline-offset-1 transition-all"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white-15 text-[11px] font-bold text-foreground hover:outline hover:outline-2 hover:outline-white/30 hover:outline-offset-1 transition-all"
                 style={{ fontFamily: "var(--font-display)" }}
                 title={user.email}
               >
