@@ -1,7 +1,7 @@
 # 🗺️ Roadmap — Molas Kanban
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — Fases 1–4 completas ✅ · Fase 5 (Qualidade Técnica) em andamento
+> Atualizado em: Maio 2026 — Fases 1–5 completas ✅ · MVP em produção (Vercel)
 
 ---
 
@@ -66,6 +66,10 @@
 | Histórico de atividades no card | ✅ |
 | Comentários no card | ✅ |
 | Time tracking (log de horas por card) | ✅ |
+| README.md com setup, stack e schema Supabase | ✅ |
+| Código formatado com Prettier (zero lint errors) | ✅ |
+| Arquitetura em camadas (services, card-rules, dashboard-export) | ✅ |
+| Testes E2E isolados com RUN_ID único por execução | ✅ |
 
 ---
 
@@ -198,62 +202,29 @@
 
 ---
 
-## 🔧 Fase 5 — Qualidade Técnica (Auditoria + Dívida Técnica)
+## ~~🔧 Fase 5 — Qualidade Técnica~~ ✅ Completa
 
-> Baseado em auditoria técnica do projeto (`RELATORIO_AUDITORIA_MENTORIA.md`).
-> Objetivo: fechar dívida técnica acumulada antes de iniciar novas features.
+> Baseado em auditoria técnica do projeto. Todas as etapas concluídas e em produção (Vercel).
+> Merge: `chore/git-commit-hook-e-scrollbar` → `main` em 18/05/2026.
 
 | # | Etapa | Arquivo principal | Complexidade | Modelo | Status |
 |---|-------|------------------|-------------|--------|--------|
-| 5.1 | Formatar código com Prettier | `src/` inteiro | 🟢 Mínima | `claude-haiku-4-5-20251001` | ⏳ Pendente |
-| 5.2 | Criar README.md operacional | raiz do projeto | 🟢 Baixa | `claude-haiku-4-5-20251001` | ⏳ Pendente |
-| 5.3 | Extrair exportação do dashboard | `dashboards.tsx` | 🟡 Baixa-média | `claude-sonnet-4-6[1m]` | ⏳ Pendente |
-| 5.4 | Extrair regras puras de card | `kanban-store.tsx` | 🟡 Média | `claude-sonnet-4-6[1m]` | ⏳ Pendente |
-| 5.5 | Melhorar isolamento dos testes E2E | `global-setup.ts` | 🟡 Média | `claude-sonnet-4-6[1m]` | ⏳ Pendente |
-| 5.6 | Separar serviços do kanban-store | `kanban-store.tsx` | 🔴 Alta | `claude-opus-4-7` | ⏳ Pendente |
-| 5.7 | Separar CardDetailModal | `CardDetailModal.tsx` | 🔴 Alta | `claude-opus-4-7` | ⏳ Pendente |
+| ~~5.1~~ | Formatar código com Prettier | `src/` inteiro | 🟢 Mínima | `claude-haiku-4-5-20251001` | ✅ |
+| ~~5.2~~ | Criar README.md operacional | raiz do projeto | 🟢 Baixa | `claude-haiku-4-5-20251001` | ✅ |
+| ~~5.3~~ | Extrair exportação do dashboard | `dashboards.tsx` → `dashboard-export.ts` | 🟡 Baixa-média | `claude-sonnet-4-6[1m]` | ✅ |
+| ~~5.4~~ | Extrair regras puras de card | `card-rules.ts` (re-export semântico) | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
+| ~~5.5~~ | Melhorar isolamento dos testes E2E | `helpers.ts` — `RUN_ID` único por execução | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
+| ~~5.6~~ | Separar serviços do kanban-store | `activity-service.ts`, `comments-service.ts`, `timelog-service.ts` | 🔴 Alta | `claude-opus-4-7` | ✅ |
+| ~~5.7~~ | Separar CardDetailModal | 5 sub-componentes em `card-modal-sections/` | 🔴 Alta | `claude-opus-4-7` | ✅ |
 
-### Detalhamento das etapas
+### Resultado
 
-**5.1 — Prettier** · `Haiku`
-- Resolve 110 erros de lint em 1 comando: `npx prettier --write src`
-- Arquivos mais afetados: `kanban-store.tsx`, `dashboards.tsx`
-
-**5.2 — README.md** · `Haiku`
-- Stack do projeto, setup local, variáveis de ambiente
-- Scripts de execução e validação, tabelas principais do Supabase
-- Declarar qual provedor é o oficial (Vercel vs Cloudflare — ambos têm config no repo)
-
-**5.3 — Extrair exportação do dashboard** · `Sonnet`
-- Mover `exportToCSV` e `exportToPDF` de `src/routes/dashboards.tsx` para `src/lib/dashboard-export.ts`
-- Sem reescrever lógica, apenas separar responsabilidade
-
-**5.4 — Extrair regras puras de card** · `Sonnet`
-- Criar `src/lib/domain/card-rules.ts` com helpers como `isGoalCard` e regras de hierarquia
-- Remover regras de domínio do store, que deve coordenar estado — não definir regras
-
-**5.5 — Isolamento dos testes E2E** · `Sonnet`
-- Substituir cleanup por prefixo genérico `[E2E-%` por IDs únicos por execução
-- Garantir que cada teste rode de forma independente, sem depender de estado de outro
-
-**5.6 — Separar serviços do kanban-store** · `Opus`
-- `kanban-store.tsx` tem 29KB e mistura 6+ responsabilidades
-- Extrair para: `activity-service.ts`, `comments-service.ts`, `timelog-service.ts`
-- Fazer em etapas pequenas — um serviço por vez
-
-**5.7 — Separar CardDetailModal** · `Opus`
-- `CardDetailModal.tsx` tem 990 linhas misturando UI, estado e comportamento
-- Extrair hook `use-card-details.ts` e sub-componentes por aba (Checklist, Comentários, Time)
-- Maior risco de regressão visual — fazer com testes rodando
-
-### Ordem recomendada
-
-```
-5.1 (Prettier) → 5.2 (README) → 5.3 (Export) → 5.4 (Card Rules) → 5.5 (E2E) → 5.6 (Store) → 5.7 (Modal)
-```
-
-> ⚠️ **Regra:** Etapas 5.1 e 5.2 podem ser feitas a qualquer momento.
-> Etapas 5.6 e 5.7 só devem ser iniciadas quando uma nova feature for cair nesses arquivos — o custo de refatorar antes compensa nesse momento.
+- `kanban-store.tsx`: 881 → 806 linhas
+- `CardDetailModal.tsx`: 1195 → 643 linhas (5 sections extraídas)
+- `dashboards.tsx`: funções de export movidas para módulo dedicado
+- E2E: títulos de cards com `RUN_ID` único — sem colisão entre runs paralelos
+- TypeScript: 0 erros · ESLint: 0 erros (11 warnings herdados de shadcn/ui)
+- Deploy validado: `READY` em produção no Vercel
 
 ---
 
