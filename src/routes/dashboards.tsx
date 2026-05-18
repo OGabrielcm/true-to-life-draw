@@ -4,6 +4,7 @@ import { Archive, Search, Trash2, Download, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useKanban } from "@/lib/kanban-store";
 import { formatDate, getDeadlineStatus, isArchived } from "@/lib/kanban-types";
+import { exportToCSV, exportToPDF } from "@/lib/dashboard-export";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 import { useTheme } from "@/components/theme-provider";
 
@@ -53,7 +54,8 @@ function DashboardsPage() {
 
   const rows = useMemo(() => {
     const isGoal = (cardId: string) =>
-      cards.find((c) => c.id === cardId)?.parent_id === null && cards.some((c) => c.parent_id === cardId);
+      cards.find((c) => c.id === cardId)?.parent_id === null &&
+      cards.some((c) => c.parent_id === cardId);
 
     const query = q.trim().toLowerCase();
     return [...cards]
@@ -123,73 +125,6 @@ function DashboardsPage() {
   }, [cards, columns, tracks]);
 
   const open = openId ? (cards.find((c) => c.id === openId) ?? null) : null;
-
-  const exportToCSV = () => {
-    const headers = ["Title", "Track", "Status", "Priority", "Deadline", "Updated"];
-    const csvData = [
-      headers.join(","),
-      ...rows.map((c) => {
-        const track = tracks.find((t) => t.id === c.track)?.name ?? "";
-        const col = columns.find((x) => x.id === c.col)?.name ?? "";
-        return [
-          c.title,
-          track,
-          col,
-          c.prio,
-          formatDate(c.date),
-          new Date(c.updated_at).toLocaleDateString("pt-BR"),
-        ]
-          .map((v) => `"${v}"`)
-          .join(",");
-      }),
-    ].join("\n");
-
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `molas-export-${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-  };
-
-  const exportToPDF = () => {
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 10;
-    const lineHeight = 7;
-    const y = margin;
-
-    const lines: string[] = [
-      `MOLAS - Kanban Board Export - ${new Date().toLocaleDateString("pt-BR")}\n\n`,
-    ];
-    rows.forEach((c) => {
-      const track = tracks.find((t) => t.id === c.track)?.name ?? "";
-      const col = columns.find((x) => x.id === c.col)?.name ?? "";
-      lines.push(`${c.title} | ${track} | ${col} | ${c.prio} | ${formatDate(c.date)}\n`);
-    });
-
-    const content = lines.join("");
-    let pdf = "%PDF-1.4\n";
-    pdf += "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n";
-    pdf += "2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n";
-    pdf += `3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${pageWidth} ${pageHeight}]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n`;
-    pdf += `4 0 obj<</Length ${content.length + 50}>>stream\nBT\n/F1 10 Tf\n${margin} ${pageHeight - margin} Td\n(${content.replace(/\n/g, ")Tj\nT*\n(")})Tj\nET\nendstream\nendobj\n`;
-    pdf += "5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n";
-    pdf += "xref\n0 6\n";
-    pdf += "0000000000 65535 f\n";
-    pdf += "0000000009 00000 n\n";
-    pdf += "0000000058 00000 n\n";
-    pdf += "0000000115 00000 n\n";
-    pdf += "0000000273 00000 n\n";
-    pdf += `000000${String(content.length + 600).padStart(6, "0")} 00000 n\n`;
-    pdf += "trailer<</Size 6/Root 1 0 R>>\nstartxref\n";
-    pdf += `${pdf.length}\n%%EOF`;
-
-    const blob = new Blob([pdf], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `molas-export-${new Date().toISOString().split("T")[0]}.pdf`;
-    link.click();
-  };
 
   return (
     <AppShell>
@@ -365,7 +300,7 @@ function DashboardsPage() {
                     >
                       <button
                         onClick={() => {
-                          exportToCSV();
+                          exportToCSV(rows, tracks, columns);
                           setExportOpen(false);
                         }}
                         className="block w-full px-3 py-1.5 text-left text-xs text-foreground hover:bg-muted"
@@ -374,7 +309,7 @@ function DashboardsPage() {
                       </button>
                       <button
                         onClick={() => {
-                          exportToPDF();
+                          exportToPDF(rows, tracks, columns);
                           setExportOpen(false);
                         }}
                         className="block w-full px-3 py-1.5 text-left text-xs text-foreground hover:bg-muted"
