@@ -40,3 +40,10 @@ dist-ssr
 *.sw?
 .env.test
 tests/e2e/.auth-state.json
+
+# Local dev artifacts
+.agents/
+.env.test.emmanuel
+playwright.config.emmanuel.ts
+playwright-report/
+test-results/

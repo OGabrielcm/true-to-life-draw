@@ -1,5 +1,8 @@
 import { type Page, expect } from "@playwright/test";
 
+// Unique suffix per test run — prevents cross-run card collisions in Supabase
+export const RUN_ID = Date.now().toString(36).slice(-4).toUpperCase();
+
 export async function goToBoard(page: Page) {
   await page.goto("/");
   await expect(page.locator("text=Gerenciador de Molas")).toBeVisible({ timeout: 15_000 });

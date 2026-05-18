@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { goToBoard, createCard, openCard } from "./helpers";
+import { goToBoard, createCard, openCard, RUN_ID } from "./helpers";
 
-const CARD_TITLE = "[E2E-TIME] Teste de Time Tracking";
+const CARD_TITLE = `[E2E-TIME-${RUN_ID}] Teste de Time Tracking`;
 
 test.describe.serial("4.7 — Time tracking", () => {
   test.beforeEach(async ({ page }) => {

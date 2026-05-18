@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Activity,
   ActivityType,
@@ -23,6 +31,9 @@ import {
   saveCardColors,
 } from "./kanban-types";
 import { supabase } from "./supabase";
+import * as ActivityService from "./activity-service";
+import * as CommentsService from "./comments-service";
+import * as TimelogService from "./timelog-service";
 
 type AddInput = Omit<
   Card,
@@ -176,34 +187,14 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
   const currentUserIdRef = useRef<string | null>(null);
 
-  const logActivityRef = useRef<(taskId: string, type: ActivityType, message: string) => Promise<void>>(async () => {});
+  const logActivityRef = useRef<
+    (taskId: string, type: ActivityType, message: string) => Promise<void>
+  >(async () => {});
 
   const logActivityFn = async (taskId: string, type: ActivityType, message: string) => {
     const userId = currentUserIdRef.current;
     if (!userId) return;
-    const tempId = crypto.randomUUID();
-    const now = new Date().toISOString();
-    const optimistic: Activity = { id: tempId, task_id: taskId, type, message, created_at: now };
-    setActivitiesByCard((cur) => ({
-      ...cur,
-      [taskId]: [optimistic, ...(cur[taskId] ?? [])],
-    }));
-    const { data, error } = await supabase
-      .from("activities")
-      .insert({ task_id: taskId, user_id: userId, type, message })
-      .select()
-      .single();
-    if (error) {
-      setActivitiesByCard((cur) => ({
-        ...cur,
-        [taskId]: (cur[taskId] ?? []).filter((a) => a.id !== tempId),
-      }));
-    } else if (data) {
-      setActivitiesByCard((cur) => ({
-        ...cur,
-        [taskId]: (cur[taskId] ?? []).map((a) => (a.id === tempId ? (data as Activity) : a)),
-      }));
-    }
+    await ActivityService.logActivity(setActivitiesByCard, userId, taskId, type, message);
   };
 
   logActivityRef.current = logActivityFn;
@@ -265,7 +256,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       // Seed trilhas if user has none
       if (!dbTrilhas?.length) {
-        const seededTrilhas = DEFAULT_TRILHAS.map(({ id: _id, ...t }) => ({ ...t, user_id: user.id }));
+        const seededTrilhas = DEFAULT_TRILHAS.map(({ id: _id, ...t }) => ({
+          ...t,
+          user_id: user.id,
+        }));
         const { data: inserted } = await supabase.from("trilhas").insert(seededTrilhas).select();
         if (!cancelled) setTrilhas((inserted ?? []).map(rowToTrilha));
       } else {
@@ -394,7 +388,11 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
             const wasBlocked = (before.blocked_by ?? []).length > 0;
             const isBlocked = (patch.blocked_by ?? []).length > 0;
             if (wasBlocked !== isBlocked) {
-              logActivity(id, isBlocked ? "blocked" : "unblocked", isBlocked ? "Dependência adicionada" : "Dependências removidas");
+              logActivity(
+                id,
+                isBlocked ? "blocked" : "unblocked",
+                isBlocked ? "Dependência adicionada" : "Dependências removidas",
+              );
             }
           }
         }
@@ -491,7 +489,11 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
             .from("tasks")
             .update({ starred: !card.starred, updated_at: now })
             .eq("id", id);
-          logActivity(id, card.starred ? "unstarred" : "starred", card.starred ? "Removido dos favoritos" : "Marcado como favorito");
+          logActivity(
+            id,
+            card.starred ? "unstarred" : "starred",
+            card.starred ? "Removido dos favoritos" : "Marcado como favorito",
+          );
         }
       },
 
@@ -575,26 +577,14 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       },
 
       loadCardDetails: async (cardId) => {
-        const [{ data: acts }, { data: cmts }, { data: logs }] = await Promise.all([
-          supabase
-            .from("activities")
-            .select("*")
-            .eq("task_id", cardId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("comments")
-            .select("*")
-            .eq("task_id", cardId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("time_logs")
-            .select("*")
-            .eq("task_id", cardId)
-            .order("logged_at", { ascending: false }),
+        const [acts, cmts, logs] = await Promise.all([
+          ActivityService.fetchActivities(cardId),
+          CommentsService.fetchComments(cardId),
+          TimelogService.fetchTimeLogs(cardId),
         ]);
-        setActivitiesByCard((cur) => ({ ...cur, [cardId]: (acts ?? []) as Activity[] }));
-        setCommentsByCard((cur) => ({ ...cur, [cardId]: (cmts ?? []) as Comment[] }));
-        setTimeLogsByCard((cur) => ({ ...cur, [cardId]: (logs ?? []) as TimeLog[] }));
+        setActivitiesByCard((cur) => ({ ...cur, [cardId]: acts }));
+        setCommentsByCard((cur) => ({ ...cur, [cardId]: cmts }));
+        setTimeLogsByCard((cur) => ({ ...cur, [cardId]: logs }));
       },
 
       addComment: async (cardId, text) => {
@@ -602,77 +592,34 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) return;
-        const trimmed = text.trim();
-        if (!trimmed) return;
-        const { data, error } = await supabase
-          .from("comments")
-          .insert({ task_id: cardId, user_id: user.id, text: trimmed })
-          .select()
-          .single();
-        if (!error && data) {
-          setCommentsByCard((cur) => ({
-            ...cur,
-            [cardId]: [data as Comment, ...(cur[cardId] ?? [])],
-          }));
-        }
+        await CommentsService.addComment(setCommentsByCard, user.id, cardId, text);
       },
 
       updateComment: async (commentId, text) => {
-        const now = new Date().toISOString();
-        const trimmed = text.trim();
-        setCommentsByCard((cur) => {
-          const next: Record<string, Comment[]> = {};
-          for (const k of Object.keys(cur)) {
-            next[k] = cur[k].map((c) =>
-              c.id === commentId ? { ...c, text: trimmed, updated_at: now } : c,
-            );
-          }
-          return next;
-        });
-        await supabase
-          .from("comments")
-          .update({ text: trimmed, updated_at: now })
-          .eq("id", commentId);
+        await CommentsService.updateComment(setCommentsByCard, commentId, text);
       },
 
       deleteComment: async (commentId, cardId) => {
-        setCommentsByCard((cur) => ({
-          ...cur,
-          [cardId]: (cur[cardId] ?? []).filter((c) => c.id !== commentId),
-        }));
-        await supabase.from("comments").delete().eq("id", commentId);
+        await CommentsService.deleteComment(setCommentsByCard, commentId, cardId);
       },
 
       addTimeLog: async (cardId, minutes, note, loggedAt) => {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user || minutes <= 0) return;
-        const { data, error } = await supabase
-          .from("time_logs")
-          .insert({
-            task_id: cardId,
-            user_id: user.id,
-            minutes,
-            note: note?.trim() || null,
-            logged_at: loggedAt ?? new Date().toISOString().slice(0, 10),
-          })
-          .select()
-          .single();
-        if (!error && data) {
-          setTimeLogsByCard((cur) => ({
-            ...cur,
-            [cardId]: [data as TimeLog, ...(cur[cardId] ?? [])],
-          }));
-        }
+        if (!user) return;
+        await TimelogService.addTimeLog(
+          setTimeLogsByCard,
+          user.id,
+          cardId,
+          minutes,
+          note,
+          loggedAt,
+        );
       },
 
       deleteTimeLog: async (logId, cardId) => {
-        setTimeLogsByCard((cur) => ({
-          ...cur,
-          [cardId]: (cur[cardId] ?? []).filter((l) => l.id !== logId),
-        }));
-        await supabase.from("time_logs").delete().eq("id", logId);
+        await TimelogService.deleteTimeLog(setTimeLogsByCard, logId, cardId);
       },
 
       createTrilha: async (t) => {
