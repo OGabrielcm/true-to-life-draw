@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { goToBoard, createCard, openCard } from "./helpers";
+import { goToBoard, createCard, openCard, RUN_ID } from "./helpers";
 
-const CARD_TITLE = "[E2E-ACT] Teste de Atividades";
+const CARD_TITLE = `[E2E-ACT-${RUN_ID}] Teste de Atividades`;
 
 test.describe.serial("4.5 — Histórico de atividades", () => {
   test.beforeEach(async ({ page }) => {
