@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -25,12 +25,12 @@
   --font-family-mono: var(--font-mono);
 
   /* White opacity scale — gera classes bg-white/5, bg-white/6, bg-white/7, bg-white/10, bg-white/14 */
-  --color-white-5:  rgba(255,255,255,0.05);
-  --color-white-6:  rgba(255,255,255,0.06);
-  --color-white-7:  rgba(255,255,255,0.07);
-  --color-white-10: rgba(255,255,255,0.10);
-  --color-white-14: rgba(255,255,255,0.14);
-  --color-white-15: rgba(255,255,255,0.15);
+  --color-white-5: rgba(255, 255, 255, 0.05);
+  --color-white-6: rgba(255, 255, 255, 0.06);
+  --color-white-7: rgba(255, 255, 255, 0.07);
+  --color-white-10: rgba(255, 255, 255, 0.1);
+  --color-white-14: rgba(255, 255, 255, 0.14);
+  --color-white-15: rgba(255, 255, 255, 0.15);
 
   /* Border-radius alinhados com Open Design: sm=4px, default=8px, lg=12px */
   --radius-sm: 4px;
@@ -113,39 +113,66 @@
 
 .dark {
   /* ── Open Design "luxury" dark tokens ── */
-  /* #000000 */ --background: oklch(0 0 0);
-  /* #fafafa */ --foreground: oklch(0.984 0 0);
-  /* #111111 */ --card: oklch(0.115 0 0);
-  /* #fafafa */ --card-foreground: oklch(0.984 0 0);
-  /* #111111 */ --popover: oklch(0.115 0 0);
-  /* #fafafa */ --popover-foreground: oklch(0.984 0 0);
-  /* #fafafa */ --primary: oklch(0.984 0 0);
-  /* #000000 */ --primary-foreground: oklch(0 0 0);
-  /* #1a1a1a */ --secondary: oklch(0.158 0 0);
-  /* #fafafa */ --secondary-foreground: oklch(0.984 0 0);
-  /* #1a1a1a */ --muted: oklch(0.158 0 0);
-  /* rgba(250,250,250,0.45) */ --muted-foreground: oklch(0.984 0 0 / 45%);
-  /* #1a1a1a */ --accent: oklch(0.158 0 0);
-  /* #fafafa */ --accent-foreground: oklch(0.984 0 0);
-  /* #ef4444 */ --destructive: oklch(0.637 0.237 25.331);
-  /* #fafafa */ --destructive-foreground: oklch(0.984 0 0);
-  /* rgba(255,255,255,0.08) */ --border: oklch(1 0 0 / 8%);
-  /* rgba(255,255,255,0.08) */ --input: oklch(1 0 0 / 8%);
-  /* rgba(255,255,255,0.3)  */ --ring: oklch(1 0 0 / 30%);
+  /* #000000 */
+  --background: oklch(0 0 0);
+  /* #fafafa */
+  --foreground: oklch(0.984 0 0);
+  /* #111111 */
+  --card: oklch(0.115 0 0);
+  /* #fafafa */
+  --card-foreground: oklch(0.984 0 0);
+  /* #111111 */
+  --popover: oklch(0.115 0 0);
+  /* #fafafa */
+  --popover-foreground: oklch(0.984 0 0);
+  /* #fafafa */
+  --primary: oklch(0.984 0 0);
+  /* #000000 */
+  --primary-foreground: oklch(0 0 0);
+  /* #1a1a1a */
+  --secondary: oklch(0.158 0 0);
+  /* #fafafa */
+  --secondary-foreground: oklch(0.984 0 0);
+  /* #1a1a1a */
+  --muted: oklch(0.158 0 0);
+  /* rgba(250,250,250,0.45) */
+  --muted-foreground: oklch(0.984 0 0 / 45%);
+  /* #1a1a1a */
+  --accent: oklch(0.158 0 0);
+  /* #fafafa */
+  --accent-foreground: oklch(0.984 0 0);
+  /* #ef4444 */
+  --destructive: oklch(0.637 0.237 25.331);
+  /* #fafafa */
+  --destructive-foreground: oklch(0.984 0 0);
+  /* rgba(255,255,255,0.08) */
+  --border: oklch(1 0 0 / 8%);
+  /* rgba(255,255,255,0.08) */
+  --input: oklch(1 0 0 / 8%);
+  /* rgba(255,255,255,0.3)  */
+  --ring: oklch(1 0 0 / 30%);
   /* charts mantêm saturação para legibilidade */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  /* #111111 */ --sidebar: oklch(0.115 0 0);
-  /* #fafafa */ --sidebar-foreground: oklch(0.984 0 0);
-  /* #fafafa */ --sidebar-primary: oklch(0.984 0 0);
-  /* #000000 */ --sidebar-primary-foreground: oklch(0 0 0);
-  /* #1a1a1a */ --sidebar-accent: oklch(0.158 0 0);
-  /* #fafafa */ --sidebar-accent-foreground: oklch(0.984 0 0);
-  /* rgba(255,255,255,0.08) */ --sidebar-border: oklch(1 0 0 / 8%);
-  /* rgba(255,255,255,0.3)  */ --sidebar-ring: oklch(1 0 0 / 30%);
+  /* #111111 */
+  --sidebar: oklch(0.115 0 0);
+  /* #fafafa */
+  --sidebar-foreground: oklch(0.984 0 0);
+  /* #fafafa */
+  --sidebar-primary: oklch(0.984 0 0);
+  /* #000000 */
+  --sidebar-primary-foreground: oklch(0 0 0);
+  /* #1a1a1a */
+  --sidebar-accent: oklch(0.158 0 0);
+  /* #fafafa */
+  --sidebar-accent-foreground: oklch(0.984 0 0);
+  /* rgba(255,255,255,0.08) */
+  --sidebar-border: oklch(1 0 0 / 8%);
+  /* rgba(255,255,255,0.3)  */
+  --sidebar-ring: oklch(1 0 0 / 30%);
 }
 
 @layer base {
@@ -165,34 +192,47 @@
 /* ── Design refresh — Open Design ── */
 
 :root {
-  --font-display: 'Oswald', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: "Oswald", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* ── Open Design animations ── */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Card hover micro-animation — alinhado com Open Design */
 .kb-card {
-  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 .kb-card:hover {
   border-color: oklch(1 0 0 / 14%) !important; /* --border-md */
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
-.light .kb-card:hover, :root:not(.dark) .kb-card:hover {
+.light .kb-card:hover,
+:root:not(.dark) .kb-card:hover {
   border-color: oklch(0 0 0 / 20%) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 /* Skeleton loading animation */
 @keyframes shimmer {
-  0%   { background-position: -600px 0; }
-  100% { background-position:  600px 0; }
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
 }
 .skeleton-shimmer {
   background: linear-gradient(
@@ -216,8 +256,14 @@
   animation: modalIn 0.18s ease-out;
 }
 @keyframes modalIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Scrollbar styling ── */

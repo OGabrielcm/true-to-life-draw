@@ -95,10 +95,7 @@ export function Board() {
   return (
     <div className="flex flex-col">
       {/* Filter chips */}
-      <div
-        className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6"
-       
-      >
+      <div className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6">
         <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
           <button
             onClick={() => setFilter("__all")}
@@ -131,7 +128,6 @@ export function Board() {
           <button
             onClick={() => setTrilhasOpen(true)}
             className="ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-           
           >
             <Tags className="h-3.5 w-3.5" />
             Tags
@@ -139,7 +135,6 @@ export function Board() {
           <button
             onClick={() => setTracksOpen(true)}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-           
           >
             <Layers className="h-3.5 w-3.5" />
             Tracks
@@ -147,7 +142,6 @@ export function Board() {
           <button
             onClick={() => setColumnsOpen(true)}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-           
           >
             <Columns className="h-3.5 w-3.5" />
             Colunas
@@ -161,7 +155,6 @@ export function Board() {
             <Link
               to="/dashboards"
               className="inline-flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-             
             >
               <span className="inline-flex items-center gap-2">
                 <Archive className="h-3.5 w-3.5" />
@@ -203,7 +196,11 @@ export function Board() {
               <button
                 onClick={() => setTracksOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-                style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em", textTransform: "uppercase" }}
+                style={{
+                  fontFamily: "var(--font-display)",
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                }}
               >
                 <Plus className="h-3 w-3" />
                 Criar primeira track

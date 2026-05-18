@@ -93,7 +93,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground" />
           </div>
-          <button className="md:hidden text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(false)}>
+          <button
+            className="md:hidden text-muted-foreground hover:text-foreground"
+            onClick={() => setMobileOpen(false)}
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -143,7 +146,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                     className="flex items-center justify-between rounded-sm px-2 py-1 text-xs text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: t.border }} />
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: t.border }}
+                      />
                       {t.name}
                     </div>
                   </Link>
@@ -154,7 +160,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {/* Templates */}
           <button
-            onClick={() => { setTemplatesOpen(true); setMobileOpen(false); }}
+            onClick={() => {
+              setTemplatesOpen(true);
+              setMobileOpen(false);
+            }}
             className="mt-1 flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
           >
             <LayoutTemplate className="h-3.5 w-3.5 shrink-0" />
@@ -182,7 +191,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Main column */}
       <div className="flex flex-1 flex-col min-w-0">
         <header className="sticky top-0 z-20 flex h-[52px] items-center gap-2 border-b bg-background px-4 sm:px-5">
-          <button className="md:hidden text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(true)}>
+          <button
+            className="md:hidden text-muted-foreground hover:text-foreground"
+            onClick={() => setMobileOpen(true)}
+          >
             <Menu className="h-5 w-5" />
           </button>
 
@@ -207,7 +219,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 title={`${urgentCount} card${urgentCount > 1 ? "s" : ""} com prazo vencido ou hoje`}
                 className="relative flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -222,7 +240,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               onClick={() => setCreateOpen(true)}
               className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-88 transition-opacity"
-              style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em", textTransform: "uppercase" }}
+              style={{
+                fontFamily: "var(--font-display)",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+              }}
             >
               <Plus className="h-3 w-3" />
               <span className="hidden sm:inline">Create</span>
@@ -251,12 +273,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setAvatarOpen(false)} />
                   <div className="absolute right-0 top-9 z-20 min-w-[180px] rounded-lg border bg-card py-1 shadow-lg">
-                    <div className="border-b px-3 py-2 text-xs text-muted-foreground font-mono">{user.email}</div>
-                    <Link to="/profile" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors">
-                      <User className="h-3.5 w-3.5" />Profile
+                    <div className="border-b px-3 py-2 text-xs text-muted-foreground font-mono">
+                      {user.email}
+                    </div>
+                    <Link
+                      to="/profile"
+                      onClick={() => setAvatarOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                    >
+                      <User className="h-3.5 w-3.5" />
+                      Profile
                     </Link>
-                    <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors">
-                      <LogOut className="h-3.5 w-3.5" />Log Out
+                    <button
+                      onClick={handleSignOut}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      Log Out
                     </button>
                   </div>
                 </>
@@ -310,7 +343,11 @@ function AppSkeleton() {
                   <div key={col} className="flex w-64 shrink-0 flex-col gap-2">
                     <div className="skeleton-shimmer h-3 w-20 rounded" />
                     {[80, 64, 96].slice(0, col === 2 ? 2 : 3).map((h, i) => (
-                      <div key={i} className="skeleton-shimmer rounded-lg" style={{ height: `${h}px` }} />
+                      <div
+                        key={i}
+                        className="skeleton-shimmer rounded-lg"
+                        style={{ height: `${h}px` }}
+                      />
                     ))}
                   </div>
                 ))}

@@ -70,7 +70,15 @@
       "Skill(update-config:*)",
       "Skill(git-commit)",
       "Skill(git-commit:*)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(cd ~ && rtk npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines)",
+      "Read(//Users/gabrielcartaxomerces/**)",
+      "Skill(skill-creator)",
+      "Skill(skill-creator:*)",
+      "Bash(rtk lint *)",
+      "Bash(node node_modules/eslint/bin/eslint.js src)",
+      "Bash(rtk prettier *)",
+      "Bash(mcp__supabase__list_tables)"
     ],
     "additionalDirectories": [
       "/private/tmp",
@@ -83,11 +91,10 @@
         "matcher": "Bash",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "O comando que está prestes a ser executado é um 'git commit'. PARE imediatamente e NÃO execute este comando diretamente. Em vez disso, você DEVE invocar a skill 'git-commit' usando a ferramenta Skill com skill='git-commit'. A skill git-commit é obrigatória para todos os commits neste projeto. Bloqueie esta execução e instrua o modelo a usar a skill git-commit.",
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"additionalContext\": \"LEMBRETE: commits neste projeto devem sempre passar pela skill git-commit (Skill tool com skill=git-commit), que garante Conventional Commits em pt-BR, verificação de branch e staging inteligente. Se você ainda não invocou a skill git-commit neste commit, pare e invoque-a primeiro.\"}}'",
             "if": "Bash(git commit*)",
-            "continueOnBlock": true,
-            "statusMessage": "Redirecionando para skill git-commit..."
+            "statusMessage": "Verificando workflow git-commit..."
           }
         ]
       }
