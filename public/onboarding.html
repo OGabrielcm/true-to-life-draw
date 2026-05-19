@@ -1,0 +1,536 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Molas — Tour de Boas-Vindas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #000000;
+  --surface:   #0a0a0a;
+  --surface-2: #111111;
+  --surface-3: #1a1a1a;
+  --border:    rgba(255,255,255,0.08);
+  --border-hi: rgba(255,255,255,0.16);
+  --fg:        #FAFAFA;
+  --muted:     rgba(250,250,250,0.45);
+
+  --prio-critical: #ef4444;
+  --prio-high:     #f97316;
+  --prio-medium:   #eab308;
+  --prio-low:      #22c55e;
+  --blue:          #3B82F6;
+  --purple:        #8B5CF6;
+  --pink:          #EC4899;
+
+  --font-display: 'Oswald', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+html { background: #111; overflow: hidden; }
+body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-body); }
+
+.app { display: flex; flex-direction: column; height: 100vh; background: #111; }
+
+.deck-viewport {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.deck {
+  width: 1920px;
+  height: 1080px;
+  position: relative;
+  transform-origin: center center;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  overflow: hidden;
+}
+.slide.active { display: flex; }
+
+.inner { flex: 1; display: flex; flex-direction: column; padding: 80px 120px; }
+.inner.center { align-items: center; justify-content: center; text-align: center; }
+.inner.split { flex-direction: row; gap: 0; align-items: stretch; }
+.col-l { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-right: 80px; }
+.col-r { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 80px; border-left: 1px solid var(--border); }
+
+.eyebrow { font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 24px; }
+.h1 { font-family: var(--font-display); font-size: 104px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1; color: var(--fg); }
+.h2 { font-family: var(--font-display); font-size: 64px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; color: var(--fg); }
+.lead { font-size: 24px; color: rgba(250,250,250,0.65); line-height: 1.6; }
+.body { font-size: 20px; color: rgba(250,250,250,0.6); line-height: 1.65; }
+.mono { font-family: var(--font-mono); }
+.rule { width: 48px; height: 3px; background: var(--fg); border-radius: 2px; margin: 32px 0; }
+
+.slide-num { font-family: var(--font-mono); font-size: 12px; color: rgba(250,250,250,0.18); position: absolute; bottom: 36px; right: 48px; letter-spacing: 0.06em; }
+
+.brand { font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); position: absolute; top: 36px; left: 48px; display: flex; align-items: center; gap: 10px; }
+.brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--prio-low); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.75)} }
+
+.steps { display: flex; flex-direction: column; gap: 36px; }
+.step  { display: flex; align-items: flex-start; gap: 28px; }
+.step-n { font-family: var(--font-mono); font-size: 28px; font-weight: 600; color: rgba(250,250,250,0.14); width: 44px; flex-shrink: 0; padding-top: 4px; line-height: 1; }
+.step-title { font-family: var(--font-display); font-size: 30px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg); margin-bottom: 4px; }
+.step-body { font-size: 18px; color: var(--muted); line-height: 1.5; }
+
+.card { background: var(--surface-2); border: 1px solid var(--border-hi); border-radius: 8px; overflow: hidden; }
+.card-bar { height: 3px; width: 100%; }
+.card-body { padding: 20px; }
+.card-title { font-family: var(--font-display); font-size: 18px; font-weight: 500; letter-spacing: 0.02em; color: var(--fg); line-height: 1.3; margin-bottom: 10px; }
+.card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip { font-family: var(--font-mono); font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid; font-weight: 500; }
+.chip-crit  { background:rgba(239,68,68,.12);  color:#ef4444; border-color:rgba(239,68,68,.3); }
+.chip-high  { background:rgba(249,115,22,.12); color:#f97316; border-color:rgba(249,115,22,.3); }
+.chip-med   { background:rgba(234,179,8,.12);  color:#eab308; border-color:rgba(234,179,8,.3); }
+.chip-low   { background:rgba(34,197,94,.12);  color:#22c55e; border-color:rgba(34,197,94,.3); }
+.chip-muted { background:rgba(250,250,250,.06); color:var(--muted); border-color:var(--border); }
+.tag { font-size: 11px; padding: 2px 10px; border-radius: 9999px; font-weight: 500; }
+.card-footer { display:flex; align-items:center; gap:6px; padding-top:10px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+
+.col-mock { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; width:260px; flex-shrink:0; }
+.col-mock-head { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--border); }
+.col-name { font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+.col-badge { font-family:var(--font-mono); font-size:10px; padding:2px 7px; border-radius:4px; background:rgba(250,250,250,0.07); border:1px solid var(--border); color:var(--muted); }
+.col-badge.wip { background:rgba(249,115,22,.12); color:#f97316; border-color:rgba(249,115,22,.3); }
+.col-cards { padding:10px; display:flex; flex-direction:column; gap:8px; min-height:80px; }
+
+.track-h { display:flex; align-items:center; gap:16px; padding:8px 0; }
+.track-bar { width:3px; border-radius:99px; flex-shrink:0; }
+.track-name { font-family:var(--font-display); font-size:28px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg); }
+.track-meta { font-family:var(--font-mono); font-size:12px; color:var(--muted); margin-top:3px; }
+
+.prio-row { display:flex; align-items:center; gap:24px; padding:20px 0; border-bottom:1px solid var(--border); }
+.prio-row:first-child { border-top:1px solid var(--border); }
+
+.dl-row { display:flex; align-items:center; gap:20px; padding:16px 20px; border-radius:6px; background:var(--surface-2); border:1px solid var(--border); margin-bottom:12px; }
+.dl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.part-list { display:flex; flex-direction:column; gap:16px; }
+.part { display:flex; align-items:flex-start; gap:14px; padding:14px 18px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; }
+.part-label { font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); width:100px; flex-shrink:0; padding-top:2px; }
+.part-val { font-size:16px; color:var(--fg); line-height:1.4; }
+.part-sub { font-size:13px; color:var(--muted); margin-top:2px; }
+
+.chrome { height:48px; background:rgba(0,0,0,0.94); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:12px; flex-shrink:0; }
+.ui-btn { background:none; border:none; color:rgba(250,250,250,0.35); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; cursor:pointer; padding:4px 12px; border-radius:4px; transition:color .15s,background .15s; }
+.ui-btn:hover { color:var(--fg); background:rgba(255,255,255,0.06); }
+.counter { font-family:var(--font-mono); font-size:12px; color:rgba(250,250,250,0.22); letter-spacing:.06em; min-width:56px; text-align:center; }
+.sep { width:1px; height:16px; background:var(--border); }
+.progress { position:absolute; bottom:48px; left:0; height:2px; background:rgba(250,250,250,0.14); transition:width .3s ease; pointer-events:none; }
+
+.notes { position:absolute; bottom:48px; left:0; right:0; max-height:180px; background:rgba(8,8,8,0.97); border-top:1px solid var(--border); padding:14px 24px; font-size:14px; color:rgba(250,250,250,0.5); line-height:1.65; overflow-y:auto; display:none; z-index:10; }
+.notes.on { display:block; }
+.notes-lbl { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:rgba(250,250,250,0.2); margin-bottom:8px; }
+
+@media print {
+  .chrome,.notes,.progress{display:none!important}
+  .slide{display:flex!important;page-break-after:always}
+  html,body{overflow:visible;height:auto;background:#000}
+  .deck{transform:none!important}
+  .deck-viewport{height:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="deck-viewport">
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- 01 -->
+<section class="slide active" data-screen-label="01 Bem-vindo"
+  data-notes="Dê as boas-vindas ao novo usuário. Enfatize que o tour cobre o essencial para começar a trabalhar com o Molas hoje — menos de 2 minutos. Navegação: setas ← → ou Espaço. N para notas. P para imprimir.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner center">
+    <div class="eyebrow">Onboarding · Tour rápido</div>
+    <div class="h1" style="font-size:128px;margin-bottom:28px">GERENCIADOR<br>DE MOLAS</div>
+    <div class="lead" style="max-width:640px">Seu Kanban de alta performance.<br>Conheça o essencial em 2 minutos.</div>
+    <div class="rule" style="margin:44px auto"></div>
+    <div class="mono" style="font-size:13px;color:rgba(250,250,250,0.2);letter-spacing:.07em">← → ESPAÇO · navegar &nbsp;·&nbsp; N · notas &nbsp;·&nbsp; P · imprimir</div>
+  </div>
+  <div class="slide-num">01 / 12</div>
+</section>
+
+<!-- 02 -->
+<section class="slide" data-screen-label="02 Agenda"
+  data-notes="Apresente os três pilares. Ao final do tour o usuário já terá o mapa mental completo para criar seu primeiro card.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner" style="justify-content:center;padding-top:100px">
+    <div class="eyebrow">Neste tour</div>
+    <div class="h2" style="margin-bottom:60px">3 Tópicos</div>
+    <div class="steps">
+      <div class="step"><span class="step-n">01</span><div><div class="step-title">Estrutura do Kanban</div><div class="step-body">Entenda Tracks, Colunas e como o trabalho flui</div></div></div>
+      <div class="step"><span class="step-n">02</span><div><div class="step-title">Cards — Criação e Movimentação</div><div class="step-body">Crie, edite e mova cards com drag &amp; drop</div></div></div>
+      <div class="step"><span class="step-n">03</span><div><div class="step-title">Prioridades, Tags e Deadlines</div><div class="step-body">Organize por urgência, categoria e prazo</div></div></div>
+    </div>
+  </div>
+  <div class="slide-num">02 / 12</div>
+</section>
+
+<!-- 03 -->
+<section class="slide" data-screen-label="03 Visão Geral"
+  data-notes="O quadro é o espaço de trabalho. Tracks são projetos ou times. Colunas são os estágios. Cards são as tarefas. O trabalho se move da esquerda para a direita.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Visão Geral</div>
+      <div class="h2" style="margin-bottom:32px">O Quadro<br>Kanban</div>
+      <div class="body" style="margin-bottom:36px">O Molas organiza seu trabalho em três níveis hierárquicos:</div>
+      <div class="steps" style="gap:20px">
+        <div class="step"><span class="step-n" style="font-size:18px;color:var(--prio-critical);opacity:1;width:64px">Track</span><div class="step-body" style="font-size:17px;padding-top:2px">Agrupamento de alto nível — projeto, time ou área</div></div>
+        <div class="step"><span class="step-n" style="font-size:18px;color:var(--prio-high);opacity:1;width:64px">Coluna</span><div class="step-body" style="font-size:17px;padding-top:2px">Etapa do fluxo — To Do, Em Andamento, Revisão, Concluído</div></div>
+        <div class="step"><span class="step-n" style="font-size:18px;color:var(--prio-low);opacity:1;width:64px">Card</span><div class="step-body" style="font-size:17px;padding-top:2px">Unidade de trabalho — tarefa, entrega ou meta</div></div>
+      </div>
+    </div>
+    <div class="col-r" style="gap:20px">
+      <div class="track-h">
+        <div class="track-bar" style="background:var(--prio-critical);height:52px"></div>
+        <div><div class="track-name">Design System</div><div class="track-meta">3 colunas · 12 cards</div></div>
+      </div>
+      <div style="display:flex;gap:14px">
+        <div class="col-mock">
+          <div class="col-mock-head"><span class="col-name">To Do</span><span class="col-badge">4</span></div>
+          <div class="col-cards">
+            <div class="card"><div class="card-bar" style="background:var(--prio-high)"></div><div class="card-body" style="padding:12px"><div class="card-title" style="font-size:14px;margin-bottom:8px">Definir tokens de cor</div><div class="chips"><span class="chip chip-high">High</span></div></div></div>
+          </div>
+        </div>
+        <div class="col-mock">
+          <div class="col-mock-head"><span class="col-name">Em Andamento</span><span class="col-badge">2</span></div>
+          <div class="col-cards">
+            <div class="card"><div class="card-bar" style="background:var(--prio-critical)"></div><div class="card-body" style="padding:12px"><div class="card-title" style="font-size:14px;margin-bottom:8px">Revisar tipografia</div><div class="chips"><span class="chip chip-crit">Critical</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">03 / 12</div>
+</section>
+
+<!-- 04 -->
+<section class="slide" data-screen-label="04 Tracks"
+  data-notes="Tracks são projetos ou times dentro do mesmo quadro. Cada track tem uma cor identificadora — barra vertical no cabeçalho — e configurações independentes de WIP limit.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Estrutura · Nível 1</div>
+      <div class="h2" style="margin-bottom:28px">Tracks</div>
+      <div class="rule"></div>
+      <div class="body" style="margin-bottom:28px;max-width:480px">Uma <strong style="color:var(--fg)">Track</strong> agrupa colunas e cards de forma independente — ideal para separar projetos, times ou áreas de trabalho no mesmo quadro.</div>
+      <div class="body" style="max-width:480px">Cada track tem uma <strong style="color:var(--fg)">cor identificadora</strong> exibida como barra vertical no cabeçalho.</div>
+    </div>
+    <div class="col-r" style="gap:28px;justify-content:center">
+      <div class="track-h"><div class="track-bar" style="background:var(--prio-critical);height:56px"></div><div><div class="track-name">Produto</div><div class="track-meta">8 cards · 2 em andamento · 1 bloqueado</div></div></div>
+      <div class="track-h"><div class="track-bar" style="background:var(--blue);height:56px"></div><div><div class="track-name">Engenharia</div><div class="track-meta">14 cards · 5 em andamento</div></div></div>
+      <div class="track-h"><div class="track-bar" style="background:var(--purple);height:56px"></div><div><div class="track-name">Marketing</div><div class="track-meta">6 cards · 1 em andamento</div></div></div>
+    </div>
+  </div>
+  <div class="slide-num">04 / 12</div>
+</section>
+
+<!-- 05 -->
+<section class="slide" data-screen-label="05 Colunas"
+  data-notes="Colunas são os estágios do fluxo. WIP Limit define quantos cards podem estar numa coluna simultaneamente. Quando excedido, o badge fica laranja — alerta de gargalo.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Estrutura · Nível 2</div>
+      <div class="h2" style="margin-bottom:28px">Colunas</div>
+      <div class="rule"></div>
+      <div class="body" style="margin-bottom:28px;max-width:480px">Colunas representam <strong style="color:var(--fg)">estágios do fluxo</strong>. Cards avançam da esquerda para a direita conforme o trabalho progride.</div>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:20px;max-width:440px">
+        <div class="mono" style="font-size:11px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;text-transform:uppercase">WIP Limit</div>
+        <div class="body" style="font-size:17px">Quando uma coluna excede o limite, o badge fica <strong style="color:var(--prio-high)">laranja</strong> — sinal de gargalo que precisa atenção.</div>
+      </div>
+    </div>
+    <div class="col-r" style="flex-direction:row;flex-wrap:wrap;gap:14px;align-items:flex-start;padding-top:20px">
+      <div class="col-mock"><div class="col-mock-head"><span class="col-name">To Do</span><span class="col-badge">3</span></div><div class="col-cards" style="min-height:60px"></div></div>
+      <div class="col-mock"><div class="col-mock-head"><span class="col-name">Em Andamento</span><span class="col-badge wip">5 / 3</span></div><div class="col-cards" style="min-height:60px"></div></div>
+      <div class="col-mock"><div class="col-mock-head"><span class="col-name">Revisão</span><span class="col-badge">1</span></div><div class="col-cards" style="min-height:60px"></div></div>
+      <div class="col-mock"><div class="col-mock-head"><span class="col-name">Concluído</span><span class="col-badge">8</span></div><div class="col-cards" style="min-height:60px"></div></div>
+    </div>
+  </div>
+  <div class="slide-num">05 / 12</div>
+</section>
+
+<!-- 06 -->
+<section class="slide" data-screen-label="06 Anatomia do Card"
+  data-notes="Cada parte do card tem uma função. Cover bar liga visualmente o card à track. O chip de prioridade usa font-mono para leitura rápida. Footer com deadline só aparece quando uma data está definida.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Estrutura · Nível 3</div>
+      <div class="h2" style="margin-bottom:28px">Anatomia<br>de um Card</div>
+      <div class="rule"></div>
+      <div class="body" style="max-width:480px;margin-bottom:36px">O card concentra o essencial de uma tarefa numa visão compacta — título, prioridade, tags e deadline visíveis sem precisar abrir.</div>
+      <div class="part-list">
+        <div class="part"><div class="part-label">Cover bar</div><div><div class="part-val">Cor da track</div><div class="part-sub">3px no topo do card</div></div></div>
+        <div class="part"><div class="part-label">Título</div><div><div class="part-val">Oswald · font-medium</div><div class="part-sub">line-clamp-2 para textos longos</div></div></div>
+        <div class="part"><div class="part-label">Chips</div><div><div class="part-val">Prioridade · checklist · tags</div><div class="part-sub">font-mono · border colorida</div></div></div>
+        <div class="part"><div class="part-label">Deadline</div><div><div class="part-val">Data + estado visual</div><div class="part-sub">muda de cor conforme o prazo</div></div></div>
+      </div>
+    </div>
+    <div class="col-r" style="align-items:center;justify-content:center">
+      <div class="card" style="width:320px;transform:scale(1.25);transform-origin:center center">
+        <div class="card-bar" style="background:var(--prio-critical)"></div>
+        <div class="card-body">
+          <div class="card-title">Implementar autenticação<br>com OAuth 2.0</div>
+          <div class="card-desc">Integrar Google e GitHub como provedores de login social.</div>
+          <div class="chips">
+            <span class="chip chip-crit">Critical</span>
+            <span class="chip chip-muted" style="display:inline-flex;align-items:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>2 / 5</span>
+            <span class="tag" style="background:rgba(59,130,246,.15);color:var(--blue)">Backend</span>
+          </div>
+          <div class="card-footer" style="color:var(--prio-critical)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Vencido · 10 Mai 2026
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">06 / 12</div>
+</section>
+
+<!-- 07 -->
+<section class="slide" data-screen-label="07 Criar Card"
+  data-notes="Criar um card é simples. O botão + Adicionar fica no rodapé de cada coluna. O modal abre com foco no campo de título. Prioridade padrão é Medium. Enter cria o card imediatamente.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner" style="justify-content:center;padding-top:80px">
+    <div class="eyebrow">Como usar · Cards</div>
+    <div class="h2" style="margin-bottom:56px">Criando um Card</div>
+    <div class="steps">
+      <div class="step"><span class="step-n">01</span><div><div class="step-title">Clique em <span style="font-family:var(--font-display);background:var(--fg);color:#000;border-radius:4px;padding:2px 12px;font-size:14px;letter-spacing:.08em;vertical-align:middle;margin-left:4px">+ CRIAR</span></div><div class="step-body">Botão no canto superior direito do header — abre o modal de criação de card</div></div></div>
+      <div class="step"><span class="step-n">02</span><div><div class="step-title">Defina título, track e prioridade</div><div class="step-body">O título é obrigatório. Escolha a track e a coluna destino. Prioridade padrão: <span class="chip chip-med" style="font-size:12px;padding:2px 8px;display:inline-block;vertical-align:middle;margin-left:6px">Medium</span></div></div></div>
+      <div class="step"><span class="step-n">03</span><div><div class="step-title">Enter ou clique em Criar</div><div class="step-body">O card aparece imediatamente na coluna escolhida — pronto para mover ou editar</div></div></div>
+    </div>
+  </div>
+  <div class="slide-num">07 / 12</div>
+</section>
+
+<!-- 08 -->
+<section class="slide" data-screen-label="08 Drag Drop"
+  data-notes="Drag & drop é o coração do Kanban. Desktop: clique e arraste. Mobile: segure o ícone de grip. Cards podem se mover entre colunas da mesma track ou entre tracks diferentes.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Como usar · Movimentação</div>
+      <div class="h2" style="margin-bottom:28px">Drag &amp;<br>Drop</div>
+      <div class="rule"></div>
+      <div class="body" style="margin-bottom:28px;max-width:480px"><strong style="color:var(--fg)">Desktop:</strong> clique e arraste o card para a coluna destino. Solte em qualquer posição da lista.</div>
+      <div class="body" style="max-width:480px"><strong style="color:var(--fg)">Mobile:</strong> segure o ícone de grip <span class="mono" style="font-size:13px;padding:2px 6px;background:var(--surface-3);border:1px solid var(--border);border-radius:4px">⠿</span> para iniciar o arraste por toque.</div>
+    </div>
+    <div class="col-r" style="flex-direction:row;gap:20px;align-items:flex-start;padding-top:40px">
+      <div class="col-mock">
+        <div class="col-mock-head"><span class="col-name">To Do</span><span class="col-badge">2</span></div>
+        <div class="col-cards">
+          <div class="card" style="opacity:0.3;width:100%"><div class="card-bar" style="background:var(--prio-high)"></div><div class="card-body" style="padding:12px"><div class="card-title" style="font-size:14px">Revisar copy da landing</div><div class="chips"><span class="chip chip-high">High</span></div></div></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;padding-top:60px;flex-shrink:0">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(250,250,250,0.25)" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="col-mock" style="border-color:rgba(250,250,250,0.22)">
+        <div class="col-mock-head"><span class="col-name">Em Andamento</span><span class="col-badge">1</span></div>
+        <div class="col-cards" style="background:rgba(250,250,250,0.02)">
+          <div class="card" style="width:100%"><div class="card-bar" style="background:var(--prio-high)"></div><div class="card-body" style="padding:12px"><div class="card-title" style="font-size:14px">Revisar copy da landing</div><div class="chips"><span class="chip chip-high">High</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">08 / 12</div>
+</section>
+
+<!-- 09 -->
+<section class="slide" data-screen-label="09 Prioridades"
+  data-notes="As 4 prioridades têm cores fixas e semântica clara. Critical para bloqueios urgentes. High para impacto alto. Medium é o padrão. Low para backlog sem urgência. O chip usa font-mono e borda colorida para leitura rápida no card.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Organização · Urgência</div>
+      <div class="h2" style="margin-bottom:28px">Prioridades</div>
+      <div class="rule"></div>
+      <div class="body" style="max-width:480px">Cada card tem uma prioridade que reflete <strong style="color:var(--fg)">urgência e impacto</strong>. Use-as para garantir que o time foca no que mais importa agora.</div>
+    </div>
+    <div class="col-r" style="justify-content:center">
+      <div class="prio-row"><span class="chip chip-crit" style="width:100px;text-align:center;font-size:13px;padding:6px 0">Critical</span><div><div style="font-size:18px;color:var(--fg);margin-bottom:4px;font-weight:500">Bloqueio ou entrega urgente</div><div style="font-size:15px;color:var(--muted)">Parar tudo para resolver imediatamente</div></div></div>
+      <div class="prio-row"><span class="chip chip-high" style="width:100px;text-align:center;font-size:13px;padding:6px 0">High</span><div><div style="font-size:18px;color:var(--fg);margin-bottom:4px;font-weight:500">Alto impacto no sprint</div><div style="font-size:15px;color:var(--muted)">Resolver antes de itens de prioridade menor</div></div></div>
+      <div class="prio-row"><span class="chip chip-med" style="width:100px;text-align:center;font-size:13px;padding:6px 0">Medium</span><div><div style="font-size:18px;color:var(--fg);margin-bottom:4px;font-weight:500">Fluxo normal de trabalho</div><div style="font-size:15px;color:var(--muted)">Padrão para novos cards</div></div></div>
+      <div class="prio-row" style="border-bottom:1px solid var(--border)"><span class="chip chip-low" style="width:100px;text-align:center;font-size:13px;padding:6px 0">Low</span><div><div style="font-size:18px;color:var(--fg);margin-bottom:4px;font-weight:500">Backlog sem urgência</div><div style="font-size:15px;color:var(--muted)">Resolver quando houver folga de capacidade</div></div></div>
+    </div>
+  </div>
+  <div class="slide-num">09 / 12</div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-screen-label="10 Tags"
+  data-notes="Tags são labels coloridos (rounded-full) que categorizam cards por área, equipe ou tipo. Associadas às Tracks. Um card pode ter múltiplas tags. Úteis para filtrar a visão do quadro sem mudar de track.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Organização · Categorias</div>
+      <div class="h2" style="margin-bottom:28px">Tags &amp;<br>Labels</div>
+      <div class="rule"></div>
+      <div class="body" style="max-width:480px;margin-bottom:28px">Tags são <strong style="color:var(--fg)">labels coloridos</strong> que categorizam cards por área, equipe ou tipo. Um card pode ter múltiplas tags.</div>
+      <div class="body" style="max-width:480px">Criadas pelo admin do quadro e associadas às Tracks — assim cada time tem suas próprias categorias.</div>
+    </div>
+    <div class="col-r" style="gap:28px;justify-content:center">
+      <div>
+        <div class="mono" style="font-size:11px;color:var(--muted);letter-spacing:.08em;margin-bottom:16px;text-transform:uppercase">Exemplos</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <span class="tag" style="background:rgba(59,130,246,.15);color:var(--blue);font-size:14px;padding:6px 16px">Backend</span>
+          <span class="tag" style="background:rgba(139,92,246,.15);color:var(--purple);font-size:14px;padding:6px 16px">Frontend</span>
+          <span class="tag" style="background:rgba(236,72,153,.15);color:var(--pink);font-size:14px;padding:6px 16px">Design</span>
+          <span class="tag" style="background:rgba(234,179,8,.15);color:var(--prio-medium);font-size:14px;padding:6px 16px">Infra</span>
+          <span class="tag" style="background:rgba(34,197,94,.15);color:var(--prio-low);font-size:14px;padding:6px 16px">Docs</span>
+          <span class="tag" style="background:rgba(239,68,68,.15);color:var(--prio-critical);font-size:14px;padding:6px 16px">Hotfix</span>
+        </div>
+      </div>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:20px">
+        <div class="mono" style="font-size:11px;color:var(--muted);letter-spacing:.08em;margin-bottom:14px;text-transform:uppercase">No card</div>
+        <div class="card" style="width:300px">
+          <div class="card-bar" style="background:var(--purple)"></div>
+          <div class="card-body" style="padding:14px">
+            <div class="card-title" style="font-size:14px;margin-bottom:10px">Refatorar API de usuários</div>
+            <div class="chips">
+              <span class="chip chip-high">High</span>
+              <span class="tag" style="background:rgba(59,130,246,.15);color:var(--blue);font-size:11px">Backend</span>
+              <span class="tag" style="background:rgba(234,179,8,.15);color:var(--prio-medium);font-size:11px">Infra</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">10 / 12</div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-screen-label="11 Deadlines"
+  data-notes="Deadlines aparecem no footer do card em font-mono. Quatro estados: futuro (muted), em breve ≤3 dias (amarelo), hoje (laranja), vencido (vermelho). O estado muda automaticamente — sem precisar abrir o card para saber se está em risco.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Organização · Prazos</div>
+      <div class="h2" style="margin-bottom:28px">Deadlines</div>
+      <div class="rule"></div>
+      <div class="body" style="max-width:480px">Defina um <strong style="color:var(--fg)">prazo</strong> em qualquer card. A cor do footer muda automaticamente conforme a data se aproxima — sem precisar abrir um calendário separado.</div>
+    </div>
+    <div class="col-r" style="justify-content:center">
+      <div class="dl-row"><div class="dl-dot" style="background:rgba(250,250,250,0.28)"></div><div class="mono" style="width:90px;font-size:13px;color:var(--muted)">Futuro</div><div style="font-size:17px;color:var(--fg)">20 Jun 2026 · Prazo confortável</div></div>
+      <div class="dl-row" style="border-color:rgba(234,179,8,.2);background:rgba(234,179,8,.04)"><div class="dl-dot" style="background:var(--prio-medium)"></div><div class="mono" style="width:90px;font-size:13px;color:var(--prio-medium)">Em breve</div><div style="font-size:17px;color:var(--fg)">22 Mai 2026 · ≤ 3 dias restantes</div></div>
+      <div class="dl-row" style="border-color:rgba(249,115,22,.2);background:rgba(249,115,22,.04)"><div class="dl-dot" style="background:var(--prio-high)"></div><div class="mono" style="width:90px;font-size:13px;color:var(--prio-high)">Hoje</div><div style="font-size:17px;color:var(--fg)">19 Mai 2026 · Vence hoje</div></div>
+      <div class="dl-row" style="border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)"><div class="dl-dot" style="background:var(--prio-critical)"></div><div class="mono" style="width:90px;font-size:13px;color:var(--prio-critical)">Vencido</div><div style="font-size:17px;color:var(--fg)">10 Mai 2026 · Prazo expirado</div></div>
+    </div>
+  </div>
+  <div class="slide-num">11 / 12</div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-screen-label="12 Tudo Pronto"
+  data-notes="Encerre com energia. O usuário tem o mapa mental completo. O botão primário chama window.molasOnboardingClose() — o app implementa essa função para fechar o modal. O secundário reinicia o tour. Reforce que o tour fica disponível em Ajuda.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner center">
+    <div class="eyebrow">Tour concluído</div>
+    <div class="h1" style="font-size:112px;margin-bottom:28px">TUDO<br>PRONTO.</div>
+    <div class="lead" style="max-width:600px;margin-bottom:52px">Você conhece a estrutura. Agora é hora de criar seu primeiro card e começar a organizar o trabalho.</div>
+    <div style="display:flex;gap:16px;align-items:center;justify-content:center">
+      <button id="btn-start" style="font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:var(--fg);color:#000;border:none;border-radius:4px;padding:14px 40px;cursor:pointer">Começar agora</button>
+      <button onclick="goTo(0)" style="font-family:var(--font-display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;background:none;color:var(--muted);border:1px solid var(--border-hi);border-radius:4px;padding:14px 36px;cursor:pointer">Rever tour</button>
+    </div>
+    <div class="mono" style="margin-top:52px;font-size:12px;color:rgba(250,250,250,0.16)">Você pode revisitar este tour em Ajuda → Tour de boas-vindas</div>
+  </div>
+  <div class="slide-num">12 / 12</div>
+</section>
+
+</div>
+<div class="notes" id="notes"><div class="notes-lbl">Speaker notes</div><div id="notes-body"></div></div>
+</div>
+
+<div class="chrome">
+  <button class="ui-btn" onclick="prev()">← Anterior</button>
+  <div class="sep"></div>
+  <span class="counter" id="counter">1 / 12</span>
+  <div class="sep"></div>
+  <button class="ui-btn" onclick="next()">Próximo →</button>
+  <div class="sep"></div>
+  <button class="ui-btn" id="notes-btn" onclick="toggleNotes()">Notas [N]</button>
+  <div class="sep"></div>
+  <button class="ui-btn" onclick="window.print()">Imprimir [P]</button>
+</div>
+</div>
+
+<script>
+const STORAGE = 'molas-onboarding-v1';
+const slides  = Array.from(document.querySelectorAll('.slide'));
+const total   = slides.length;
+let cur       = Math.min(parseInt(localStorage.getItem(STORAGE)||'0',10), total-1);
+let notesOn   = false;
+
+function scale() {
+  const s = Math.min(window.innerWidth/1920, (window.innerHeight-48)/1080);
+  document.getElementById('deck').style.transform = `scale(${s})`;
+}
+
+function goTo(idx) {
+  slides[cur].classList.remove('active');
+  cur = ((idx%total)+total)%total;
+  slides[cur].classList.add('active');
+  localStorage.setItem(STORAGE, cur);
+  document.getElementById('counter').textContent  = `${cur+1} / ${total}`;
+  document.getElementById('progress').style.width = `${((cur+1)/total)*100}%`;
+  document.getElementById('notes-body').textContent = slides[cur].getAttribute('data-notes')||'';
+}
+
+function next() { goTo(cur+1); }
+function prev() { goTo(cur-1); }
+
+function toggleNotes() {
+  notesOn = !notesOn;
+  document.getElementById('notes').classList.toggle('on', notesOn);
+  document.getElementById('notes-btn').style.color = notesOn ? 'var(--fg)' : '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if (e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); next(); }
+  else if (e.key==='ArrowLeft')          { e.preventDefault(); prev(); }
+  else if (e.key==='n'||e.key==='N')     toggleNotes();
+  else if (e.key==='p'||e.key==='P')     window.print();
+});
+
+let tx=0;
+document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; },{passive:true});
+document.addEventListener('touchend',   e=>{ const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60) dx<0?next():prev(); });
+
+document.getElementById('btn-start').addEventListener('click', ()=>{
+  if (typeof window.molasOnboardingClose==='function') window.molasOnboardingClose();
+  window.parent.postMessage('onboarding:close', '*');
+});
+
+window.addEventListener('resize', scale);
+scale();
+goTo(cur);
+</script>
+</body>
+</html>

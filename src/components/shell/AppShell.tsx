@@ -22,6 +22,7 @@ import { useAuth } from "@/lib/auth-store";
 import { getDeadlineStatus } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 import { TemplatesModal } from "@/components/kanban/TemplatesModal";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { useLocale } from "@/lib/locale-context";
 
 const NAV_KEYS = [
@@ -316,6 +317,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {createOpen && <CreateCardModal onClose={() => setCreateOpen(false)} />}
       {templatesOpen && <TemplatesModal onClose={() => setTemplatesOpen(false)} />}
+      <OnboardingModal />
     </div>
   );
 }
