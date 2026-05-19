@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Check, X, Pencil, Plus, Trash2, MessageSquare } from "lucide-react";
 import { useKanban } from "@/lib/kanban-store";
+import { useLocale } from "@/lib/locale-context";
 
 export function CommentsSection({ cardId }: { cardId: string }) {
   const { commentsByCard, addComment, updateComment, deleteComment } = useKanban();
+  const { t, locale } = useLocale();
   const comments = commentsByCard[cardId] ?? [];
   const [text, setText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export function CommentsSection({ cardId }: { cardId: string }) {
     <div className="mt-5">
       <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <MessageSquare className="h-3 w-3" />
-        Comentários {comments.length > 0 && `(${comments.length})`}
+        {t("comments")} {comments.length > 0 && `(${comments.length})`}
       </p>
 
       <div className="space-y-1.5">
@@ -78,8 +80,8 @@ export function CommentsSection({ cardId }: { cardId: string }) {
                   </div>
                 </div>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  {new Date(c.created_at).toLocaleString("pt-BR")}
-                  {c.updated_at !== c.created_at && " (editado)"}
+                  {new Date(c.created_at).toLocaleString(locale === "pt" ? "pt-BR" : "en-US")}
+                  {c.updated_at !== c.created_at && ` ${t("comment_edited")}`}
                 </p>
               </>
             )}
@@ -94,7 +96,7 @@ export function CommentsSection({ cardId }: { cardId: string }) {
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
           }}
-          placeholder="Adicionar comentário... (Ctrl+Enter)"
+          placeholder={t("comment_placeholder")}
           rows={2}
           className="flex-1 resize-none rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
         />

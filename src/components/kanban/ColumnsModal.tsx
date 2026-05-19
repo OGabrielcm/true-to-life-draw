@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Column } from "@/lib/kanban-types";
+import { useLocale } from "@/lib/locale-context";
 
 export function ColumnsModal({
   columns,
@@ -15,6 +16,7 @@ export function ColumnsModal({
   onUpdate: (id: string, data: { name?: string; wip_limit?: number | null }) => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useLocale();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editWipLimit, setEditWipLimit] = useState<string>("");
@@ -57,15 +59,12 @@ export function ColumnsModal({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="text-base font-medium text-foreground">Gerenciar colunas</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira
-          coluna restante.
-        </p>
+        <h2 className="text-base font-medium text-foreground">{t("manage_columns")}</h2>
+        <p className="mt-1 text-xs text-muted-foreground">{t("manage_columns_desc")}</p>
 
         <div className="mt-4 space-y-2">
           {columns.length === 0 && (
-            <p className="text-xs text-muted-foreground">Nenhuma coluna ainda.</p>
+            <p className="text-xs text-muted-foreground">{t("no_columns_yet")}</p>
           )}
           {columns.map((col) => {
             const isEditing = editingId === col.id;
@@ -89,7 +88,7 @@ export function ColumnsModal({
                       />
                       <div className="flex items-center gap-2">
                         <label className="text-xs text-muted-foreground whitespace-nowrap">
-                          WIP Limit:
+                          {t("wip_limit")}
                         </label>
                         <input
                           type="number"
@@ -97,7 +96,7 @@ export function ColumnsModal({
                           max="99"
                           value={editWipLimit}
                           onChange={(e) => setEditWipLimit(e.target.value)}
-                          placeholder="Sem limite"
+                          placeholder={t("wip_no_limit")}
                           className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
                           style={{ borderWidth: "0.5px" }}
                         />
@@ -106,14 +105,14 @@ export function ColumnsModal({
                     <button
                       onClick={saveEdit}
                       className="rounded-md p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 shrink-0"
-                      aria-label="Salvar"
+                      aria-label={t("save")}
                     >
                       <Check className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
                       className="rounded-md p-1.5 text-muted-foreground hover:bg-muted shrink-0"
-                      aria-label="Cancelar"
+                      aria-label={t("cancel")}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -123,13 +122,13 @@ export function ColumnsModal({
                     <div className="flex-1">
                       <span className="text-sm font-medium text-foreground">{col.name}</span>
                       {col.wip_limit && (
-                        <div className="text-xs text-muted-foreground">WIP: {col.wip_limit}</div>
+                        <div className="text-xs text-muted-foreground">{t("wip_short")} {col.wip_limit}</div>
                       )}
                     </div>
                     <div className="flex items-center gap-1">
                       {isConfirming ? (
                         <>
-                          <span className="text-xs text-muted-foreground">Excluir?</span>
+                          <span className="text-xs text-muted-foreground">{t("delete_confirm")}</span>
                           <button
                             onClick={() => {
                               onDelete(col.id);
@@ -137,13 +136,13 @@ export function ColumnsModal({
                             }}
                             className="rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
                           >
-                            Sim
+                            {t("yes")}
                           </button>
                           <button
                             onClick={() => setConfirmId(null)}
                             className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
                           >
-                            Não
+                            {t("no")}
                           </button>
                         </>
                       ) : (
@@ -151,7 +150,7 @@ export function ColumnsModal({
                           <button
                             onClick={() => startEdit(col)}
                             className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                            aria-label="Editar"
+                            aria-label={t("edit")}
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
@@ -159,10 +158,8 @@ export function ColumnsModal({
                             onClick={() => setConfirmId(col.id)}
                             disabled={columns.length <= 1}
                             className="rounded-md p-1.5 text-red-600 hover:bg-red-50 disabled:opacity-30 dark:hover:bg-red-950/30"
-                            aria-label="Excluir"
-                            title={
-                              columns.length <= 1 ? "Deve existir ao menos uma coluna" : undefined
-                            }
+                            aria-label={t("delete")}
+                            title={columns.length <= 1 ? t("min_one_column") : undefined}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -181,12 +178,12 @@ export function ColumnsModal({
           className="mt-4 rounded-lg border bg-muted/40 p-3"
           style={{ borderWidth: "0.5px" }}
         >
-          <p className="text-xs font-medium text-muted-foreground">Nova coluna</p>
+          <p className="text-xs font-medium text-muted-foreground">{t("new_column")}</p>
           <div className="mt-2 flex items-center gap-2">
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nome da coluna"
+              placeholder={t("column_name_placeholder")}
               className="flex-1 rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus:border-foreground/40"
               style={{ borderWidth: "0.5px" }}
             />
@@ -195,7 +192,7 @@ export function ColumnsModal({
               className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"
             >
               <Plus className="h-3.5 w-3.5" />
-              Criar
+              {t("create")}
             </button>
           </div>
         </form>
@@ -205,7 +202,7 @@ export function ColumnsModal({
             onClick={onClose}
             className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
-            Fechar
+            {t("close")}
           </button>
         </div>
       </div>

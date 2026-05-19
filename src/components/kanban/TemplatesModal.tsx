@@ -2,9 +2,11 @@ import { useState } from "react";
 import { X, Pencil, Trash2, Check } from "lucide-react";
 import { useKanban } from "@/lib/kanban-store";
 import { CardTemplate } from "@/lib/kanban-types";
+import { useLocale } from "@/lib/locale-context";
 
 export function TemplatesModal({ onClose }: { onClose: () => void }) {
   const { templates, updateTemplate, deleteTemplate } = useKanban();
+  const { t } = useLocale();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
@@ -31,7 +33,7 @@ export function TemplatesModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-medium text-foreground">Templates salvos</h2>
+          <h2 className="text-base font-medium text-foreground">{t("saved_templates")}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-4 w-4" />
           </button>
@@ -39,9 +41,9 @@ export function TemplatesModal({ onClose }: { onClose: () => void }) {
 
         {templates.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Nenhum template salvo ainda.
+            {t("no_templates")}
             <br />
-            Abra um card e clique em "Salvar como template".
+            {t("no_templates_hint")}
           </p>
         ) : (
           <ul className="overflow-y-auto space-y-2">
@@ -92,7 +94,7 @@ export function TemplatesModal({ onClose }: { onClose: () => void }) {
                   )}
                   <button
                     onClick={() => {
-                      if (confirm(`Excluir template "${tpl.name}"?`)) deleteTemplate(tpl.id);
+                      if (confirm(`${t("delete_confirm")} "${tpl.name}"?`)) deleteTemplate(tpl.id);
                     }}
                     className="rounded p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
                   >

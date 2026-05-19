@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Star, LayoutTemplate } from "lucide-react";
+import { useLocale } from "@/lib/locale-context";
 import {
   Column,
   ColumnId,
@@ -62,6 +63,7 @@ export function AddCardModal({
   const [parentId, setParentId] = useState<string>("");
   const [starred, setStarred] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const { t } = useLocale();
 
   const applyTemplate = (tpl: CardTemplate) => {
     setType(tpl.type);
@@ -112,7 +114,7 @@ export function AddCardModal({
         className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-medium text-foreground">Adicionar card</h2>
+          <h2 className="text-base font-medium text-foreground">{t("add_card")}</h2>
           <div className="flex items-center gap-2">
             {templates.length > 0 && (
               <div className="relative">
@@ -120,10 +122,10 @@ export function AddCardModal({
                   type="button"
                   onClick={() => setShowTemplates((v) => !v)}
                   className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                  title="Usar template"
+                  title={t("use_template")}
                 >
                   <LayoutTemplate className="h-3.5 w-3.5" />
-                  Template
+                  {t("template")}
                 </button>
                 {showTemplates && (
                   <>
@@ -154,7 +156,7 @@ export function AddCardModal({
               type="button"
               onClick={() => setStarred((s) => !s)}
               className="text-muted-foreground hover:text-foreground"
-              aria-label="Favoritar"
+              aria-label={t("favorite")}
             >
               <Star className="h-4 w-4" fill={starred ? "currentColor" : "none"} />
             </button>
@@ -162,7 +164,7 @@ export function AddCardModal({
         </div>
         <div className="mt-4 space-y-3">
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Título</label>
+            <label className="text-xs font-medium text-muted-foreground">{t("title")}</label>
             <input
               autoFocus
               value={title}
@@ -173,7 +175,7 @@ export function AddCardModal({
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Descrição</label>
+            <label className="text-xs font-medium text-muted-foreground">{t("description")}</label>
             <textarea
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
@@ -184,19 +186,19 @@ export function AddCardModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+              <label className="text-xs font-medium text-muted-foreground">{t("type")}</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as TaskType)}
                 className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                 style={{ borderWidth: "0.5px" }}
               >
-                <option value="Task">Task</option>
-                <option value="Goal">Goal</option>
+                <option value="Task">{t("task")}</option>
+                <option value="Goal">{t("goal")}</option>
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Prioridade</label>
+              <label className="text-xs font-medium text-muted-foreground">{t("priority")}</label>
               <select
                 value={prio}
                 onChange={(e) => setPrio(e.target.value as Priority)}
@@ -215,7 +217,7 @@ export function AddCardModal({
             <div className="grid grid-cols-2 gap-3">
               {allowTrackPick && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Track</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("tracks")}</label>
                   <select
                     value={trackSel}
                     onChange={(e) => {
@@ -235,7 +237,7 @@ export function AddCardModal({
               )}
               {allowColPick && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Coluna</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("column")}</label>
                   <select
                     value={colSel}
                     onChange={(e) => setColSel(e.target.value as ColumnId)}
@@ -253,7 +255,7 @@ export function AddCardModal({
             </div>
           )}
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Deadline</label>
+            <label className="text-xs font-medium text-muted-foreground">{t("deadline")}</label>
             <input
               type="date"
               value={date}
@@ -265,7 +267,7 @@ export function AddCardModal({
           {type === "Task" && availableGoals.length > 0 && (
             <div>
               <label className="text-xs font-medium text-muted-foreground">
-                Goal pai (opcional)
+                {t("goal_parent")}
               </label>
               <select
                 value={parentId}
@@ -273,7 +275,7 @@ export function AddCardModal({
                 className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                 style={{ borderWidth: "0.5px" }}
               >
-                <option value="">— Nenhum —</option>
+                <option value="">{t("no_parent")}</option>
                 {availableGoals.map((g) => (
                   <option key={g.id} value={g.id}>
                     {g.title}
@@ -283,9 +285,9 @@ export function AddCardModal({
             </div>
           )}
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Tags</label>
+            <label className="text-xs font-medium text-muted-foreground">{t("tags")}</label>
             {trilhas.length === 0 ? (
-              <p className="mt-1.5 text-xs text-muted-foreground">Nenhuma tag cadastrada.</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">{t("no_tags")}</p>
             ) : (
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {trilhas.map((t) => {
@@ -316,13 +318,13 @@ export function AddCardModal({
             onClick={onClose}
             className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
-            Cancelar
+            {t("cancel")}
           </button>
           <button
             type="submit"
             className="rounded-md bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
           >
-            Criar
+            {t("create")}
           </button>
         </div>
       </form>

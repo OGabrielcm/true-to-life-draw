@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Plus, Link2, AlertTriangle } from "lucide-react";
 import type { Card } from "@/lib/kanban-types";
 import { isBlocked } from "@/lib/kanban-types";
+import { useLocale } from "@/lib/locale-context";
 
 export function DependenciesSection({
   card,
@@ -12,6 +13,7 @@ export function DependenciesSection({
   allCards: Card[];
   onUpdate: (blockedBy: string[]) => void;
 }) {
+  const { t } = useLocale();
   const blockedBy = card.blocked_by ?? [];
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState("");
@@ -46,12 +48,12 @@ export function DependenciesSection({
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1.5">
           <Link2 className="h-3 w-3" />
-          Bloqueado por {blockers.length > 0 && `(${blockers.length})`}
+          {t("blocked_by")} {blockers.length > 0 && `(${blockers.length})`}
         </p>
         {blocked && (
           <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-950/40 dark:text-red-300">
             <AlertTriangle className="h-3 w-3" />
-            Bloqueado
+            {t("blocked_badge")}
           </span>
         )}
       </div>
@@ -66,7 +68,7 @@ export function DependenciesSection({
             >
               <span
                 className={`h-2 w-2 shrink-0 rounded-full ${resolved ? "bg-green-500" : "bg-red-500"}`}
-                title={resolved ? "Concluído" : "Pendente"}
+                title={resolved ? t("completed") : t("pending")}
               />
               <span
                 className={`flex-1 truncate text-sm ${resolved ? "text-muted-foreground line-through" : "text-foreground"}`}
@@ -90,7 +92,7 @@ export function DependenciesSection({
           className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <Plus className="h-3 w-3" />
-          Adicionar dependência
+          {t("add_dependency")}
         </button>
       ) : (
         <div className="mt-2 rounded-md border bg-background p-2">
@@ -98,7 +100,7 @@ export function DependenciesSection({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar card..."
+              placeholder={t("search_card")}
               className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
               autoFocus
             />
@@ -114,7 +116,7 @@ export function DependenciesSection({
           </div>
           <div className="mt-1.5 max-h-40 space-y-0.5 overflow-y-auto">
             {available.length === 0 ? (
-              <p className="px-1 py-1 text-xs text-muted-foreground">Nenhum card encontrado.</p>
+              <p className="px-1 py-1 text-xs text-muted-foreground">{t("no_card_found")}</p>
             ) : (
               available.map((c) => (
                 <button

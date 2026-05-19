@@ -7,6 +7,7 @@ import { formatDate, getDeadlineStatus, isArchived } from "@/lib/kanban-types";
 import { exportToCSV, exportToPDF } from "@/lib/dashboard-export";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 import { useTheme } from "@/components/theme-provider";
+import { useLocale } from "@/lib/locale-context";
 
 type ArchiveFilter = "all" | "active" | "archived";
 type DeadlineFilter = "all" | "overdue" | "today" | "this_week";
@@ -34,6 +35,7 @@ function DashboardsPage() {
     setCardColor,
   } = useKanban();
   const { theme } = useTheme();
+  const { t, locale } = useLocale();
   const [q, setQ] = useState("");
   const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>("all");
   const [deadlineFilter, setDeadlineFilter] = useState<DeadlineFilter>("all");
@@ -131,17 +133,17 @@ function DashboardsPage() {
       <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
         {/* ── ESTATÍSTICAS ── */}
         <div className="space-y-3">
-          <h2 className="text-base font-semibold">Estatísticas</h2>
+          <h2 className="text-base font-semibold">{t("statistics")}</h2>
 
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
               <div className="text-2xl font-bold text-foreground">{stats.total}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">Cards ativos</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{t("active_cards")}</div>
             </div>
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
               <div className="text-2xl font-bold text-foreground">{stats.completionRate}%</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">Taxa de conclusão</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{t("completion_rate")}</div>
               <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-foreground transition-all"
@@ -154,14 +156,14 @@ function DashboardsPage() {
               style={{ borderWidth: "0.5px", borderLeftWidth: "3px", borderLeftColor: "#ef4444" }}
             >
               <div className="text-2xl font-bold text-red-500">{stats.overdue}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">Vencidos</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{t("overdue_cards")}</div>
             </div>
             <div
               className="rounded-xl border bg-card p-4"
               style={{ borderWidth: "0.5px", borderLeftWidth: "3px", borderLeftColor: "#f97316" }}
             >
               <div className="text-2xl font-bold text-orange-500">{stats.today}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">Vencem hoje</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{t("due_today")}</div>
             </div>
           </div>
 
@@ -169,7 +171,7 @@ function DashboardsPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             {/* Por coluna */}
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
-              <p className="mb-3 text-xs font-medium text-muted-foreground">Cards por coluna</p>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">{t("cards_by_column")}</p>
               <div className="space-y-2">
                 {stats.byColumn.map(({ col, count }) => {
                   const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
@@ -193,7 +195,7 @@ function DashboardsPage() {
 
             {/* Por prioridade */}
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
-              <p className="mb-3 text-xs font-medium text-muted-foreground">Cards por prioridade</p>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">{t("cards_by_priority")}</p>
               <div className="space-y-2">
                 {[
                   {
@@ -241,7 +243,7 @@ function DashboardsPage() {
 
             {/* Por track */}
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
-              <p className="mb-3 text-xs font-medium text-muted-foreground">Cards por track</p>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">{t("cards_by_track")}</p>
               <div className="space-y-2">
                 {stats.byTrack.map(({ track, count }) => {
                   const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
@@ -268,7 +270,7 @@ function DashboardsPage() {
         {/* ── TABELA ── */}
         <div className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-base font-semibold">Todos os cards</h2>
+            <h2 className="text-base font-semibold">{t("all_cards")}</h2>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
@@ -279,17 +281,17 @@ function DashboardsPage() {
                   className="h-3.5 w-3.5 transition-transform"
                   style={{ transform: showAdvancedFilters ? "rotate(0)" : "rotate(-90deg)" }}
                 />
-                Filtros
+                {t("filters")}
               </button>
               <div className="relative">
                 <button
                   onClick={() => setExportOpen(!exportOpen)}
                   className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
                   style={{ borderWidth: "0.5px" }}
-                  title="Exportar dados"
+                  title={t("export_data")}
                 >
                   <Download className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Exportar</span>
+                  <span className="hidden sm:inline">{t("export")}</span>
                 </button>
                 {exportOpen && (
                   <>
@@ -332,7 +334,7 @@ function DashboardsPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Status
+                    {t("status")}
                   </label>
                   <div
                     className="inline-flex overflow-hidden rounded-md border"
@@ -341,7 +343,7 @@ function DashboardsPage() {
                     {(["all", "active", "archived"] as ArchiveFilter[]).map((opt) => {
                       const active = archiveFilter === opt;
                       const label =
-                        opt === "all" ? "Todos" : opt === "active" ? "Ativos" : "Arquivados";
+                        opt === "all" ? t("status_all") : opt === "active" ? t("status_active") : t("status_archived");
                       return (
                         <button
                           key={opt}
@@ -361,7 +363,7 @@ function DashboardsPage() {
 
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Prazo
+                    {t("deadline_filter")}
                   </label>
                   <select
                     value={deadlineFilter}
@@ -369,16 +371,16 @@ function DashboardsPage() {
                     className="w-full rounded-md border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    <option value="all">Todos</option>
-                    <option value="overdue">Vencidos</option>
-                    <option value="today">Vencem hoje</option>
-                    <option value="this_week">Esta semana</option>
+                    <option value="all">{t("status_all")}</option>
+                    <option value="overdue">{t("deadline_overdue")}</option>
+                    <option value="today">{t("deadline_today")}</option>
+                    <option value="this_week">{t("deadline_week")}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Prioridade
+                    {t("priority")}
                   </label>
                   <select
                     value={priorityFilter}
@@ -386,16 +388,16 @@ function DashboardsPage() {
                     className="w-full rounded-md border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    <option value="all">Todas</option>
-                    <option value="Alta">Alta</option>
-                    <option value="Média">Média</option>
-                    <option value="Baixa">Baixa</option>
+                    <option value="all">{t("priority_all")}</option>
+                    <option value="Alta">{t("prio_high")}</option>
+                    <option value="Média">{t("prio_medium")}</option>
+                    <option value="Baixa">{t("prio_low")}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Tipo
+                    {t("type_filter")}
                   </label>
                   <select
                     value={cardTypeFilter}
@@ -403,9 +405,9 @@ function DashboardsPage() {
                     className="w-full rounded-md border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
                     style={{ borderWidth: "0.5px" }}
                   >
-                    <option value="all">Todos</option>
-                    <option value="task">Tarefas</option>
-                    <option value="goal">Goals</option>
+                    <option value="all">{t("type_all")}</option>
+                    <option value="task">{t("type_tasks")}</option>
+                    <option value="goal">{t("type_goals")}</option>
                   </select>
                 </div>
               </div>
@@ -415,7 +417,7 @@ function DashboardsPage() {
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar por título ou descrição..."
+                  placeholder={t("search_cards_placeholder")}
                   className="w-full rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40"
                   style={{ borderWidth: "0.5px" }}
                 />
@@ -434,10 +436,10 @@ function DashboardsPage() {
                     const active = archiveFilter === opt;
                     const label =
                       opt === "all"
-                        ? "Todos"
+                        ? t("status_all")
                         : opt === "active"
-                          ? "Ativos"
-                          : `Arquivados${archivedCount > 0 ? ` (${archivedCount})` : ""}`;
+                          ? t("status_active")
+                          : `${t("status_archived")}${archivedCount > 0 ? ` (${archivedCount})` : ""}`;
                     return (
                       <button
                         key={opt}
@@ -459,7 +461,7 @@ function DashboardsPage() {
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Filtrar..."
+                  placeholder={t("search")}
                   className="w-full rounded-md border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-foreground/40 sm:w-52"
                   style={{ borderWidth: "0.5px" }}
                 />
@@ -471,13 +473,13 @@ function DashboardsPage() {
           <table className="min-w-[680px] w-full text-sm">
             <thead className="bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Title</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Track</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Status</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Priority</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Deadline</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Updated</th>
-                <th className="px-3 py-2 text-right font-medium whitespace-nowrap">Ações</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_title")}</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_track")}</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_status")}</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_priority")}</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_deadline")}</th>
+                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_updated")}</th>
+                <th className="px-3 py-2 text-right font-medium whitespace-nowrap">{t("col_header_actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -502,7 +504,7 @@ function DashboardsPage() {
                         {archived && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                             <Archive className="h-2.5 w-2.5" />
-                            Arquivado
+                            {t("archived_badge")}
                           </span>
                         )}
                       </div>
@@ -519,21 +521,21 @@ function DashboardsPage() {
                     <td className="px-3 py-2 text-muted-foreground">{c.prio}</td>
                     <td className="px-3 py-2 text-muted-foreground">{formatDate(c.date)}</td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
-                      {new Date(c.updated_at).toLocaleDateString("pt-BR")}
+                      {new Date(c.updated_at).toLocaleDateString(locale === "pt" ? "pt-BR" : "en-US")}
                     </td>
                     <td className="px-3 py-2 text-right">
                       <button
                         onClick={() => setOpenId(c.id)}
                         className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
-                        Editar
+                        {t("edit")}
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm("Excluir card?")) deleteCard(c.id);
+                          if (confirm(`${t("delete_confirm")}`)) deleteCard(c.id);
                         }}
                         className="ml-1 rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                        aria-label="Excluir"
+                        aria-label={t("delete")}
                       >
                         <Trash2 className="inline h-3.5 w-3.5" />
                       </button>
@@ -544,7 +546,7 @@ function DashboardsPage() {
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                    Nenhum card.
+                    {t("no_cards")}
                   </td>
                 </tr>
               )}

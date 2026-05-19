@@ -266,6 +266,11 @@
   }
 }
 
+/* ── Date input dark mode fix ── */
+.dark input[type="date"] {
+  color-scheme: dark;
+}
+
 /* ── Scrollbar styling ── */
 .dark ::-webkit-scrollbar {
   width: 6px;

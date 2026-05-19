@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Activity as ActivityIcon } from "lucide-react";
 import { useKanban } from "@/lib/kanban-store";
+import { useLocale } from "@/lib/locale-context";
 
 export function ActivitySection({ cardId }: { cardId: string }) {
   const { activitiesByCard } = useKanban();
+  const { t, locale } = useLocale();
   const activities = activitiesByCard[cardId] ?? [];
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? activities : activities.slice(0, 5);
@@ -14,7 +16,7 @@ export function ActivitySection({ cardId }: { cardId: string }) {
     <div className="mt-5">
       <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <ActivityIcon className="h-3 w-3" />
-        Atividades ({activities.length})
+        {t("activities")} ({activities.length})
       </p>
       <div className="space-y-0.5">
         {visible.map((a) => (
@@ -23,7 +25,7 @@ export function ActivitySection({ cardId }: { cardId: string }) {
             className="flex items-baseline gap-2 rounded px-1 py-0.5 text-xs text-muted-foreground"
           >
             <span className="shrink-0 text-[10px] tabular-nums">
-              {new Date(a.created_at).toLocaleString("pt-BR", {
+              {new Date(a.created_at).toLocaleString(locale === "pt" ? "pt-BR" : "en-US", {
                 day: "2-digit",
                 month: "2-digit",
                 hour: "2-digit",
@@ -39,7 +41,7 @@ export function ActivitySection({ cardId }: { cardId: string }) {
           onClick={() => setExpanded(!expanded)}
           className="mt-1 text-[10px] font-medium text-muted-foreground hover:text-foreground"
         >
-          {expanded ? "Mostrar menos" : `Ver todas (${activities.length})`}
+          {expanded ? t("show_less") : `${t("see_all")} (${activities.length})`}
         </button>
       )}
     </div>

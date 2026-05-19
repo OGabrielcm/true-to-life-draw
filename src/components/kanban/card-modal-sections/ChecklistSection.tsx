@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, X, Plus, Trash2 } from "lucide-react";
 import type { Card, ChecklistItem } from "@/lib/kanban-types";
 import { getChecklistProgress } from "@/lib/kanban-types";
+import { useLocale } from "@/lib/locale-context";
 
 export function ChecklistSection({
   card,
@@ -10,6 +11,7 @@ export function ChecklistSection({
   card: Card;
   onUpdate: (items: ChecklistItem[]) => void;
 }) {
+  const { t } = useLocale();
   const items = card.checklist ?? [];
   const [newText, setNewText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function ChecklistSection({
     <div className="mt-5">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-medium text-muted-foreground">
-          Checklist {items.length > 0 && `(${progress.done}/${progress.total})`}
+          {t("checklist")} {items.length > 0 && `(${progress.done}/${progress.total})`}
         </p>
         {items.length > 0 && (
           <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
@@ -125,7 +127,7 @@ export function ChecklistSection({
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addItem()}
-          placeholder="Adicionar item..."
+          placeholder={t("checklist_add_placeholder")}
           className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
         />
         <button

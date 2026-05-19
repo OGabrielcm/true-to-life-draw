@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Plus, Tags, ChevronDown, Layers, Archive, Columns } from "lucide-react";
+import { useLocale } from "@/lib/locale-context";
 import { Link } from "@tanstack/react-router";
 import {
   ARCHIVE_AFTER_DAYS,
@@ -21,6 +22,7 @@ import { TracksModal } from "./TracksModal";
 import { ColumnsModal } from "./ColumnsModal";
 
 export function Board() {
+  const { t } = useLocale();
   const {
     cards,
     trilhas,
@@ -106,7 +108,7 @@ export function Board() {
               border: `0.5px solid ${filter === "__all" ? "var(--foreground)" : "var(--border)"}`,
             }}
           >
-            Todos
+            {t("all")}
           </button>
           {trilhas.map((t) => {
             const active = filter === t.id;
@@ -130,21 +132,21 @@ export function Board() {
             className="ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Tags className="h-3.5 w-3.5" />
-            Tags
+            {t("tags")}
           </button>
           <button
             onClick={() => setTracksOpen(true)}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Layers className="h-3.5 w-3.5" />
-            Tracks
+            {t("tracks")}
           </button>
           <button
             onClick={() => setColumnsOpen(true)}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Columns className="h-3.5 w-3.5" />
-            Colunas
+            {t("columns")}
           </button>
         </div>
       </div>
@@ -158,10 +160,9 @@ export function Board() {
             >
               <span className="inline-flex items-center gap-2">
                 <Archive className="h-3.5 w-3.5" />
-                {archivedCount} {archivedCount === 1 ? "card arquivado" : "cards arquivados"} (Done
-                há mais de {ARCHIVE_AFTER_DAYS} dias)
+                {archivedCount} {archivedCount === 1 ? t("archived_one") : t("archived_many")} ({t("done_since")} {ARCHIVE_AFTER_DAYS} {t("done_since_days")})
               </span>
-              <span className="text-foreground/70">Ver no Dashboards →</span>
+              <span className="text-foreground/70">{t("see_dashboards")}</span>
             </Link>
           )}
           {tracks.map((track) => (
@@ -191,7 +192,7 @@ export function Board() {
                 <Plus className="h-4 w-4" />
               </div>
               <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                Nenhuma track ainda
+                {t("no_tracks")}
               </p>
               <button
                 onClick={() => setTracksOpen(true)}
@@ -203,7 +204,7 @@ export function Board() {
                 }}
               >
                 <Plus className="h-3 w-3" />
-                Criar primeira track
+                {t("create_first_track")}
               </button>
             </div>
           )}
@@ -386,6 +387,7 @@ function Swimlane({
   reorderCard,
   cardColors,
 }: {
+
   track: Track;
   columns: Column[];
   cards: Card[];
@@ -407,6 +409,7 @@ function Swimlane({
   cardColors: Record<string, string>;
 }) {
   const { theme } = useTheme();
+  const { t } = useLocale();
   const inProgress = cards.filter((c) => c.col === "inprogress").length;
   const bg = theme === "dark" ? track.darkBg : track.bg;
   const fg = theme === "dark" ? track.darkFg : track.fg;
@@ -431,8 +434,8 @@ function Swimlane({
             {track.name}
           </h2>
           <span className="font-mono text-[11px] opacity-60">
-            {cards.length} {cards.length === 1 ? "card" : "cards"}
-            {inProgress > 0 && ` · ${inProgress} em andamento`}
+            {cards.length} {cards.length === 1 ? t("card_label") : t("cards_label")}
+            {inProgress > 0 && ` · ${inProgress} ${t("in_progress_label")}`}
           </span>
         </div>
         <ChevronDown
@@ -522,7 +525,7 @@ function Swimlane({
                   className="m-2 inline-flex items-center justify-center gap-1 rounded-sm py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Plus className="h-3 w-3" />
-                  Adicionar
+                  {t("add")}
                 </button>
               </div>
             );

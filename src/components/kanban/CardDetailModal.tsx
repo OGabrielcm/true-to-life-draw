@@ -35,6 +35,7 @@ function getDeadlineColor(status: ReturnType<typeof getDeadlineStatus>): string 
   return "var(--muted-foreground)";
 }
 import { useTheme } from "@/components/theme-provider";
+import { useLocale } from "@/lib/locale-context";
 import { renderMarkdown } from "@/lib/markdown";
 import { CARD_COLOR_PRESETS } from "@/lib/kanban-types";
 import { useKanban } from "@/lib/kanban-store";
@@ -81,16 +82,17 @@ export function CardDetailModal({
   const [templateName, setTemplateName] = useState("");
   const [colorOpen, setColorOpen] = useState(false);
   const { theme } = useTheme();
+  const { t } = useLocale();
   const { loadCardDetails } = useKanban();
 
   // Tabs — persiste a aba ativa no localStorage
   type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo";
   const TABS: { id: TabId; label: string; shortcut: string }[] = [
-    { id: "detalhes", label: "Detalhes", shortcut: "1" },
-    { id: "checklist", label: "Checklist", shortcut: "2" },
-    { id: "comentarios", label: "Comentários", shortcut: "3" },
-    { id: "atividade", label: "Atividade", shortcut: "4" },
-    { id: "tempo", label: "Tempo", shortcut: "5" },
+    { id: "detalhes", label: t("tab_details"), shortcut: "1" },
+    { id: "checklist", label: t("tab_checklist"), shortcut: "2" },
+    { id: "comentarios", label: t("tab_comments"), shortcut: "3" },
+    { id: "atividade", label: t("tab_activity"), shortcut: "4" },
+    { id: "tempo", label: t("tab_time"), shortcut: "5" },
   ];
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const saved = localStorage.getItem("molas-modal-tab") as TabId | null;
@@ -234,7 +236,7 @@ export function CardDetailModal({
                   <button
                     onClick={() => setColorOpen(!colorOpen)}
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    title="Cor de destaque"
+                    title={t("highlight_color")}
                   >
                     <div
                       className="h-3 w-3 rounded"
@@ -276,7 +278,7 @@ export function CardDetailModal({
                   <button
                     onClick={() => setEditing(true)}
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    aria-label="Editar"
+                    aria-label={t("edit")}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
@@ -287,7 +289,7 @@ export function CardDetailModal({
                         onClose();
                       }}
                       className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                      aria-label="Duplicar"
+                      aria-label={t("duplicate")}
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </button>
@@ -297,7 +299,7 @@ export function CardDetailModal({
               <button
                 onClick={() => onToggleStar(card.id)}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Favoritar"
+                aria-label={t("favorite")}
               >
                 <Star
                   className={`h-4 w-4 ${card.starred ? "text-yellow-500" : ""}`}
@@ -307,7 +309,7 @@ export function CardDetailModal({
               <button
                 onClick={onClose}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Fechar"
+                aria-label={t("close")}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -333,7 +335,7 @@ export function CardDetailModal({
 
           {parent && (
             <div className="mt-1 text-xs text-muted-foreground">
-              Goal pai: <span className="text-foreground">{parent.title}</span>
+              {t("goal_parent_label")} <span className="text-foreground">{parent.title}</span>
             </div>
           )}
 
@@ -419,7 +421,7 @@ export function CardDetailModal({
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
                   rows={5}
-                  placeholder="Descrição (opcional)"
+                  placeholder={t("desc_optional")}
                   className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                 />
               </div>
@@ -429,13 +431,13 @@ export function CardDetailModal({
                   className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"
                 >
                   <Check className="h-3.5 w-3.5" />
-                  Salvar
+                  {t("save")}
                 </button>
                 <button
                   onClick={cancelEdit}
                   className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </button>
               </div>
             </>
@@ -450,7 +452,7 @@ export function CardDetailModal({
                   return (
                     <div className="mb-5">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-medium text-muted-foreground">Progresso</span>
+                        <span className="text-xs font-medium text-muted-foreground">{t("progress")}</span>
                         <span className="text-xs font-semibold text-foreground">
                           {progress.percent}%
                         </span>
@@ -462,7 +464,7 @@ export function CardDetailModal({
                         />
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {progress.done} de {progress.total} tarefas concluídas
+                        {progress.done} / {progress.total} {t("tasks_done")}
                       </div>
                     </div>
                   );
@@ -474,15 +476,15 @@ export function CardDetailModal({
                 />
               ) : (
                 <p className="mb-5 text-xs text-muted-foreground italic">
-                  Sem descrição. Pressione{" "}
-                  <kbd className="rounded border px-1 py-0.5 text-[10px]">e</kbd> para editar.
+                  {t("no_desc")}{" "}
+                  <kbd className="rounded border px-1 py-0.5 text-[10px]">e</kbd> {t("no_desc_hint")}
                 </p>
               )}
               {/* Mover coluna/track */}
               <div className="space-y-4">
                 <div>
                   <p className="mb-2 text-xs font-medium text-muted-foreground">
-                    Mover para coluna
+                    {t("move_to_column")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {columns
@@ -502,7 +504,7 @@ export function CardDetailModal({
                   </div>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">Mover para track</p>
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">{t("move_to_track")}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {tracks
                       .filter((t) => t.id !== card.track)
@@ -540,7 +542,7 @@ export function CardDetailModal({
                       className="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
                       <LayoutTemplate className="h-3.5 w-3.5" />
-                      Salvar como template
+                      {t("save_as_template")}
                     </button>
                   )}
                   {savingTemplate && (
@@ -556,7 +558,7 @@ export function CardDetailModal({
                             setSavingTemplate(false);
                           }
                         }}
-                        placeholder="Nome do template..."
+                        placeholder={t("template_name_placeholder")}
                         className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none"
                       />
                       <button
@@ -568,7 +570,7 @@ export function CardDetailModal({
                         }}
                         className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"
                       >
-                        Salvar
+                        {t("save")}
                       </button>
                       <button
                         onClick={() => setSavingTemplate(false)}
@@ -585,11 +587,11 @@ export function CardDetailModal({
                         className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                        Excluir
+                        {t("delete")}
                       </button>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Confirmar?</span>
+                        <span className="text-xs text-muted-foreground">{t("confirm")}</span>
                         <button
                           onClick={() => {
                             onDelete(card.id);
@@ -597,13 +599,13 @@ export function CardDetailModal({
                           }}
                           className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
                         >
-                          Excluir
+                          {t("delete")}
                         </button>
                         <button
                           onClick={() => setConfirm(false)}
                           className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
                         >
-                          Cancelar
+                          {t("cancel")}
                         </button>
                       </div>
                     )}

@@ -6,6 +6,7 @@ import { useKanban } from "@/lib/kanban-store";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 import { Card, isArchived, getDeadlineStatus, PRIO_COLORS, formatDate } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
+import { useLocale } from "@/lib/locale-context";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarPage,
@@ -14,21 +15,6 @@ export const Route = createFileRoute("/calendar")({
 
 type ViewMode = "month" | "week" | "list";
 
-const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const MONTHS = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
-];
 
 // Parse "YYYY-MM-DD" como data local (evita timezone)
 function parseLocalDate(iso: string): Date {
@@ -90,6 +76,16 @@ function CalendarPage() {
     setCardColor,
   } = useKanban();
   const { theme } = useTheme();
+  const { t, locale } = useLocale();
+
+  const WEEKDAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const WEEKDAYS = locale === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
+
+  const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const MONTHS = locale === "pt" ? MONTHS_PT : MONTHS_EN;
+
   const [view, setView] = useState<ViewMode>("month");
   const [cursor, setCursor] = useState<Date>(() => {
     const d = new Date();
@@ -133,7 +129,7 @@ function CalendarPage() {
             const wkEnd = addDays(wkStart, 6);
             return `${wkStart.getDate()} ${MONTHS[wkStart.getMonth()].slice(0, 3)} — ${wkEnd.getDate()} ${MONTHS[wkEnd.getMonth()].slice(0, 3)} ${wkEnd.getFullYear()}`;
           })()
-        : "Próximos prazos";
+        : t("upcoming_deadlines");
 
   return (
     <AppShell>
@@ -155,7 +151,7 @@ function CalendarPage() {
             >
               {(["month", "week", "list"] as ViewMode[]).map((v) => {
                 const active = view === v;
-                const label = v === "month" ? "Mês" : v === "week" ? "Semana" : "Lista";
+                const label = v === "month" ? t("view_month") : v === "week" ? t("view_week") : t("view_list");
                 return (
                   <button
                     key={v}
@@ -179,7 +175,7 @@ function CalendarPage() {
                   onClick={goPrev}
                   className="rounded-md border bg-background p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                   style={{ borderWidth: "0.5px" }}
-                  aria-label="Anterior"
+                  aria-label={t("prev")}
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
@@ -188,13 +184,13 @@ function CalendarPage() {
                   className="rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                   style={{ borderWidth: "0.5px" }}
                 >
-                  Hoje
+                  {t("today_btn")}
                 </button>
                 <button
                   onClick={goNext}
                   className="rounded-md border bg-background p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                   style={{ borderWidth: "0.5px" }}
-                  aria-label="Próximo"
+                  aria-label={t("next_btn")}
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -275,6 +271,11 @@ function MonthView({
   theme: string;
   onOpenCard: (id: string) => void;
 }) {
+  const { locale } = useLocale();
+  const WEEKDAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const WEEKDAYS = locale === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
+
   // Grade do mês começando no domingo da primeira semana
   const monthStart = startOfMonth(cursor);
   const gridStart = startOfWeek(monthStart);
@@ -394,6 +395,11 @@ function WeekView({
   theme: string;
   onOpenCard: (id: string) => void;
 }) {
+  const { t, locale } = useLocale();
+  const WEEKDAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const WEEKDAYS = locale === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
+
   const weekStart = startOfWeek(cursor);
   const days: Date[] = [];
   for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
@@ -477,10 +483,10 @@ function WeekView({
                           {c.prio}
                         </span>
                         {status === "overdue" && (
-                          <span className="text-[9px] font-semibold text-red-600">Vencido</span>
+                          <span className="text-[9px] font-semibold text-red-600">{t("overdue")}</span>
                         )}
                         {status === "today" && (
-                          <span className="text-[9px] font-semibold text-orange-600">Hoje</span>
+                          <span className="text-[9px] font-semibold text-orange-600">{t("today")}</span>
                         )}
                       </div>
                     </button>
@@ -509,6 +515,11 @@ function ListView({
   today: Date;
   onOpenCard: (id: string) => void;
 }) {
+  const { t, locale } = useLocale();
+  const WEEKDAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const WEEKDAYS = locale === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
+
   // Agrupa por data e ordena cronologicamente
   const grouped = useMemo(() => {
     const m = new Map<string, Card[]>();
@@ -527,7 +538,7 @@ function ListView({
         className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground"
         style={{ borderWidth: "0.5px" }}
       >
-        Nenhum card com prazo. Adicione uma data de entrega a um card para vê-lo aqui.
+        {t("no_cards_deadline")}
       </div>
     );
   }
@@ -557,10 +568,10 @@ function ListView({
               <div className="flex flex-col">
                 <span className="text-xs font-medium text-foreground">
                   {weekday}, {formatDate(iso)}
-                  {isToday && <span className="ml-1.5 text-orange-600">· Hoje</span>}
+                  {isToday && <span className="ml-1.5 text-orange-600">· {t("today")}</span>}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {dayCards.length} card{dayCards.length > 1 ? "s" : ""}
+                  {dayCards.length} {dayCards.length > 1 ? t("cards_label") : t("card_label")}
                 </span>
               </div>
             </div>
@@ -608,16 +619,16 @@ function ListView({
                     </span>
                     {!isDone && status === "overdue" && (
                       <span className="text-[10px] font-semibold text-red-600 shrink-0">
-                        Vencido
+                        {t("overdue")}
                       </span>
                     )}
                     {!isDone && status === "today" && (
                       <span className="text-[10px] font-semibold text-orange-600 shrink-0">
-                        Hoje
+                        {t("today")}
                       </span>
                     )}
                     {!isDone && isPast && status !== "overdue" && (
-                      <span className="text-[10px] text-muted-foreground shrink-0">passado</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">{t("past")}</span>
                     )}
                   </button>
                 );

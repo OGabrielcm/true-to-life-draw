@@ -22,13 +22,14 @@ import { useAuth } from "@/lib/auth-store";
 import { getDeadlineStatus } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 import { TemplatesModal } from "@/components/kanban/TemplatesModal";
+import { useLocale } from "@/lib/locale-context";
 
-const NAV = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/for-you", label: "For You", icon: Star },
-  { to: "/calendar", label: "Calendário", icon: Calendar },
-  { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
-  { to: "/profile", label: "Profile", icon: User },
+const NAV_KEYS = [
+  { to: "/", labelKey: "nav_home" as const, icon: Home },
+  { to: "/for-you", labelKey: "nav_for_you" as const, icon: Star },
+  { to: "/calendar", labelKey: "nav_calendar" as const, icon: Calendar },
+  { to: "/dashboards", labelKey: "nav_dashboards" as const, icon: LayoutDashboard },
+  { to: "/profile", labelKey: "nav_profile" as const, icon: User },
 ];
 
 function initials(email: string | undefined) {
@@ -38,6 +39,7 @@ function initials(email: string | undefined) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggle } = useTheme();
+  const { locale, setLocale, t } = useLocale();
   const { search, setSearch, setCreateOpen, createOpen, tracks, cards } = useKanban();
   const urgentCount = cards.filter((c) => {
     const s = getDeadlineStatus(c);
@@ -102,7 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-3 text-[13px]">
-          {NAV.map((n) => {
+          {NAV_KEYS.map((n) => {
             const active = path === n.to;
             const Icon = n.icon;
             return (
@@ -117,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
-                {n.label}
+                {t(n.labelKey)}
               </Link>
             );
           })}
@@ -129,7 +131,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="flex w-full items-center justify-between px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              <span>Tracks</span>
+              <span>{t("tracks")}</span>
               <ChevronDown
                 className="h-3 w-3 transition-transform"
                 style={{ transform: tracksOpen ? "rotate(0)" : "rotate(-90deg)" }}
@@ -167,16 +169,27 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="mt-1 flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
           >
             <LayoutTemplate className="h-3.5 w-3.5 shrink-0" />
-            Templates
+            {t("nav_templates")}
           </button>
 
           {/* Log Out */}
+          {/* Locale toggle */}
+          <button
+            onClick={() => setLocale(locale === "pt" ? "en" : "pt")}
+            className="flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
+          >
+            <span className="text-xs font-mono font-semibold">
+              {locale === "pt" ? "EN" : "PT"}
+            </span>
+            <span className="text-xs">{locale === "pt" ? "Switch to English" : "Mudar para PT"}</span>
+          </button>
+
           <button
             onClick={handleSignOut}
             className="mt-auto flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
           >
             <LogOut className="h-3.5 w-3.5 shrink-0" />
-            Log Out
+            {t("log_out")}
           </button>
         </nav>
       </aside>
@@ -204,7 +217,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar tarefas…"
+              placeholder={t("search_placeholder")}
               className="w-full rounded-sm border bg-muted py-1.5 pl-8 pr-12 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground/40 transition-colors"
             />
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-sm border px-1 py-0.5 text-[10px] font-mono text-muted-foreground bg-white-6">
@@ -216,7 +229,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {urgentCount > 0 && (
               <Link
                 to="/dashboards"
-                title={`${urgentCount} card${urgentCount > 1 ? "s" : ""} com prazo vencido ou hoje`}
+                title={`${urgentCount} ${urgentCount > 1 ? t("urgent_tooltip_many") : t("urgent_tooltip_one")}`}
                 className="relative flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
               >
                 <svg
@@ -247,13 +260,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               }}
             >
               <Plus className="h-3 w-3" />
-              <span className="hidden sm:inline">Create</span>
+              <span className="hidden sm:inline">{t("create_btn")}</span>
             </button>
 
             {/* Theme toggle */}
             <button
               onClick={toggle}
-              aria-label="Alternar tema"
+              aria-label={t("toggle_theme")}
               className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -282,14 +295,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                       className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
                     >
                       <User className="h-3.5 w-3.5" />
-                      Profile
+                      {t("nav_profile")}
                     </Link>
                     <button
                       onClick={handleSignOut}
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors"
                     >
                       <LogOut className="h-3.5 w-3.5" />
-                      Log Out
+                      {t("log_out")}
                     </button>
                   </div>
                 </>

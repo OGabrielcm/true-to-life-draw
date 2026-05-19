@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRouteWithContext, useRouter } from "@tanstack/r
 import { AuthProvider } from "@/lib/auth-store";
 import { ThemeProvider } from "@/components/theme-provider";
 import { KanbanProvider } from "@/lib/kanban-store";
+import { LocaleProvider } from "@/lib/locale-context";
 
 function NotFoundComponent() {
   return (
@@ -73,11 +74,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <KanbanProvider>
-            <Outlet />
-          </KanbanProvider>
-        </AuthProvider>
+        <LocaleProvider>
+          <AuthProvider>
+            <KanbanProvider>
+              <Outlet />
+            </KanbanProvider>
+          </AuthProvider>
+        </LocaleProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

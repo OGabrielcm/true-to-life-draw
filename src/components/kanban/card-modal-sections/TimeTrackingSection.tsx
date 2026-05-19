@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2, Clock } from "lucide-react";
 import { formatDate, formatMinutes } from "@/lib/kanban-types";
 import { useKanban } from "@/lib/kanban-store";
+import { useLocale } from "@/lib/locale-context";
 
 export function TimeTrackingSection({ cardId }: { cardId: string }) {
   const { timeLogsByCard, addTimeLog, deleteTimeLog } = useKanban();
+  const { t } = useLocale();
   const logs = timeLogsByCard[cardId] ?? [];
   const [adding, setAdding] = useState(false);
   const [hours, setHours] = useState("");
@@ -31,7 +33,7 @@ export function TimeTrackingSection({ cardId }: { cardId: string }) {
       <div className="mb-2 flex items-center justify-between">
         <p className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Clock className="h-3 w-3" />
-          Time tracking {logs.length > 0 && `(${logs.length})`}
+          {t("time_tracking")} {logs.length > 0 && `(${logs.length})`}
         </p>
         {total > 0 && (
           <span className="text-xs font-semibold text-foreground">{formatMinutes(total)}</span>
@@ -67,7 +69,7 @@ export function TimeTrackingSection({ cardId }: { cardId: string }) {
           className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <Plus className="h-3 w-3" />
-          Registrar tempo
+          {t("log_time")}
         </button>
       ) : (
         <div className="mt-2 rounded-md border bg-background p-2">
@@ -101,7 +103,7 @@ export function TimeTrackingSection({ cardId }: { cardId: string }) {
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Nota (opcional)"
+            placeholder={t("note_optional")}
             className="mt-1.5 w-full rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
           />
           <div className="mt-1.5 flex items-center gap-1.5">
@@ -109,7 +111,7 @@ export function TimeTrackingSection({ cardId }: { cardId: string }) {
               onClick={submit}
               className="rounded-md bg-foreground px-2.5 py-1 text-xs font-medium text-background hover:opacity-90"
             >
-              Salvar
+              {t("save")}
             </button>
             <button
               onClick={() => {
@@ -120,7 +122,7 @@ export function TimeTrackingSection({ cardId }: { cardId: string }) {
               }}
               className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
             >
-              Cancelar
+              {t("cancel")}
             </button>
           </div>
         </div>
