@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useKanban } from "@/lib/kanban-store";
 
 const STORAGE_KEY = "molas_onboarding_v1";
 
 export function OnboardingModal() {
   const [visible, setVisible] = useState(false);
+  const { cards, tracks, loading } = useKanban();
 
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
+    if (loading) return;
+    if (localStorage.getItem(STORAGE_KEY)) return;
+    // Só exibe para usuários sem nenhum dado — genuinamente novos
+    const isNewUser = tracks.length === 0 && cards.length === 0;
+    if (isNewUser) {
       setVisible(true);
+    } else {
+      // Usuário existente — marca como visto sem exibir
+      localStorage.setItem(STORAGE_KEY, "seen");
     }
-  }, []);
+  }, [loading, tracks.length, cards.length]);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {

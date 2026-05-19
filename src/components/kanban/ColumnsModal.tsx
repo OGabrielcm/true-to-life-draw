@@ -5,14 +5,18 @@ import { useLocale } from "@/lib/locale-context";
 
 export function ColumnsModal({
   columns,
+  trackId,
+  trackName,
   onClose,
   onCreate,
   onUpdate,
   onDelete,
 }: {
   columns: Column[];
+  trackId?: string;
+  trackName?: string;
   onClose: () => void;
-  onCreate: (name: string) => void;
+  onCreate: (name: string, trackId?: string) => void;
   onUpdate: (id: string, data: { name?: string; wip_limit?: number | null }) => void;
   onDelete: (id: string) => void;
 }) {
@@ -45,7 +49,7 @@ export function ColumnsModal({
   const create = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    onCreate(newName.trim());
+    onCreate(newName.trim(), trackId);
     setNewName("");
   };
 
@@ -59,8 +63,12 @@ export function ColumnsModal({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="text-base font-medium text-foreground">{t("manage_columns")}</h2>
-        <p className="mt-1 text-xs text-muted-foreground">{t("manage_columns_desc")}</p>
+        <h2 className="text-base font-medium text-foreground">
+          {trackName ? `${t("manage_columns")} · ${trackName}` : t("manage_columns")}
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {trackId ? t("manage_columns_track_desc") : t("manage_columns_desc")}
+        </p>
 
         <div className="mt-4 space-y-2">
           {columns.length === 0 && (

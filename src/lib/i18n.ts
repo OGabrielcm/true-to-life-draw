@@ -115,6 +115,7 @@ const pt = {
   // ── ColumnsModal ──
   manage_columns: "Gerenciar colunas",
   manage_columns_desc: "Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira coluna restante.",
+  manage_columns_track_desc: "Colunas específicas desta trilha. Quando vazias, usam o template global.",
   no_columns_yet: "Nenhuma coluna ainda.",
   new_column: "Nova coluna",
   column_name_placeholder: "Nome da coluna",
@@ -336,6 +337,7 @@ const en = {
   // ── ColumnsModal ──
   manage_columns: "Manage columns",
   manage_columns_desc: "Columns are the board's stages. Deleting a column moves its cards to the first remaining column.",
+  manage_columns_track_desc: "Columns specific to this track. When empty, the global template is used.",
   no_columns_yet: "No columns yet.",
   new_column: "New column",
   column_name_placeholder: "Column name",
