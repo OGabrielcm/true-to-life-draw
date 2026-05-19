@@ -73,9 +73,10 @@ interface KanbanCtx {
   createTrack: (t: Omit<Track, "id" | "order"> & { order?: number }) => void;
   updateTrack: (id: string, data: Omit<Track, "id">) => void;
   deleteTrack: (id: string) => void;
-  createColumn: (name: string) => void;
+  createColumn: (name: string, trackId?: string) => void;
   updateColumn: (id: string, data: { name?: string; wip_limit?: number | null }) => void;
   deleteColumn: (id: string) => void;
+  getColumnsForTrack: (trackId: string) => Column[];
   createOpen: boolean;
   setCreateOpen: (v: boolean) => void;
   templates: CardTemplate[];
@@ -141,6 +142,7 @@ function rowToColumn(row: Record<string, unknown>): Column {
     name: row.name as string,
     order: (row.order as number) ?? 0,
     wip_limit: row.wip_limit as number | undefined,
+    track_id: (row.track_id as string | null) ?? undefined,
   };
 }
 
@@ -580,6 +582,12 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         });
       },
 
+      getColumnsForTrack: (trackId) => {
+        const trackCols = columns.filter((c) => c.track_id === trackId);
+        if (trackCols.length > 0) return trackCols.sort((a, b) => a.order - b.order);
+        return columns.filter((c) => !c.track_id).sort((a, b) => a.order - b.order);
+      },
+
       loadCardDetails: async (cardId) => {
         const [acts, cmts, logs] = await Promise.all([
           ActivityService.fetchActivities(cardId),
@@ -718,18 +726,21 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         await supabase.from("tracks").delete().eq("id", id);
       },
 
-      createColumn: async (name) => {
+      createColumn: async (name, trackId) => {
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) return;
         const tempId = crypto.randomUUID();
-        const order = columns.length ? Math.max(...columns.map((c) => c.order)) + 1 : 5;
-        const newCol: Column = { id: tempId, name: name.trim(), order };
+        const scopedCols = trackId
+          ? columns.filter((c) => c.track_id === trackId)
+          : columns.filter((c) => !c.track_id);
+        const order = scopedCols.length ? Math.max(...scopedCols.map((c) => c.order)) + 1 : 5;
+        const newCol: Column = { id: tempId, name: name.trim(), order, track_id: trackId };
         setColumns((cur) => [...cur, newCol].sort((a, b) => a.order - b.order));
         const { data: inserted, error } = await supabase
           .from("columns")
-          .insert({ id: tempId, name: name.trim(), order, user_id: user.id })
+          .insert({ id: tempId, name: name.trim(), order, user_id: user.id, track_id: trackId ?? null })
           .select()
           .single();
         if (error) {

@@ -40,6 +40,7 @@ export interface Column {
   name: string;
   order: number;
   wip_limit?: number; // undefined = sem limite
+  track_id?: string;  // undefined = coluna global (template)
 }
 
 // IDs fixos para backwards compatibility com cards existentes

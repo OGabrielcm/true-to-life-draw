@@ -23,7 +23,8 @@ function ColorPicker({
             className="h-6 w-6 rounded-full transition-transform hover:scale-110"
             style={{
               backgroundColor: c.bg,
-              border: `2px solid ${active ? c.fg : "transparent"}`,
+              outline: active ? `2px solid ${c.fg}` : "2px solid transparent",
+              outlineOffset: "2px",
             }}
             aria-label={t("color")}
           />
