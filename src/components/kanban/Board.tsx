@@ -148,6 +148,16 @@ export function Board() {
             <Columns className="h-3.5 w-3.5" />
             {t("columns")}
           </button>
+          {tracks.length > 0 && columns.length > 0 && (
+            <button
+              onClick={() => setAdding({ track: tracks[0].id, col: columns[0].id })}
+              className="ml-auto inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-foreground/20 bg-foreground px-3 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity"
+              style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em", textTransform: "uppercase" }}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t("add_card")}
+            </button>
+          )}
         </div>
       </div>
 
@@ -205,6 +215,33 @@ export function Board() {
               >
                 <Plus className="h-3 w-3" />
                 {t("create_first_track")}
+              </button>
+            </div>
+          )}
+          {tracks.length > 0 && filtered.length === 0 && cards.filter((c) => !isArchived(c)).length === 0 && (
+            <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed p-12 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="font-display text-sm font-semibold uppercase tracking-widest text-foreground">
+                  {t("empty_board_title")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("empty_board_desc")}
+                </p>
+              </div>
+              <button
+                onClick={() => setAdding({ track: tracks[0].id, col: columns[0].id })}
+                className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("add_card")}
               </button>
             </div>
           )}

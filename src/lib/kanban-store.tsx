@@ -20,9 +20,9 @@ import {
   TrackId,
   Trilha,
   DEFAULT_COLUMNS,
-  DEFAULT_TRACKS,
-  DEFAULT_TRILHAS,
-  SEED_CARDS_BY_TRACK,
+  getDefaultTracks,
+  getDefaultTrilhas,
+  getSeedCardsByTrack,
   loadCollapsed,
   saveCollapsed,
   loadTemplates,
@@ -221,10 +221,13 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return;
 
+      // Detect locale from localStorage (set by LocaleProvider)
+      const locale = (localStorage.getItem("molas-locale") === "en" ? "en" : "pt") as "pt" | "en";
+
       // Seed tracks if user has none
       let userTracks: Track[];
       if (!dbTracks?.length) {
-        const seededTracks = DEFAULT_TRACKS.map((t) => ({ ...trackToRow(t), user_id: user.id }));
+        const seededTracks = getDefaultTracks(locale).map((t) => ({ ...trackToRow(t), user_id: user.id }));
         const { data: inserted } = await supabase.from("tracks").insert(seededTracks).select();
         userTracks = (inserted ?? []).map(rowToTrack).sort((a, b) => a.order - b.order);
       } else {
@@ -234,9 +237,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       // Seed tasks if user has none — map seed cards to actual track IDs
       if (!dbCards?.length) {
+        const seedCards = getSeedCardsByTrack(locale);
         const now = new Date().toISOString();
         const seeded = userTracks.flatMap((track) => {
-          const cardsForTrack = SEED_CARDS_BY_TRACK[track.name] ?? [];
+          const cardsForTrack = seedCards[track.name] ?? [];
           return cardsForTrack.map((c) => ({
             ...c,
             track: track.id,
@@ -256,7 +260,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       // Seed trilhas if user has none
       if (!dbTrilhas?.length) {
-        const seededTrilhas = DEFAULT_TRILHAS.map(({ id: _id, ...t }) => ({
+        const seededTrilhas = getDefaultTrilhas(locale).map(({ id: _id, ...t }) => ({
           ...t,
           user_id: user.id,
         }));
