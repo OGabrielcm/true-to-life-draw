@@ -169,23 +169,25 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
     <div class="rule" style="margin:44px auto"></div>
     <div class="mono" style="font-size:13px;color:rgba(250,250,250,0.2);letter-spacing:.07em">← → ESPAÇO · navegar &nbsp;·&nbsp; N · notas &nbsp;·&nbsp; P · imprimir</div>
   </div>
-  <div class="slide-num">01 / 12</div>
+  <div class="slide-num">01 / 13</div>
 </section>
 
 <!-- 02 -->
 <section class="slide" data-screen-label="02 Agenda"
   data-notes="Apresente os três pilares. Ao final do tour o usuário já terá o mapa mental completo para criar seu primeiro card.">
   <div class="brand"><span class="brand-dot"></span>Molas</div>
-  <div class="inner" style="justify-content:center;padding-top:100px">
+  <div class="inner" style="justify-content:center;padding-top:80px">
     <div class="eyebrow">Neste tour</div>
-    <div class="h2" style="margin-bottom:60px">3 Tópicos</div>
-    <div class="steps">
+    <div class="h2" style="margin-bottom:48px">5 Tópicos</div>
+    <div class="steps" style="gap:24px">
       <div class="step"><span class="step-n">01</span><div><div class="step-title">Estrutura do Kanban</div><div class="step-body">Entenda Tracks, Colunas e como o trabalho flui</div></div></div>
       <div class="step"><span class="step-n">02</span><div><div class="step-title">Cards — Criação e Movimentação</div><div class="step-body">Crie, edite e mova cards com drag &amp; drop</div></div></div>
       <div class="step"><span class="step-n">03</span><div><div class="step-title">Prioridades, Tags e Deadlines</div><div class="step-body">Organize por urgência, categoria e prazo</div></div></div>
+      <div class="step"><span class="step-n">04</span><div><div class="step-title">Navegação &amp; For You</div><div class="step-body">Home, For You, Calendário, Dashboards e Templates</div></div></div>
+      <div class="step"><span class="step-n">05</span><div><div class="step-title">Atalhos de teclado</div><div class="step-body">Trabalhe mais rápido sem sair do teclado</div></div></div>
     </div>
   </div>
-  <div class="slide-num">02 / 12</div>
+  <div class="slide-num">02 / 13</div>
 </section>
 
 <!-- 03 -->
@@ -203,28 +205,24 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
         <div class="step"><span class="step-n" style="font-size:18px;color:var(--prio-low);opacity:1;width:64px">Card</span><div class="step-body" style="font-size:17px;padding-top:2px">Unidade de trabalho — tarefa, entrega ou meta</div></div>
       </div>
     </div>
-    <div class="col-r" style="gap:20px">
-      <div class="track-h">
-        <div class="track-bar" style="background:var(--prio-critical);height:52px"></div>
-        <div><div class="track-name">Design System</div><div class="track-meta">3 colunas · 12 cards</div></div>
-      </div>
-      <div style="display:flex;gap:14px">
-        <div class="col-mock">
-          <div class="col-mock-head"><span class="col-name">To Do</span><span class="col-badge">4</span></div>
-          <div class="col-cards">
-            <div class="card"><div class="card-bar" style="background:var(--prio-high)"></div><div class="card-body" style="padding:12px"><div class="card-title" style="font-size:14px;margin-bottom:8px">Definir tokens de cor</div><div class="chips"><span class="chip chip-high">High</span></div></div></div>
-          </div>
-        </div>
-        <div class="col-mock">
-          <div class="col-mock-head"><span class="col-name">Em Andamento</span><span class="col-badge">2</span></div>
-          <div class="col-cards">
-            <div class="card"><div class="card-bar" style="background:var(--prio-critical)"></div><div class="card-body" style="padding:12px"><div class="card-title" style="font-size:14px;margin-bottom:8px">Revisar tipografia</div><div class="chips"><span class="chip chip-crit">Critical</span></div></div></div>
-          </div>
+    <div class="col-r" style="align-items:flex-start;justify-content:center;gap:0">
+      <div class="mono" style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Navegação do app</div>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;overflow:hidden;width:220px">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:var(--prio-low);animation:pulse 2s ease-in-out infinite;display:inline-block"></span>Molas</div>
+        <div style="padding:8px">
+          <div style="padding:7px 10px;border-radius:4px;background:rgba(250,250,250,0.08);font-size:13px;color:var(--fg);margin-bottom:2px">🏠 Home</div>
+          <div style="padding:7px 10px;border-radius:4px;font-size:13px;color:var(--muted);margin-bottom:2px">⭐ For You</div>
+          <div style="padding:7px 10px;border-radius:4px;font-size:13px;color:var(--muted);margin-bottom:2px">📅 Calendário</div>
+          <div style="padding:7px 10px;border-radius:4px;font-size:13px;color:var(--muted);margin-bottom:2px">📊 Dashboards</div>
+          <div style="padding:7px 10px;border-radius:4px;font-size:13px;color:var(--muted);margin-bottom:10px">👤 Profile</div>
+          <div style="height:1px;background:var(--border);margin-bottom:10px"></div>
+          <div style="padding:7px 10px;border-radius:4px;font-size:13px;color:var(--muted);margin-bottom:2px">🗂 Templates</div>
+          <div style="padding:7px 10px;border-radius:4px;font-size:13px;color:rgba(239,68,68,0.6)">↩ Log Out</div>
         </div>
       </div>
     </div>
   </div>
-  <div class="slide-num">03 / 12</div>
+  <div class="slide-num">03 / 13</div>
 </section>
 
 <!-- 04 -->
@@ -245,7 +243,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       <div class="track-h"><div class="track-bar" style="background:var(--purple);height:56px"></div><div><div class="track-name">Marketing</div><div class="track-meta">6 cards · 1 em andamento</div></div></div>
     </div>
   </div>
-  <div class="slide-num">04 / 12</div>
+  <div class="slide-num">04 / 13</div>
 </section>
 
 <!-- 05 -->
@@ -270,7 +268,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       <div class="col-mock"><div class="col-mock-head"><span class="col-name">Concluído</span><span class="col-badge">8</span></div><div class="col-cards" style="min-height:60px"></div></div>
     </div>
   </div>
-  <div class="slide-num">05 / 12</div>
+  <div class="slide-num">05 / 13</div>
 </section>
 
 <!-- 06 -->
@@ -287,6 +285,8 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
         <div class="part"><div class="part-label">Cover bar</div><div><div class="part-val">Cor da track</div><div class="part-sub">3px no topo do card</div></div></div>
         <div class="part"><div class="part-label">Título</div><div><div class="part-val">Oswald · font-medium</div><div class="part-sub">line-clamp-2 para textos longos</div></div></div>
         <div class="part"><div class="part-label">Chips</div><div><div class="part-val">Prioridade · checklist · tags</div><div class="part-sub">font-mono · border colorida</div></div></div>
+        <div class="part"><div class="part-label">Goal</div><div><div class="part-val">Barra de progresso</div><div class="part-sub">aparece em cards do tipo Meta</div></div></div>
+        <div class="part"><div class="part-label">Bloqueado</div><div><div class="part-val" style="color:var(--purple)">Chip roxo · dependência</div><div class="part-sub">outro card precisa ser concluído antes</div></div></div>
         <div class="part"><div class="part-label">Deadline</div><div><div class="part-val">Data + estado visual</div><div class="part-sub">muda de cor conforme o prazo</div></div></div>
       </div>
     </div>
@@ -309,7 +309,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       </div>
     </div>
   </div>
-  <div class="slide-num">06 / 12</div>
+  <div class="slide-num">06 / 13</div>
 </section>
 
 <!-- 07 -->
@@ -325,7 +325,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       <div class="step"><span class="step-n">03</span><div><div class="step-title">Enter ou clique em Criar</div><div class="step-body">O card aparece imediatamente na coluna escolhida — pronto para mover ou editar</div></div></div>
     </div>
   </div>
-  <div class="slide-num">07 / 12</div>
+  <div class="slide-num">07 / 13</div>
 </section>
 
 <!-- 08 -->
@@ -358,7 +358,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       </div>
     </div>
   </div>
-  <div class="slide-num">08 / 12</div>
+  <div class="slide-num">08 / 13</div>
 </section>
 
 <!-- 09 -->
@@ -379,7 +379,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       <div class="prio-row" style="border-bottom:1px solid var(--border)"><span class="chip chip-low" style="width:100px;text-align:center;font-size:13px;padding:6px 0">Low</span><div><div style="font-size:18px;color:var(--fg);margin-bottom:4px;font-weight:500">Backlog sem urgência</div><div style="font-size:15px;color:var(--muted)">Resolver quando houver folga de capacidade</div></div></div>
     </div>
   </div>
-  <div class="slide-num">09 / 12</div>
+  <div class="slide-num">09 / 13</div>
 </section>
 
 <!-- 10 -->
@@ -422,7 +422,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       </div>
     </div>
   </div>
-  <div class="slide-num">10 / 12</div>
+  <div class="slide-num">10 / 13</div>
 </section>
 
 <!-- 11 -->
@@ -443,11 +443,50 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
       <div class="dl-row" style="border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)"><div class="dl-dot" style="background:var(--prio-critical)"></div><div class="mono" style="width:90px;font-size:13px;color:var(--prio-critical)">Vencido</div><div style="font-size:17px;color:var(--fg)">10 Mai 2026 · Prazo expirado</div></div>
     </div>
   </div>
-  <div class="slide-num">11 / 12</div>
+  <div class="slide-num">11 / 13</div>
 </section>
 
 <!-- 12 -->
-<section class="slide" data-screen-label="12 Tudo Pronto"
+<section class="slide" data-screen-label="12 Atalhos"
+  data-notes="Atalhos de teclado são o diferencial para usuários avançados. N para criar card sem precisar usar o mouse. ⌘K abre a busca. 1-5 no modal para trocar de aba sem tocar no mouse. E para editar, D para deletar. Esc sempre fecha o que estiver aberto.">
+  <div class="brand"><span class="brand-dot"></span>Molas</div>
+  <div class="inner split">
+    <div class="col-l">
+      <div class="eyebrow">Produtividade · Teclado</div>
+      <div class="h2" style="margin-bottom:28px">Atalhos<br>de Teclado</div>
+      <div class="rule"></div>
+      <div class="body" style="max-width:480px">Trabalhe mais rápido sem sair do teclado. Os atalhos cobrem as ações mais frequentes do dia a dia.</div>
+    </div>
+    <div class="col-r" style="justify-content:center;gap:0">
+      <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:520px">
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px">
+          <span class="mono" style="font-size:14px;background:var(--surface-3);border:1px solid var(--border-hi);border-radius:4px;padding:3px 10px;min-width:40px;text-align:center;color:var(--fg)">N</span>
+          <div><div style="font-size:17px;color:var(--fg)">Novo card</div><div style="font-size:13px;color:var(--muted)">Abre o modal de criação diretamente</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px">
+          <span class="mono" style="font-size:13px;background:var(--surface-3);border:1px solid var(--border-hi);border-radius:4px;padding:3px 8px;min-width:40px;text-align:center;color:var(--fg)">⌘K</span>
+          <div><div style="font-size:17px;color:var(--fg)">Buscar</div><div style="font-size:13px;color:var(--muted)">Foco na barra de busca do header</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px">
+          <span class="mono" style="font-size:14px;background:var(--surface-3);border:1px solid var(--border-hi);border-radius:4px;padding:3px 8px;min-width:40px;text-align:center;color:var(--fg)">1–5</span>
+          <div><div style="font-size:17px;color:var(--fg)">Trocar aba no modal</div><div style="font-size:13px;color:var(--muted)">Detalhes · Checklist · Comentários · Atividade · Tempo</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px">
+          <span class="mono" style="font-size:14px;background:var(--surface-3);border:1px solid var(--border-hi);border-radius:4px;padding:3px 10px;min-width:40px;text-align:center;color:var(--fg)">E</span>
+          <div><div style="font-size:17px;color:var(--fg)">Editar card</div><div style="font-size:13px;color:var(--muted)">Com o modal aberto, entra em modo de edição</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px">
+          <span class="mono" style="font-size:14px;background:var(--surface-3);border:1px solid var(--border-hi);border-radius:4px;padding:3px 10px;min-width:40px;text-align:center;color:var(--fg)">Esc</span>
+          <div><div style="font-size:17px;color:var(--fg)">Fechar</div><div style="font-size:13px;color:var(--muted)">Fecha modal, painel ou modo de edição</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">12 / 13</div>
+</section>
+
+<!-- 13 -->
+<section class="slide" data-screen-label="13 Tudo Pronto"
   data-notes="Encerre com energia. O usuário tem o mapa mental completo. O botão primário chama window.molasOnboardingClose() — o app implementa essa função para fechar o modal. O secundário reinicia o tour. Reforce que o tour fica disponível em Ajuda.">
   <div class="brand"><span class="brand-dot"></span>Molas</div>
   <div class="inner center">
@@ -460,7 +499,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
     </div>
     <div class="mono" style="margin-top:52px;font-size:12px;color:rgba(250,250,250,0.16)">Você pode revisitar este tour em Ajuda → Tour de boas-vindas</div>
   </div>
-  <div class="slide-num">12 / 12</div>
+  <div class="slide-num">13 / 13</div>
 </section>
 
 </div>
@@ -470,7 +509,7 @@ body { width: 100%; height: 100vh; overflow: hidden; font-family: var(--font-bod
 <div class="chrome">
   <button class="ui-btn" onclick="prev()">← Anterior</button>
   <div class="sep"></div>
-  <span class="counter" id="counter">1 / 12</span>
+  <span class="counter" id="counter">1 / 13</span>
   <div class="sep"></div>
   <button class="ui-btn" onclick="next()">Próximo →</button>
   <div class="sep"></div>
