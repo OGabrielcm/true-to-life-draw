@@ -178,20 +178,20 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  /* #111111 */
-  --sidebar: oklch(0.115 0 0);
+  /* #0a0a0a — mais escuro que card (#111) para criar hierarquia real */
+  --sidebar: oklch(0.075 0 0);
   /* #fafafa */
   --sidebar-foreground: oklch(0.984 0 0);
   /* #fafafa */
   --sidebar-primary: oklch(0.984 0 0);
   /* #000000 */
   --sidebar-primary-foreground: oklch(0 0 0);
-  /* #1a1a1a */
-  --sidebar-accent: oklch(0.158 0 0);
+  /* rgba(255,255,255,0.06) */
+  --sidebar-accent: oklch(1 0 0 / 6%);
   /* #fafafa */
   --sidebar-accent-foreground: oklch(0.984 0 0);
-  /* rgba(255,255,255,0.08) */
-  --sidebar-border: oklch(1 0 0 / 8%);
+  /* rgba(255,255,255,0.06) — mais sutil que o border do board */
+  --sidebar-border: oklch(1 0 0 / 6%);
   /* rgba(255,255,255,0.3)  */
   --sidebar-ring: oklch(1 0 0 / 30%);
 }
@@ -232,6 +232,28 @@
 /* Search kbd shortcut badge */
 .kbd-badge {
   background-color: oklch(0 0 0 / 6%);
+}
+
+/* Modal overlay — adapta-se ao tema */
+.modal-overlay {
+  background-color: oklch(0 0 0 / 40%);
+}
+.dark .modal-overlay {
+  background-color: oklch(0 0 0 / 60%);
+}
+
+/* Blocked card accent — token para chip "Bloqueado" */
+:root {
+  --blocked-bg: oklch(0.88 0.06 300 / 15%);
+  --blocked-fg: oklch(0.5 0.18 300);
+  --blocked-border: oklch(0.5 0.18 300 / 30%);
+  --blocked-stripe: oklch(0.5 0.18 300);
+}
+.dark {
+  --blocked-bg: oklch(0.3 0.1 300 / 25%);
+  --blocked-fg: oklch(0.78 0.14 300);
+  --blocked-border: oklch(0.78 0.14 300 / 30%);
+  --blocked-stripe: oklch(0.78 0.14 300);
 }
 
 /* Dark mode overrides */

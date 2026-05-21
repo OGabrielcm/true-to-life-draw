@@ -59,13 +59,13 @@ function ResetPasswordPage() {
         </div>
 
         {done ? (
-          <div className="rounded-xl border bg-background p-6 text-center space-y-2" style={{ borderWidth: "0.5px" }}>
+          <div className="rounded-xl border bg-card p-6 shadow-sm text-center space-y-2" style={{ borderWidth: "0.5px" }}>
             <span className="text-2xl">✅</span>
             <h2 className="text-sm font-semibold">Senha redefinida</h2>
             <p className="text-xs text-muted-foreground">Redirecionando para o app...</p>
           </div>
         ) : !ready ? (
-          <div className="rounded-xl border bg-background p-6 text-center space-y-2" style={{ borderWidth: "0.5px" }}>
+          <div className="rounded-xl border bg-card p-6 shadow-sm text-center space-y-2" style={{ borderWidth: "0.5px" }}>
             <p className="text-sm text-muted-foreground">Validando link de recuperação...</p>
             <p className="text-xs text-muted-foreground">
               Se demorar muito,{" "}
@@ -78,7 +78,7 @@ function ResetPasswordPage() {
         ) : (
           <form
             onSubmit={submit}
-            className="space-y-4 rounded-xl border bg-background p-6"
+            className="space-y-4 rounded-xl border bg-card p-6 shadow-sm"
             style={{ borderWidth: "0.5px" }}
           >
             <h2 className="text-sm font-semibold">Redefinir senha</h2>
