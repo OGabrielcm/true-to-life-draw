@@ -78,13 +78,37 @@
       "Bash(rtk lint *)",
       "Bash(node node_modules/eslint/bin/eslint.js src)",
       "Bash(rtk prettier *)",
-      "Bash(mcp__supabase__list_tables)"
+      "Bash(mcp__supabase__list_tables)",
+      "Bash(git merge *)",
+      "Bash(cp ~/.claude/CLAUDE.md /tmp/claude-migration/CLAUDE.md)",
+      "Bash(cp ~/.claude/RTK.md /tmp/claude-migration/RTK.md)",
+      "Bash(cp ~/.claude/skills/git-commit/SKILL.md /tmp/claude-migration/skills/git-commit/SKILL.md)",
+      "Bash(cp ~/.claude/skills/project-booster/SKILL.md /tmp/claude-migration/skills/project-booster/SKILL.md)",
+      "Bash(cp ~/.claude/skills/find-skills/SKILL.md /tmp/claude-migration/skills/find-skills/SKILL.md)",
+      "Bash(zip -r claude-migration.zip claude-migration/)",
+      "Bash(python3 -m json.tool)",
+      "Bash(xargs ls)",
+      "mcp__open-design__get_active_context",
+      "Bash(rtk find *)",
+      "Bash(rtk ps *)",
+      "Bash(nohup pnpm tools-dev run web --daemon-port 17456 --web-port 17573)",
+      "Bash(rtk docker *)",
+      "Bash(file /opt/homebrew/bin/claude && rtk read /opt/homebrew/bin/claude --max-lines 3)",
+      "Read(//opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/bin/**)",
+      "Bash(timeout 120 pnpm install)",
+      "Bash(pnpm tools-dev *)",
+      "mcp__supabase__get_project_url",
+      "Bash(rtk gh pr create --title 'feat: Ajusta empty state do board com lógica por quantidade de trilhas' --body ' *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
       "/Users/gabrielcartaxomerces/true-to-life-draw/.claude"
     ]
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
   "hooks": {
     "PreToolUse": [
       {
