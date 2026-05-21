@@ -152,6 +152,16 @@ const pt = {
   search_card: "Buscar card...",
   no_card_found: "Nenhum card encontrado.",
 
+  // ── AttachmentsSection ──
+  tab_attachments: "Anexos",
+  attachments: "Anexos",
+  attach_file: "Anexar arquivo",
+  uploading: "Enviando...",
+  no_attachments: "Nenhum anexo. Clique para adicionar.",
+  attachment_too_large: "Arquivo muito grande",
+  download: "Baixar",
+  show_more: "Ver mais",
+
   // ── TemplatesModal ──
   saved_templates: "Templates salvos",
   no_templates: "Nenhum template salvo ainda.",
@@ -374,6 +384,16 @@ const en = {
   add_dependency: "Add dependency",
   search_card: "Search card...",
   no_card_found: "No card found.",
+
+  // ── AttachmentsSection ──
+  tab_attachments: "Attachments",
+  attachments: "Attachments",
+  attach_file: "Attach file",
+  uploading: "Uploading...",
+  no_attachments: "No attachments. Click to add.",
+  attachment_too_large: "File too large",
+  download: "Download",
+  show_more: "Show more",
 
   // ── TemplatesModal ──
   saved_templates: "Saved templates",

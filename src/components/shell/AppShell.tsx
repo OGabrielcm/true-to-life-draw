@@ -107,7 +107,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground" />
           </div>
           <button
-            className="md:hidden text-muted-foreground hover:text-foreground"
+            className="md:hidden p-1.5 text-muted-foreground hover:text-foreground"
             onClick={() => setMobileOpen(false)}
           >
             <X className="h-4 w-4" />
@@ -154,7 +154,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => { setTrackFilter("__all"); setMobileOpen(false); if (path !== "/") navigate({ to: "/" }); }}
-                  className={`flex items-center gap-2 rounded-sm px-2 py-1 text-xs transition-colors ${
+                  className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors ${
                     trackFilter === "__all"
                       ? "nav-item-active text-foreground font-medium"
                       : "nav-item-hover text-muted-foreground hover:text-foreground"
@@ -171,7 +171,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       type="button"
                       onClick={() => handleTrackClick(tr.id)}
                       aria-pressed={active}
-                      className={`flex items-center justify-between rounded-sm px-2 py-1 text-xs transition-colors ${
+                      className={`flex items-center justify-between rounded-sm px-2 py-1.5 text-xs transition-colors ${
                         active
                           ? "nav-item-active text-foreground font-medium"
                           : "nav-item-hover text-muted-foreground hover:text-foreground"

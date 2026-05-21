@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Star, LayoutTemplate } from "lucide-react";
 import { useLocale } from "@/lib/locale-context";
+import { MarkdownEditor } from "./MarkdownEditor";
 import {
   Column,
   ColumnId,
@@ -175,13 +176,14 @@ export function AddCardModal({
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">{t("description")}</label>
-            <textarea
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              rows={3}
-              className="mt-1 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
-              style={{ borderWidth: "0.5px" }}
-            />
+            <div className="mt-1">
+              <MarkdownEditor
+                value={desc}
+                onChange={setDesc}
+                placeholder={t("desc_optional")}
+                minHeight="7rem"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   Pencil,
@@ -44,6 +44,8 @@ import { CommentsSection } from "./card-modal-sections/CommentsSection";
 import { TimeTrackingSection } from "./card-modal-sections/TimeTrackingSection";
 import { ActivitySection } from "./card-modal-sections/ActivitySection";
 import { DependenciesSection } from "./card-modal-sections/DependenciesSection";
+import { AttachmentsSection } from "./card-modal-sections/AttachmentsSection";
+import { MarkdownEditor } from "./MarkdownEditor";
 
 export function CardDetailModal({
   card,
@@ -81,18 +83,22 @@ export function CardDetailModal({
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [colorOpen, setColorOpen] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const descRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef<number>(0);
   const { theme } = useTheme();
   const { t } = useLocale();
   const { loadCardDetails } = useKanban();
 
   // Tabs — persiste a aba ativa no localStorage
-  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo";
+  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo" | "anexos";
   const TABS: { id: TabId; label: string; shortcut: string }[] = [
     { id: "detalhes", label: t("tab_details"), shortcut: "1" },
     { id: "checklist", label: t("tab_checklist"), shortcut: "2" },
     { id: "comentarios", label: t("tab_comments"), shortcut: "3" },
     { id: "atividade", label: t("tab_activity"), shortcut: "4" },
     { id: "tempo", label: t("tab_time"), shortcut: "5" },
+    { id: "anexos", label: t("tab_attachments"), shortcut: "6" },
   ];
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const saved = localStorage.getItem("molas-modal-tab") as TabId | null;
@@ -186,13 +192,19 @@ export function CardDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 bg-foreground/20 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end md:items-start md:justify-center md:p-4 md:pt-10 bg-foreground/20 backdrop-blur-sm"
       onClick={editing ? undefined : onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="modal-enter w-full max-w-2xl rounded-xl bg-card shadow-2xl max-h-[88vh] flex flex-col overflow-hidden border border-border"
+        onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY; }}
+        onTouchEnd={(e) => { if (e.changedTouches[0].clientY - touchStartY.current > 80) onClose(); }}
+        className="modal-enter w-full max-h-[92vh] rounded-t-xl md:max-w-2xl md:rounded-xl md:max-h-[88vh] bg-card shadow-2xl flex flex-col overflow-hidden border border-border"
       >
+        {/* Drag handle — mobile only */}
+        <div className="flex justify-center pt-3 pb-1 md:hidden">
+          <div className="h-1 w-10 rounded-full bg-border" />
+        </div>
         {/* ── TOPO: eyebrow + título + ações ── */}
         <div className="p-5 pb-0 flex-shrink-0">
           {/* Eyebrow: track + tipo + badges */}
@@ -417,12 +429,11 @@ export function CardDetailModal({
                     );
                   })}
                 </div>
-                <textarea
+                <MarkdownEditor
                   value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  rows={5}
+                  onChange={setEditDesc}
                   placeholder={t("desc_optional")}
-                  className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+                  minHeight="12rem"
                 />
               </div>
               <div className="mt-4 flex items-center gap-2">
@@ -470,10 +481,22 @@ export function CardDetailModal({
                   );
                 })()}
               {card.desc ? (
-                <div
-                  className="mb-5 text-sm text-card-foreground/80 prose prose-sm dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }}
-                />
+                <div className="mb-5">
+                  <div
+                    ref={descRef}
+                    className="text-sm text-card-foreground/80 prose prose-sm dark:prose-invert overflow-hidden transition-all"
+                    style={{ maxHeight: descExpanded ? "none" : "8rem" }}
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }}
+                  />
+                  {(card.desc.length > 200 || card.desc.split("\n").length > 4) && (
+                    <button
+                      onClick={() => setDescExpanded((v) => !v)}
+                      className="mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {descExpanded ? t("show_less") : t("show_more")}
+                    </button>
+                  )}
+                </div>
               ) : (
                 <p className="mb-5 text-xs text-muted-foreground italic">
                   {t("no_desc")}{" "}
@@ -638,6 +661,11 @@ export function CardDetailModal({
 
           {/* Tab: Tempo */}
           {!editing && activeTab === "tempo" && <TimeTrackingSection cardId={card.id} />}
+
+          {/* Tab: Anexos */}
+          {!editing && activeTab === "anexos" && (
+            <AttachmentsSection card={card} onUpdate={onUpdate} />
+          )}
         </div>
       </div>
     </div>

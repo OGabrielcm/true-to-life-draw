@@ -1,40 +1,44 @@
 export function renderMarkdown(text: string): string {
   if (!text) return "";
 
-  let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let html = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
-  html = html.replace(/__(.+?)__/g, "<strong>$1</strong>");
-  html = html.replace(/_(.+?)_/g, "<em>$1</em>");
-  html = html.replace(
-    /\[(.+?)\]\((.+?)\)/g,
-    '<a href="$2" target="_blank" rel="noopener" class="text-blue-500 hover:underline">$1</a>',
-  );
+  html = html
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/__(.+?)__/g, "<strong>$1</strong>")
+    .replace(/_(.+?)_/g, "<em>$1</em>")
+    .replace(
+      /\[(.+?)\]\((.+?)\)/g,
+      '<a href="$2" target="_blank" rel="noopener" class="text-blue-500 hover:underline">$1</a>',
+    );
 
   const lines = html.split("\n");
+  const result: string[] = [];
   let inList = false;
-  const processed = lines
-    .map((line) => {
-      const trimmed = line.trim();
-      if (trimmed.startsWith("- ")) {
-        const item = trimmed.substring(2);
-        if (!inList) {
-          inList = true;
-          return `<ul class="ml-4 list-disc"><li>${item}</li>`;
-        }
-        return `<li>${item}</li>`;
-      }
-      if (inList && trimmed !== "") {
-        inList = false;
-        return `</ul>\n${trimmed}`;
-      }
-      if (inList && trimmed === "") {
-        return "";
-      }
-      return trimmed ? line : "";
-    })
-    .join("\n");
 
-  return inList ? processed + "</ul>" : processed;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("- ")) {
+      if (!inList) {
+        inList = true;
+        result.push('<ul class="ml-4 list-disc my-1">');
+      }
+      result.push(`<li>${trimmed.slice(2)}</li>`);
+    } else {
+      if (inList) {
+        inList = false;
+        result.push("</ul>");
+      }
+      result.push(trimmed === "" ? "<br>" : `${line}<br>`);
+    }
+  }
+  if (inList) result.push("</ul>");
+
+  let joined = result.join("");
+  joined = joined.replace(/(<br>)+$/, "");
+  return joined;
 }
