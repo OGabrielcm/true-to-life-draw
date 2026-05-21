@@ -150,6 +150,19 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
             {tracksOpen && (
               <div className="ml-1 mt-0.5 flex flex-col gap-0.5 border-l pl-2">
+                {/* "Todos" — reseta o filtro de track */}
+                <button
+                  type="button"
+                  onClick={() => { setTrackFilter("__all"); setMobileOpen(false); if (path !== "/") navigate({ to: "/" }); }}
+                  className={`flex items-center gap-2 rounded-sm px-2 py-1 text-xs transition-colors ${
+                    trackFilter === "__all"
+                      ? "bg-white-10 text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-white-5 hover:text-foreground"
+                  }`}
+                >
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-muted-foreground/40" />
+                  {t("all")}
+                </button>
                 {tracks.map((tr) => {
                   const active = trackFilter === tr.id;
                   return (
