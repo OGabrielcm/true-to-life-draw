@@ -16,6 +16,15 @@ export interface ChecklistItem {
   done: boolean;
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  path: string;      // Supabase Storage path: {userId}/{cardId}/{filename}
+  mime: string;
+  size: number;      // bytes
+  uploaded_at: string;
+}
+
 export interface Card {
   id: string;
   col: ColumnId;
@@ -31,6 +40,7 @@ export interface Card {
   order: number; // ordem dentro da coluna (float, permite inserir entre cards sem renumerar)
   checklist: ChecklistItem[];
   blocked_by: string[]; // ids de cards que bloqueiam este card
+  attachments: Attachment[];
   created_at: string;
   updated_at: string;
 }
@@ -195,7 +205,7 @@ export const TRILHA_COLOR_PRESETS: { bg: string; fg: string }[] = [
   { bg: "#ECECEC", fg: "#333333" },
 ];
 
-type SeedCard = Omit<Card, "id" | "created_at" | "updated_at" | "track">;
+type SeedCard = Omit<Card, "id" | "created_at" | "updated_at" | "track" | "attachments">;
 
 const SEED_CARDS_PT: Record<string, SeedCard[]> = {
   Trabalho: [

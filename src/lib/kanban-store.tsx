@@ -10,6 +10,7 @@ import {
 import {
   Activity,
   ActivityType,
+  Attachment,
   Card,
   CardTemplate,
   Column,
@@ -33,11 +34,12 @@ import * as TimelogService from "./timelog-service";
 
 type AddInput = Omit<
   Card,
-  "id" | "created_at" | "updated_at" | "starred" | "checklist" | "blocked_by" | "order"
+  "id" | "created_at" | "updated_at" | "starred" | "checklist" | "blocked_by" | "order" | "attachments"
 > & {
   starred?: boolean;
   checklist?: Card["checklist"];
   blocked_by?: Card["blocked_by"];
+  attachments?: Card["attachments"];
   order?: number;
 };
 
@@ -112,6 +114,7 @@ function rowToCard(row: Record<string, unknown>): Card {
     order: (row.order as number) ?? 0,
     checklist: (row.checklist as Card["checklist"]) ?? [],
     blocked_by: (row.blocked_by as string[]) ?? [],
+    attachments: (row.attachments as Attachment[]) ?? [],
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -312,6 +315,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           order: nextOrder(cards, data.track, data.col),
           checklist: data.checklist ?? [],
           blocked_by: data.blocked_by ?? [],
+          attachments: [],
           id: tempId,
           created_at: now,
           updated_at: now,
@@ -489,6 +493,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
             done: false,
           })),
           blocked_by: [],
+          attachments: [],
           created_at: now,
           updated_at: now,
         };
