@@ -61,7 +61,7 @@ function LoginPage() {
           </div>
 
           {forgotSent ? (
-            <div className="rounded-xl border bg-background p-6 text-center space-y-3" style={{ borderWidth: "0.5px" }}>
+            <div className="rounded-xl border bg-card p-6 text-center space-y-3 shadow-sm" style={{ borderWidth: "0.5px" }}>
               <span className="text-2xl">✉️</span>
               <h2 className="text-sm font-semibold">Verifique seu email</h2>
               <p className="text-xs text-muted-foreground">
@@ -75,7 +75,7 @@ function LoginPage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={submitForgot} className="space-y-4 rounded-xl border bg-background p-6" style={{ borderWidth: "0.5px" }}>
+            <form onSubmit={submitForgot} className="space-y-4 rounded-xl border bg-card p-6 shadow-sm" style={{ borderWidth: "0.5px" }}>
               <h2 className="text-sm font-semibold">Recuperar senha</h2>
               <p className="text-xs text-muted-foreground">
                 Informe seu email e enviaremos um link para redefinir sua senha.
@@ -134,7 +134,7 @@ function LoginPage() {
 
         <form
           onSubmit={submit}
-          className="space-y-4 rounded-xl border bg-background p-6"
+          className="space-y-4 rounded-xl border bg-card p-6 shadow-sm"
           style={{ borderWidth: "0.5px" }}
         >
           <h2 className="text-sm font-semibold">Entrar</h2>

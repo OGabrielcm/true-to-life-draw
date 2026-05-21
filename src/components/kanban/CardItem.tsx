@@ -127,26 +127,28 @@ export function CardItem({
 
   const aging = getCardAging(card);
 
+  // Cor da barra top: prioridade visual sem side-stripe
+  const topBarColor = blocked
+    ? "var(--blocked-stripe)"
+    : isGoal
+      ? "var(--foreground)"
+      : deadlineStatus === "overdue"
+        ? "var(--color-destructive)"
+        : deadlineStatus === "today"
+          ? "oklch(0.7 0.18 50)"
+          : cardColor && cardColor !== "none"
+            ? cardColor
+            : null;
+
   return (
     <div
       data-card-id={card.id}
       className="kb-card relative w-full overflow-hidden rounded-lg border bg-card"
-      style={{
-        opacity: isDragging ? 0.4 * aging : aging,
-        borderLeft: blocked
-          ? "3px solid rgb(168 85 247)"
-          : isGoal
-            ? "3px solid var(--foreground)"
-            : deadlineStatus === "overdue"
-              ? "3px solid var(--color-destructive)"
-              : deadlineStatus === "today"
-                ? "3px solid rgb(249 115 22)"
-                : undefined,
-      }}
+      style={{ opacity: isDragging ? 0.4 * aging : aging }}
     >
-      {/* Cover bar — 3px conforme redesign */}
-      {cardColor && cardColor !== "none" && (
-        <div className="h-[3px] w-full" style={{ backgroundColor: cardColor }} />
+      {/* Top indicator bar — substitui side-stripe */}
+      {topBarColor && (
+        <div className="h-[3px] w-full" style={{ backgroundColor: topBarColor }} />
       )}
 
       {/* Grip handle — só este elemento captura toque para drag */}
@@ -233,9 +235,9 @@ export function CardItem({
             <span
               className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
               style={{
-                backgroundColor: "rgb(168 85 247 / 0.12)",
-                color: "rgb(168 85 247)",
-                borderColor: "rgb(168 85 247 / 0.25)",
+                backgroundColor: "var(--blocked-bg)",
+                color: "var(--blocked-fg)",
+                borderColor: "var(--blocked-border)",
               }}
               title="Bloqueado por dependências pendentes"
             >

@@ -65,7 +65,7 @@ function SignUpPage() {
 
         <form
           onSubmit={submit}
-          className="space-y-4 rounded-xl border bg-background p-6"
+          className="space-y-4 rounded-xl border bg-card p-6 shadow-sm"
           style={{ borderWidth: "0.5px" }}
         >
           <h2 className="text-sm font-semibold">Nova conta</h2>
