@@ -125,8 +125,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-2 rounded-sm px-2.5 py-[7px] transition-colors ${
                   active
-                    ? "bg-white-10 text-foreground"
-                    : "text-muted-foreground hover:bg-white-5 hover:text-foreground"
+                    ? "nav-item-active text-foreground"
+                    : "nav-item-hover text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -156,8 +156,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => { setTrackFilter("__all"); setMobileOpen(false); if (path !== "/") navigate({ to: "/" }); }}
                   className={`flex items-center gap-2 rounded-sm px-2 py-1 text-xs transition-colors ${
                     trackFilter === "__all"
-                      ? "bg-white-10 text-foreground font-medium"
-                      : "text-muted-foreground hover:bg-white-5 hover:text-foreground"
+                      ? "nav-item-active text-foreground font-medium"
+                      : "nav-item-hover text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <span className="h-2 w-2 shrink-0 rounded-full bg-muted-foreground/40" />
@@ -173,8 +173,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       aria-pressed={active}
                       className={`flex items-center justify-between rounded-sm px-2 py-1 text-xs transition-colors ${
                         active
-                          ? "bg-white-10 text-foreground font-medium"
-                          : "text-muted-foreground hover:bg-white-5 hover:text-foreground"
+                          ? "nav-item-active text-foreground font-medium"
+                          : "nav-item-hover text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               setTemplatesOpen(true);
               setMobileOpen(false);
             }}
-            className="mt-1 flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
+            className="mt-1 flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground nav-item-hover hover:text-foreground transition-colors"
           >
             <LayoutTemplate className="h-3.5 w-3.5 shrink-0" />
             {t("nav_templates")}
@@ -207,7 +207,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Locale toggle */}
           <button
             onClick={() => setLocale(locale === "pt" ? "en" : "pt")}
-            className="flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
+            className="flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground nav-item-hover hover:text-foreground transition-colors"
           >
             <span className="text-xs font-mono font-semibold">
               {locale === "pt" ? "EN" : "PT"}
@@ -217,7 +217,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <button
             onClick={handleSignOut}
-            className="mt-auto flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
+            className="mt-auto flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground nav-item-hover hover:text-foreground transition-colors"
           >
             <LogOut className="h-3.5 w-3.5 shrink-0" />
             {t("log_out")}
@@ -251,7 +251,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               placeholder={t("search_placeholder")}
               className="w-full rounded-sm border bg-muted py-1.5 pl-8 pr-12 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground/40 transition-colors"
             />
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-sm border px-1 py-0.5 text-[10px] font-mono text-muted-foreground bg-white-6">
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-sm border px-1 py-0.5 text-[10px] font-mono text-muted-foreground kbd-badge">
               ⌘K
             </span>
           </div>
@@ -261,7 +261,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 to="/dashboards"
                 title={`${urgentCount} ${urgentCount > 1 ? t("urgent_tooltip_many") : t("urgent_tooltip_one")}`}
-                className="relative flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
+                className="relative flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground header-icon-hover hover:text-foreground transition-colors"
               >
                 <svg
                   className="h-4 w-4"
@@ -298,7 +298,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               onClick={toggle}
               aria-label={t("toggle_theme")}
-              className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground hover:bg-white-7 hover:text-foreground transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground header-icon-hover hover:text-foreground transition-colors"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -307,7 +307,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="relative">
               <button
                 onClick={() => setAvatarOpen((v) => !v)}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white-15 text-[11px] font-bold text-foreground hover:outline hover:outline-2 hover:outline-white/30 hover:outline-offset-1 transition-all"
+                className="avatar-btn flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold text-foreground hover:outline hover:outline-2 hover:outline-offset-1 transition-all"
                 style={{ fontFamily: "var(--font-display)" }}
                 title={user.email}
               >

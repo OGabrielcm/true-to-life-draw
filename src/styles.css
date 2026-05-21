@@ -77,38 +77,59 @@
 
 :root {
   --radius: 0.5rem; /* 8px — alinhado com Open Design */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+
+  /* Board area: warm off-white, não branco puro */
+  --background: oklch(0.97 0.004 264);
+  /* Texto principal: quase preto com leve azul-acinzentado */
+  --foreground: oklch(0.13 0.025 264);
+
+  /* Cards ligeiramente mais claros que o board para criar elevação */
+  --card: oklch(0.995 0.002 264);
+  --card-foreground: oklch(0.13 0.025 264);
+
+  /* Popovers/dropdowns: brancos com sombra — não precisam de tint */
+  --popover: oklch(0.995 0.002 264);
+  --popover-foreground: oklch(0.13 0.025 264);
+
+  /* Primary: azul-ardósia escuro — contraste forte no light mode */
+  --primary: oklch(0.22 0.05 264);
+  --primary-foreground: oklch(0.97 0.004 264);
+
+  /* Secondary: cinza azulado médio — botões secundários, chips */
+  --secondary: oklch(0.91 0.012 264);
+  --secondary-foreground: oklch(0.22 0.05 264);
+
+  /* Muted: cinza azulado para backgrounds de badge/code/kbd */
+  --muted: oklch(0.925 0.01 264);
+  --muted-foreground: oklch(0.44 0.035 264);
+
+  /* Accent: mesma base do secondary */
+  --accent: oklch(0.91 0.012 264);
+  --accent-foreground: oklch(0.22 0.05 264);
+
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --destructive-foreground: oklch(0.97 0.004 264);
+
+  /* Border: cinza com contraste real — não mais quase invisível */
+  --border: oklch(0.86 0.016 264);
+  --input: oklch(0.86 0.016 264);
+  --ring: oklch(0.5 0.08 264);
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* Sidebar: visivelmente mais escura que o board — cria hierarquia real */
+  --sidebar: oklch(0.93 0.013 264);
+  --sidebar-foreground: oklch(0.13 0.025 264);
+  --sidebar-primary: oklch(0.22 0.05 264);
+  --sidebar-primary-foreground: oklch(0.97 0.004 264);
+  --sidebar-accent: oklch(0.88 0.016 264);
+  --sidebar-accent-foreground: oklch(0.22 0.05 264);
+  --sidebar-border: oklch(0.82 0.018 264);
+  --sidebar-ring: oklch(0.5 0.08 264);
 }
 
 .dark {
@@ -187,6 +208,50 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* ── Nav item states — theme-aware ── */
+/* Light mode: usa preto/20 para hover e preto/10 para ativo */
+.nav-item-active {
+  background-color: oklch(0 0 0 / 10%);
+}
+.nav-item-hover:hover {
+  background-color: oklch(0 0 0 / 6%);
+}
+/* Avatar button */
+.avatar-btn {
+  background-color: oklch(0 0 0 / 12%);
+}
+.avatar-btn:hover {
+  outline-color: oklch(0 0 0 / 25%);
+}
+/* Header icon hover */
+.header-icon-hover:hover {
+  background-color: oklch(0 0 0 / 7%);
+}
+/* Search kbd shortcut badge */
+.kbd-badge {
+  background-color: oklch(0 0 0 / 6%);
+}
+
+/* Dark mode overrides */
+.dark .nav-item-active {
+  background-color: oklch(1 0 0 / 10%);
+}
+.dark .nav-item-hover:hover {
+  background-color: oklch(1 0 0 / 5%);
+}
+.dark .avatar-btn {
+  background-color: oklch(1 0 0 / 15%);
+}
+.dark .avatar-btn:hover {
+  outline-color: oklch(1 0 0 / 30%);
+}
+.dark .header-icon-hover:hover {
+  background-color: oklch(1 0 0 / 7%);
+}
+.dark .kbd-badge {
+  background-color: oklch(1 0 0 / 6%);
 }
 
 /* ── Design refresh — Open Design ── */
@@ -272,20 +337,26 @@
 }
 
 /* ── Scrollbar styling ── */
-.dark ::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-.dark ::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.016 264 / 60%);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.025 264 / 70%);
+}
+::-webkit-scrollbar-corner {
   background: transparent;
 }
 .dark ::-webkit-scrollbar-thumb {
   background: oklch(1 0 0 / 15%);
-  border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
   background: oklch(1 0 0 / 28%);
-}
-.dark ::-webkit-scrollbar-corner {
-  background: transparent;
 }
