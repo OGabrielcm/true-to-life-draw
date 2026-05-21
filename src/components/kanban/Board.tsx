@@ -32,6 +32,7 @@ export function Board() {
     search,
     filter,
     setFilter,
+    trackFilter,
     addCard,
     updateCard,
     moveCard,
@@ -204,22 +205,6 @@ export function Board() {
             )}
           </div>
 
-          <button
-            onClick={() => setTracksOpen(true)}
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            style={{ borderWidth: "0.5px" }}
-          >
-            <Layers className="h-3.5 w-3.5" />
-            {t("tracks")}
-          </button>
-          <button
-            onClick={() => setColumnsOpen("__global")}
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            style={{ borderWidth: "0.5px" }}
-          >
-            <Columns className="h-3.5 w-3.5" />
-            {t("columns")}
-          </button>
         </div>
       </div>
 
@@ -237,7 +222,9 @@ export function Board() {
               <span className="text-foreground/70">{t("see_dashboards")}</span>
             </Link>
           )}
-          {tracks.map((track) => (
+          {tracks
+            .filter((tr) => trackFilter === "__all" || tr.id === trackFilter)
+            .map((track) => (
             <Swimlane
               key={track.id}
               track={track}

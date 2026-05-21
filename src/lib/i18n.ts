@@ -170,6 +170,7 @@ const pt = {
   nav_for_you: "For You",
   nav_calendar: "Calendário",
   nav_dashboards: "Dashboards",
+  nav_settings: "Configurações",
   nav_profile: "Profile",
   nav_templates: "Templates",
 
@@ -392,6 +393,7 @@ const en = {
   nav_for_you: "For You",
   nav_calendar: "Calendar",
   nav_dashboards: "Dashboards",
+  nav_settings: "Settings",
   nav_profile: "Profile",
   nav_templates: "Templates",
 

@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth-store";
 import { ThemeProvider } from "@/components/theme-provider";
 import { KanbanProvider } from "@/lib/kanban-store";
 import { LocaleProvider } from "@/lib/locale-context";
+import { UserProfileProvider } from "@/lib/user-profile-store";
 
 function NotFoundComponent() {
   return (
@@ -76,9 +77,11 @@ function RootComponent() {
       <ThemeProvider>
         <LocaleProvider>
           <AuthProvider>
-            <KanbanProvider>
-              <Outlet />
-            </KanbanProvider>
+            <UserProfileProvider>
+              <KanbanProvider>
+                <Outlet />
+              </KanbanProvider>
+            </UserProfileProvider>
           </AuthProvider>
         </LocaleProvider>
       </ThemeProvider>
