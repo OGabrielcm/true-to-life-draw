@@ -19,10 +19,6 @@ import {
   Track,
   TrackId,
   Trilha,
-  DEFAULT_COLUMNS,
-  getDefaultTracks,
-  getDefaultTrilhas,
-  getSeedCardsByTrack,
   loadCollapsed,
   saveCollapsed,
   loadTemplates,
@@ -55,6 +51,8 @@ interface KanbanCtx {
   setSearch: (s: string) => void;
   filter: string;
   setFilter: (s: string) => void;
+  trackFilter: string;
+  setTrackFilter: (s: string) => void;
   loading: boolean;
   addCard: (data: AddInput) => void;
   updateCard: (id: string, patch: Partial<Card>) => void;
@@ -179,6 +177,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("__all");
+  const [trackFilter, setTrackFilter] = useState("__all");
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<CardTemplate[]>(loadTemplates);
@@ -188,6 +187,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [timeLogsByCard, setTimeLogsByCard] = useState<Record<string, TimeLog[]>>({});
 
   const currentUserIdRef = useRef<string | null>(null);
+  const loadInFlightRef = useRef<Promise<void> | null>(null);
 
   const logActivityRef = useRef<
     (taskId: string, type: ActivityType, message: string) => Promise<void>
@@ -206,7 +206,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
+    const runLoad = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -223,66 +223,29 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return;
 
-      // Detect locale from localStorage (set by LocaleProvider)
-      const locale = (localStorage.getItem("molas-locale") === "en" ? "en" : "pt") as "pt" | "en";
-
-      // Seed tracks if user has none
-      let userTracks: Track[];
-      if (!dbTracks?.length) {
-        const seededTracks = getDefaultTracks(locale).map((t) => ({ ...trackToRow(t), user_id: user.id }));
-        const { data: inserted } = await supabase.from("tracks").insert(seededTracks).select();
-        userTracks = (inserted ?? []).map(rowToTrack).sort((a, b) => a.order - b.order);
-      } else {
-        userTracks = dbTracks.map(rowToTrack);
+      // Sem seed automático: trilhas, tracks, columns e cards iniciais
+      // são criadas pelo usuário no Onboarding Beta (e depois em /settings).
+      if (!cancelled) {
+        setTracks((dbTracks ?? []).map(rowToTrack));
+        setCards((dbCards ?? []).map(rowToCard));
+        setTrilhas((dbTrilhas ?? []).map(rowToTrilha));
+        setColumns(
+          (dbColumns ?? []).map(rowToColumn).sort((a, b) => a.order - b.order),
+        );
+        setLoading(false);
       }
-      if (!cancelled) setTracks(userTracks);
+    };
 
-      // Seed tasks if user has none — map seed cards to actual track IDs
-      if (!dbCards?.length) {
-        const seedCards = getSeedCardsByTrack(locale);
-        const now = new Date().toISOString();
-        const seeded = userTracks.flatMap((track) => {
-          const cardsForTrack = seedCards[track.name] ?? [];
-          return cardsForTrack.map((c) => ({
-            ...c,
-            track: track.id,
-            user_id: user.id,
-            id: crypto.randomUUID(),
-            created_at: now,
-            updated_at: now,
-          }));
-        });
-        if (seeded.length) {
-          const { data: inserted } = await supabase.from("tasks").insert(seeded).select();
-          if (!cancelled) setCards((inserted ?? []).map(rowToCard));
-        }
-      } else {
-        setCards(dbCards.map(rowToCard));
-      }
-
-      // Seed trilhas if user has none
-      if (!dbTrilhas?.length) {
-        const seededTrilhas = getDefaultTrilhas(locale).map(({ id: _id, ...t }) => ({
-          ...t,
-          user_id: user.id,
-        }));
-        const { data: inserted } = await supabase.from("trilhas").insert(seededTrilhas).select();
-        if (!cancelled) setTrilhas((inserted ?? []).map(rowToTrilha));
-      } else {
-        setTrilhas(dbTrilhas.map(rowToTrilha));
-      }
-
-      // Seed columns if user has none
-      if (!dbColumns?.length) {
-        const seededCols = DEFAULT_COLUMNS.map((c) => ({ ...c, user_id: user.id }));
-        const { data: inserted } = await supabase.from("columns").insert(seededCols).select();
-        if (!cancelled)
-          setColumns((inserted ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
-      } else {
-        if (!cancelled) setColumns(dbColumns.map(rowToColumn).sort((a, b) => a.order - b.order));
-      }
-
-      if (!cancelled) setLoading(false);
+    // Deduplica chamadas concorrentes: se já houver um load() em curso,
+    // retorna a mesma Promise em vez de iniciar outro (evita race condition
+    // que duplicava o seed em contas novas — load inicial vs SIGNED_IN).
+    const load = () => {
+      if (loadInFlightRef.current) return loadInFlightRef.current;
+      const p = runLoad().finally(() => {
+        loadInFlightRef.current = null;
+      });
+      loadInFlightRef.current = p;
+      return p;
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -327,6 +290,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       setSearch,
       filter,
       setFilter,
+      trackFilter,
+      setTrackFilter,
       loading,
       createOpen,
       setCreateOpen,
@@ -718,6 +683,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           await supabase.from("tasks").delete().eq("track", id);
         }
         setTracks(remaining);
+        setTrackFilter((f) => (f === id ? "__all" : f));
         setCollapsed((cur) => {
           const next = { ...cur };
           delete next[id];
@@ -799,6 +765,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       collapsed,
       search,
       filter,
+      trackFilter,
       createOpen,
       loading,
       templates,

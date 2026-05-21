@@ -15,14 +15,16 @@ import {
   X,
   LogOut,
   LayoutTemplate,
+  Settings,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useKanban } from "@/lib/kanban-store";
 import { useAuth } from "@/lib/auth-store";
+import { useUserProfile } from "@/lib/user-profile-store";
+import { OnboardingBeta } from "@/components/onboarding/OnboardingBeta";
 import { getDeadlineStatus } from "@/lib/kanban-types";
 import { CreateCardModal } from "@/components/kanban/CreateCardModal";
 import { TemplatesModal } from "@/components/kanban/TemplatesModal";
-import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { useLocale } from "@/lib/locale-context";
 
 const NAV_KEYS = [
@@ -30,6 +32,7 @@ const NAV_KEYS = [
   { to: "/for-you", labelKey: "nav_for_you" as const, icon: Star },
   { to: "/calendar", labelKey: "nav_calendar" as const, icon: Calendar },
   { to: "/dashboards", labelKey: "nav_dashboards" as const, icon: LayoutDashboard },
+  { to: "/settings", labelKey: "nav_settings" as const, icon: Settings },
   { to: "/profile", labelKey: "nav_profile" as const, icon: User },
 ];
 
@@ -41,12 +44,13 @@ function initials(email: string | undefined) {
 export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggle } = useTheme();
   const { locale, setLocale, t } = useLocale();
-  const { search, setSearch, setCreateOpen, createOpen, tracks, cards } = useKanban();
+  const { search, setSearch, setCreateOpen, createOpen, tracks, cards, trackFilter, setTrackFilter } = useKanban();
   const urgentCount = cards.filter((c) => {
     const s = getDeadlineStatus(c);
     return s === "overdue" || s === "today";
   }).length;
   const { user, loading, signOut } = useAuth();
+  const { onboardingCompleted, loading: profileLoading } = useUserProfile();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -61,11 +65,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   }, [user, loading, navigate]);
 
-  const scrollToTrack = (id: string) => {
-    if (path !== "/") return;
-    const el = document.getElementById(`track-${id}`);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleTrackClick = (id: string) => {
+    // Toggle: clicar na mesma trilha ativa desfaz o filtro.
+    const next = trackFilter === id ? "__all" : id;
+    setTrackFilter(next);
     setMobileOpen(false);
+    if (path !== "/") navigate({ to: "/" });
   };
 
   const handleSignOut = async () => {
@@ -74,8 +79,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/login" });
   };
 
-  if (loading) return <AppSkeleton />;
+  if (loading || profileLoading) return <AppSkeleton />;
   if (!user) return null;
+
+  // Bloqueia o app até o usuário completar o Onboarding Beta.
+  if (onboardingCompleted === false) {
+    return <OnboardingBeta />;
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
@@ -140,23 +150,30 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
             {tracksOpen && (
               <div className="ml-1 mt-0.5 flex flex-col gap-0.5 border-l pl-2">
-                {tracks.map((t) => (
-                  <Link
-                    key={t.id}
-                    to="/"
-                    hash={`track-${t.id}`}
-                    onClick={() => scrollToTrack(t.id)}
-                    className="flex items-center justify-between rounded-sm px-2 py-1 text-xs text-muted-foreground hover:bg-white-5 hover:text-foreground transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="h-2 w-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: t.border }}
-                      />
-                      {t.name}
-                    </div>
-                  </Link>
-                ))}
+                {tracks.map((tr) => {
+                  const active = trackFilter === tr.id;
+                  return (
+                    <button
+                      key={tr.id}
+                      type="button"
+                      onClick={() => handleTrackClick(tr.id)}
+                      aria-pressed={active}
+                      className={`flex items-center justify-between rounded-sm px-2 py-1 text-xs transition-colors ${
+                        active
+                          ? "bg-white-10 text-foreground font-medium"
+                          : "text-muted-foreground hover:bg-white-5 hover:text-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: tr.border }}
+                        />
+                        {tr.name}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -298,6 +315,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <User className="h-3.5 w-3.5" />
                       {t("nav_profile")}
                     </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setAvatarOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                    >
+                      <Settings className="h-3.5 w-3.5" />
+                      {t("nav_settings")}
+                    </Link>
                     <button
                       onClick={handleSignOut}
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors"
@@ -317,7 +342,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {createOpen && <CreateCardModal onClose={() => setCreateOpen(false)} />}
       {templatesOpen && <TemplatesModal onClose={() => setTemplatesOpen(false)} />}
-      <OnboardingModal />
     </div>
   );
 }
