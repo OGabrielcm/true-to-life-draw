@@ -253,3 +253,74 @@ Dentro da Fase 1, a ordem recomendada é:
 1.2 Colunas customizáveis → Sonnet 4.6  (alto impacto + médio custo)
 1.3 Reordenação na coluna → Opus 4.7    (necessário antes das fases seguintes)
 ```
+
+---
+
+## 📬 Grupo E — Email e Comunicação
+> Bloqueado pelo Supabase free plan. Requer Gmail SMTP ou domínio próprio + Resend.
+
+| # | Feature | Por que importa | Pré-requisito | Consumo | Modelo |
+|---|---------|----------------|--------------|---------|--------|
+| E1 | **Templates HTML de email** (boas-vindas, recuperação, confirmação) com visual Molas | Profissionaliza o onboarding — hoje os emails saem com layout padrão do Supabase | Gmail SMTP ou domínio + Resend | 🟡 Médio | `claude-sonnet-4-6` |
+| E2 | **Email de boas-vindas automático** no signup | Primeira impressão da ferramenta; reforça identidade visual | E1 (SMTP customizado) ativo | 🟢 Baixo | `claude-haiku-4-5-20251001` |
+
+---
+
+## 🧪 Grupo Q — Qualidade e Cobertura
+> Garantia de que o que foi construído continua funcionando à medida que o projeto cresce.
+
+| # | Feature | Por que importa | Consumo | Modelo |
+|---|---------|----------------|---------|--------|
+| Q1 | **Onboarding Beta — validação com conta nova** | O fluxo step 1 → step 2 → /settings nunca foi validado end-to-end com uma conta recém-criada; os E2E cobrem apenas contas existentes | 🟢 Baixo (testes manuais) | — |
+| Q2 | **Testes E2E no CI** (Vercel Preview + GitHub Actions) | Os testes existem mas rodam apenas localmente; qualquer deploy pode quebrar sem alerta | 🟡 Médio | `claude-sonnet-4-6` |
+| Q3 | **Cobertura E2E das Fases 1–3** (board básico, drag-drop, filtros, coluna) | Só as Fases 4 e 6 têm testes; as features principais do produto não têm garantia automatizada | 🔴 Alto | `claude-opus-4-7` |
+
+---
+
+## 🚀 Grupo P — Features de Produto
+> Funcionalidades que diferenciam o Molas de um Kanban genérico e aumentam o valor diário.
+
+| # | Feature | Referência | Consumo | Modelo |
+|---|---------|-----------|---------|--------|
+| P1 | **Notificações push / browser** para prazos vencendo | Trello, Linear | 🟡 Médio | `claude-sonnet-4-6` |
+| P2 | **Recurring cards** — cards que se repetem automaticamente (semanal, mensal) | Notion, TickTick | 🔴 Alto | `claude-opus-4-7` |
+| P3 | **Modo foco** — esconde tudo exceto a trilha/coluna selecionada | Linear | 🟢 Baixo | `claude-haiku-4-5-20251001` |
+| P4 | **Quick-add via `Cmd+K`** — paleta de comandos para criar card sem abrir o board | Linear, Raycast | 🟡 Médio | `claude-sonnet-4-6` |
+| P5 | **Swim lane por prazo** (hoje / esta semana / atrasado) como view alternativa do board | JIRA | 🔴 Alto | `claude-opus-4-7` |
+| P6 | **Métricas de fluxo** — Lead time, Cycle time, Throughput por coluna | Kanban profissional | 🔴 Alto | `claude-opus-4-7` |
+| P7 | **Board snapshot semanal** — foto automática do estado do board para histórico | Gestão pessoal | 🔴 Alto | `claude-opus-4-7` |
+
+---
+
+## 🔧 Grupo T — Qualidade Técnica (dívida futura)
+> Melhorias de arquitetura que não adicionam features visíveis, mas aumentam confiabilidade e percepção de velocidade.
+
+| # | Feature | Por que importa | Consumo | Modelo |
+|---|---------|----------------|---------|--------|
+| T1 | **Optimistic updates** em todas as mutações do board | Hoje toda ação espera o Supabase responder antes de atualizar a UI — perceptível em conexões lentas | 🔴 Alto | `claude-opus-4-7` |
+| T2 | **Realtime Supabase** — múltiplas abas sincronizadas sem reload | Abrindo o app em duas abas, mudanças em uma não aparecem na outra | 🔴 Alto | `claude-opus-4-7` |
+| T3 | **Error boundary global** + fallback UI de erro | O app quebra silenciosamente em alguns fluxos; o usuário vê tela branca sem mensagem | 🟡 Médio | `claude-sonnet-4-6` |
+| T4 | **PWA / installable** — manifesto + service worker para uso offline | Ferramenta pessoal de uso diário — funcionar offline faz sentido | 🟡 Médio | `claude-sonnet-4-6` |
+| T5 | **Limpar `routeTree.gen.ts`** do versionamento | Arquivo auto-gerado pelo TanStack Router não deve ser commitado manualmente | 🟢 Mínimo | — |
+
+---
+
+## Ordem sugerida para os grupos futuros
+
+```
+Q1 (validação manual — zero custo, feito pelo usuário)
+  ↓
+Q2 (E2E no CI — proteção antes de crescer)
+  ↓
+P3 (Modo foco — Haiku, rápido, alto impacto visual)
+P4 (Quick-add Cmd+K — Sonnet, diferencial de UX imediato)
+  ↓
+T3 (Error boundary — Sonnet, confiabilidade)
+T1 (Optimistic updates — Opus, sensação de velocidade)
+  ↓
+P2 (Recurring cards — Opus, elimina trabalho repetitivo)
+P6 (Métricas de fluxo — Opus, fecha o loop analítico)
+  ↓
+E1 + E2 (Email templates — quando SMTP customizado estiver ativo)
+T2 + T4 (Realtime + PWA — última camada de polimento)
+```
