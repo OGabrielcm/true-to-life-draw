@@ -544,7 +544,7 @@ function Swimlane({
       </button>
 
       {!collapsed && (
-        <div className="flex gap-3 overflow-x-auto p-3 pb-4">
+        <div className="flex gap-3 overflow-x-auto p-3 pb-4 snap-x snap-mandatory scroll-pl-3">
           {columns.map((col) => {
             const colCards = cards
               .filter((c) => c.col === col.id)
@@ -571,7 +571,7 @@ function Swimlane({
                   setDragOver(null);
                   setDraggingId(null);
                 }}
-                className={`flex w-[220px] shrink-0 flex-col rounded-lg border transition-colors sm:w-[260px] md:w-auto md:flex-1 ${
+                className={`flex w-[220px] shrink-0 flex-col rounded-lg border transition-colors snap-start sm:w-[260px] md:w-auto md:flex-1 ${
                   col.wip_limit && colCards.length > col.wip_limit ? "border-destructive/50" : ""
                 }`}
                 style={{
