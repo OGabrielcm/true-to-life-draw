@@ -2,6 +2,12 @@
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
 > Atualizado em: Maio 2026 — Fases 1–5 completas ✅ · MVP em produção (Vercel)
+>
+> **2026-05-31 — Bloco 1 (refatoração estrutural) concluído:** migrations movidas
+> para `supabase/migrations/`, rotas de auth agrupadas em pathless group `(auth)/`
+> (URLs preservadas), distinção Track/Trilha documentada e `kanban-store` dividido
+> em slices. A revisão completa do roadmap (itens implementados, datas) está
+> planejada para o Bloco 6.
 
 ---
 
@@ -21,7 +27,7 @@
 |--------|----|-------------|
 | **Haiku 4.5** | `claude-haiku-4-5-20251001` | Tarefas simples, 1–2 arquivos, sem migration |
 | **Sonnet 4.6** | `claude-sonnet-4-6[1m]` | Tarefas médias, 3–5 arquivos, novo modal/componente |
-| **Opus 4.7** | `claude-opus-4-7` | Tarefas complexas, 6+ arquivos, nova tabela Supabase |
+| **Opus 4.8** | `claude-opus-4-8` | Tarefas complexas, 6+ arquivos, nova tabela Supabase |
 
 > ⚠️ **Regra:** Antes de iniciar qualquer feature, verificar se o modelo ativo coincide com o modelo recomendado abaixo. Se não coincidir, pausar e avisar o usuário.
 
