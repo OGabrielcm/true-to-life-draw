@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-store";
 
-export const Route = createFileRoute("/signup")({
+export const Route = createFileRoute("/(auth)/signup")({
   component: SignUpPage,
   head: () => ({ meta: [{ title: "Criar conta — Molas" }] }),
 });

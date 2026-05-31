@@ -1,3 +1,19 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// DECISÃO DE NOMENCLATURA — Track vs Trilha (não fundir os dois!)
+//
+// O projeto tem DOIS conceitos distintos que, no PT-BR visível ao usuário,
+// ambos aparecem como "Trilhas". No CÓDIGO eles permanecem separados:
+//
+//   • Track  → swimlane horizontal do board (uma lane). Tem colunas próprias,
+//              ordem, cores claras/escuras. Gerenciado por TracksModal.
+//   • Trilha → tag/etiqueta de filtro (sistema de tags legado). Aparece em
+//              Card.tags como lista de ids. Gerenciada por TrilhasModal.
+//
+// Padrão de UI: rótulos visíveis usam "Trilha(s)" (ver i18n.ts). Padrão de
+// código: mantém-se `track`/`Track` para swimlane e `trilha`/`Trilha` para tag.
+// NÃO renomear um no outro — fundiria swimlane e tag e quebraria board/filtros.
+// ─────────────────────────────────────────────────────────────────────────────
+
 export type ColumnId = string;
 export type Priority = "Alta" | "Média" | "Baixa";
 export type TrackId = string;
