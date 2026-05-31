@@ -5,9 +5,8 @@ export const RUN_ID = Date.now().toString(36).slice(-4).toUpperCase();
 
 export async function goToBoard(page: Page) {
   await page.goto("/");
-  await expect(page.locator("text=Gerenciador de Molas")).toBeVisible({ timeout: 15_000 });
-
-  // Aguarda as tracks carregarem do Supabase (pelo menos 1 [data-track] no DOM)
+  // "Gerenciador de Molas" é apenas <title> do head (não texto visível).
+  // O sinal confiável de board pronto é o primeiro [data-track] no DOM.
   await expect(page.locator("[data-track]").first()).toBeAttached({ timeout: 15_000 });
 
   // Expande todas as tracks colapsadas (chevron com rotate(-90deg) = colapsada)
