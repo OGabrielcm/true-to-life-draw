@@ -30,6 +30,19 @@
 > há trigger/edge-function de limpeza do bucket. Fora do escopo do critério;
 > registrado para decisão futura.
 >
+> **2026-06-01 — Bloco 5 (responsividade mobile do dashboard) concluído:** o
+> dashboard já era responsivo (trabalho anterior); o mapeamento foi feito por
+> RENDERIZAÇÃO real em 390px e 375px (probe visual `probe-dashboard-mobile.mjs`),
+> não por leitura de classes. Resultado: KPIs, os três gráficos de barras e os
+> filtros já se comportam bem; a única quebra real era a **tabela** — rola na
+> horizontal (não cabe em 390px) mas **sem indicação visual** de que há mais
+> colunas (inclusive as ações). Fix: degradê na borda direita (só mobile, `md:`
+> esconde) sinalizando o scroll. Sem overflow de página, sem texto truncado.
+> **Nota de breakpoint:** "768px (não alterar)" é guardrail, não diretiva — o
+> divisor mobile do app é `md:` (768px, AppShell). Converter os `sm:` (640px) do
+> dashboard para `md:` seria **no-op em 390/375** (ambos caem no base) e fora do
+> escopo; mantido como está.
+>
 > **2026-06-01 — Bloco 2 (bugs) parcial:** 2.1 corrigido (board travava no
 > skeleton ao restaurar sessão — gatilho de load reativo a `user?.id`); 2.3
 > corrigido (busca agora casa também nome de etiqueta, além de título/descrição).

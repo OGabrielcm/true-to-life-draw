@@ -171,7 +171,9 @@ function DashboardsPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             {/* Por coluna */}
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
-              <p className="mb-3 text-xs font-medium text-muted-foreground">{t("cards_by_column")}</p>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
+                {t("cards_by_column")}
+              </p>
               <div className="space-y-2">
                 {stats.byColumn.map(({ col, count }) => {
                   const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
@@ -195,7 +197,9 @@ function DashboardsPage() {
 
             {/* Por prioridade */}
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
-              <p className="mb-3 text-xs font-medium text-muted-foreground">{t("cards_by_priority")}</p>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
+                {t("cards_by_priority")}
+              </p>
               <div className="space-y-2">
                 {[
                   {
@@ -243,7 +247,9 @@ function DashboardsPage() {
 
             {/* Por track */}
             <div className="rounded-xl border bg-card p-4" style={{ borderWidth: "0.5px" }}>
-              <p className="mb-3 text-xs font-medium text-muted-foreground">{t("cards_by_track")}</p>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
+                {t("cards_by_track")}
+              </p>
               <div className="space-y-2">
                 {stats.byTrack.map(({ track, count }) => {
                   const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
@@ -343,7 +349,11 @@ function DashboardsPage() {
                     {(["all", "active", "archived"] as ArchiveFilter[]).map((opt) => {
                       const active = archiveFilter === opt;
                       const label =
-                        opt === "all" ? t("status_all") : opt === "active" ? t("status_active") : t("status_archived");
+                        opt === "all"
+                          ? t("status_all")
+                          : opt === "active"
+                            ? t("status_active")
+                            : t("status_archived");
                       return (
                         <button
                           key={opt}
@@ -469,89 +479,116 @@ function DashboardsPage() {
             </div>
           )}
         </div>
-        <div className="overflow-x-auto rounded-xl border" style={{ borderWidth: "0.5px" }}>
-          <table className="min-w-[680px] w-full text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_title")}</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_track")}</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_status")}</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_priority")}</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_deadline")}</th>
-                <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t("col_header_updated")}</th>
-                <th className="px-3 py-2 text-right font-medium whitespace-nowrap">{t("col_header_actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((c) => {
-                const track = tracks.find((t) => t.id === c.track);
-                const col = columns.find((x) => x.id === c.col);
-                const archived = isArchived(c);
-                return (
-                  <tr
-                    key={c.id}
-                    className="border-t"
-                    style={{ borderWidth: "0.5px", opacity: archived ? 0.7 : 1 }}
-                  >
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
+        {/* Wrapper relativo: a tabela rola na horizontal no mobile (não cabe em
+            390/375px). O degradê na borda direita sinaliza que há mais colunas
+            (ações inclusive) ao rolar — some no desktop (md:), onde tudo cabe. */}
+        <div className="relative">
+          <div className="overflow-x-auto rounded-xl border" style={{ borderWidth: "0.5px" }}>
+            <table className="min-w-[680px] w-full text-sm">
+              <thead className="bg-muted/50 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                    {t("col_header_title")}
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                    {t("col_header_track")}
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                    {t("col_header_status")}
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                    {t("col_header_priority")}
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                    {t("col_header_deadline")}
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                    {t("col_header_updated")}
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium whitespace-nowrap">
+                    {t("col_header_actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((c) => {
+                  const track = tracks.find((t) => t.id === c.track);
+                  const col = columns.find((x) => x.id === c.col);
+                  const archived = isArchived(c);
+                  return (
+                    <tr
+                      key={c.id}
+                      className="border-t"
+                      style={{ borderWidth: "0.5px", opacity: archived ? 0.7 : 1 }}
+                    >
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setOpenId(c.id)}
+                            className="text-left font-medium text-foreground hover:underline"
+                          >
+                            {c.title}
+                          </button>
+                          {archived && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              <Archive className="h-2.5 w-2.5" />
+                              {t("archived_badge")}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                          style={{ backgroundColor: track?.bg, color: track?.fg }}
+                        >
+                          {track?.name}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-muted-foreground">{col?.name}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{c.prio}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{formatDate(c.date)}</td>
+                      <td className="px-3 py-2 text-xs text-muted-foreground">
+                        {new Date(c.updated_at).toLocaleDateString(
+                          locale === "pt" ? "pt-BR" : "en-US",
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right">
                         <button
                           onClick={() => setOpenId(c.id)}
-                          className="text-left font-medium text-foreground hover:underline"
+                          className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
                         >
-                          {c.title}
+                          {t("edit")}
                         </button>
-                        {archived && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            <Archive className="h-2.5 w-2.5" />
-                            {t("archived_badge")}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                        style={{ backgroundColor: track?.bg, color: track?.fg }}
-                      >
-                        {track?.name}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground">{col?.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{c.prio}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{formatDate(c.date)}</td>
-                    <td className="px-3 py-2 text-xs text-muted-foreground">
-                      {new Date(c.updated_at).toLocaleDateString(locale === "pt" ? "pt-BR" : "en-US")}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        onClick={() => setOpenId(c.id)}
-                        className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                      >
-                        {t("edit")}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`${t("delete_confirm")}`)) deleteCard(c.id);
-                        }}
-                        className="ml-1 rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                        aria-label={t("delete")}
-                      >
-                        <Trash2 className="inline h-3.5 w-3.5" />
-                      </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`${t("delete_confirm")}`)) deleteCard(c.id);
+                          }}
+                          className="ml-1 rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          aria-label={t("delete")}
+                        >
+                          <Trash2 className="inline h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
+                      {t("no_cards")}
                     </td>
                   </tr>
-                );
-              })}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                    {t("no_cards")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Affordance de scroll horizontal (só mobile): degradê na borda
+              direita indicando colunas escondidas. Não captura toque. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-xl bg-gradient-to-l from-background to-transparent md:hidden"
+          />
         </div>
       </div>
       {open && (
