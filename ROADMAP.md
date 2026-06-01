@@ -9,6 +9,12 @@
 > em slices. A revisão completa do roadmap (itens implementados, datas) está
 > planejada para o Bloco 6.
 >
+> **2026-06-01 — Bloco 3 (melhorias visuais) concluído:** 3.1 contadores reais
+> nas abas do card (o número ao lado do nome é atalho de teclado, não contagem);
+> 3.2 polish do checklist + fix do botão excluir invisível no mobile; 3.3 quatro
+> temas (Dark padrão, Light, Baby Blue, Sépia/Gruvbox) com seletor dropdown e
+> persistência por usuário no Supabase (`user_profile.theme`), cross-device.
+>
 > **2026-06-01 — Bloco 2 (bugs) parcial:** 2.1 corrigido (board travava no
 > skeleton ao restaurar sessão — gatilho de load reativo a `user?.id`); 2.3
 > corrigido (busca agora casa também nome de etiqueta, além de título/descrição).
