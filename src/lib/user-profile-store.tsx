@@ -59,7 +59,11 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading]);
+    // Chaveia por user?.id (primitivo estável), não pelo objeto `user`, que o
+    // auth-store recria a cada setSession — evita re-runs espúrios que poderiam
+    // cancelar o load em voo no reload (mesma classe de bug do Bloco 2.1).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading]);
 
   const markOnboardingCompleted = async () => {
     if (!user) return;

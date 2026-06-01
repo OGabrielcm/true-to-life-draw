@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Card, Column, Track, Trilha, loadCollapsed, saveCollapsed } from "../kanban-types";
 import { supabase } from "../supabase";
+import { useAuth } from "../auth-store";
 import { Ctx, KanbanCtx } from "./context";
 import {
   nextOrder,
@@ -53,18 +54,39 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const { templates, saveTemplate, updateTemplate, deleteTemplate } = useTemplates();
   const { cardColors, setCardColor } = useCardColors();
 
+  // Bloco 2.1: consome a sessão do auth-store em vez de manter getUser()/
+  // onAuthStateChange próprios. O padrão anterior tinha 3 gatilhos de load
+  // (chamada direta + SIGNED_IN + load inicial) correndo sobre um único
+  // loadInFlightRef cujo dedup, sob StrictMode (mount→cleanup→mount), devolvia
+  // uma Promise presa ao `cancelled` da instância morta → o board travava no
+  // skeleton ao restaurar sessão (reload). O auth-store já usa getSession()
+  // (leitura local, sem race) e expõe user/loading; este efeito reage a eles —
+  // um único gatilho, igual ao padrão de user-profile-store.
+  const { user, loading: authLoading } = useAuth();
   const loadInFlightRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
+    // Aguarda o auth-store hidratar a sessão antes de decidir.
+    if (authLoading) return;
+
+    // Sem usuário (sessão expirada/deslogado): limpa o estado e encerra o
+    // loading — o guard do AppShell (!user && !loading) redireciona ao /login,
+    // em vez de skeleton infinito e silencioso.
+    if (!user) {
+      setCards([]);
+      setTrilhas([]);
+      setTracks([]);
+      setColumns([]);
+      currentUserIdRef.current = null;
+      loadInFlightRef.current = null;
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
+    currentUserIdRef.current = user.id;
 
     const runLoad = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
-      currentUserIdRef.current = user.id;
-
       const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] =
         await Promise.all([
           supabase.from("tasks").select("*").order("created_at"),
@@ -77,46 +99,29 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       // Sem seed automático: trilhas, tracks, columns e cards iniciais
       // são criadas pelo usuário no Onboarding Beta (e depois em /settings).
-      if (!cancelled) {
-        setTracks((dbTracks ?? []).map(rowToTrack));
-        setCards((dbCards ?? []).map(rowToCard));
-        setTrilhas((dbTrilhas ?? []).map(rowToTrilha));
-        setColumns((dbColumns ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
-        setLoading(false);
-      }
+      setTracks((dbTracks ?? []).map(rowToTrack));
+      setCards((dbCards ?? []).map(rowToCard));
+      setTrilhas((dbTrilhas ?? []).map(rowToTrilha));
+      setColumns((dbColumns ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
+      setLoading(false);
     };
 
-    // Deduplica chamadas concorrentes: se já houver um load() em curso,
-    // retorna a mesma Promise em vez de iniciar outro (evita race condition
-    // que duplicava o seed em contas novas — load inicial vs SIGNED_IN).
-    const load = () => {
-      if (loadInFlightRef.current) return loadInFlightRef.current;
-      const p = runLoad().finally(() => {
+    // Dedup de fetches concorrentes redundantes (StrictMode + re-render).
+    if (!loadInFlightRef.current) {
+      loadInFlightRef.current = runLoad().finally(() => {
         loadInFlightRef.current = null;
       });
-      loadInFlightRef.current = p;
-      return p;
-    };
-
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") load();
-      if (event === "SIGNED_OUT") {
-        setCards([]);
-        setTrilhas([]);
-        setTracks([]);
-        setColumns([]);
-        setLoading(true);
-      }
-    });
-
-    load();
+    }
 
     return () => {
       cancelled = true;
-      sub.subscription.unsubscribe();
     };
+    // Depende de user?.id (primitivo estável), NÃO do objeto `user`: o auth-store
+    // recria session?.user a cada setSession (INITIAL_SESSION → SIGNED_IN →
+    // TOKEN_REFRESHED no reload). Chavear pelo objeto causaria re-runs espúrios
+    // que cancelavam o load em voo e travavam o board no skeleton (Bloco 2.1).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id, authLoading]);
 
   useEffect(() => {
     saveCollapsed(collapsed);
