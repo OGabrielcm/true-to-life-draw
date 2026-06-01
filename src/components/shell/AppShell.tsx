@@ -3,8 +3,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Plus,
   Search,
-  Moon,
-  Sun,
   Home,
   Star,
   User,
@@ -16,8 +14,10 @@ import {
   LogOut,
   LayoutTemplate,
   Settings,
+  Palette,
+  Check,
 } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme, THEMES } from "@/components/theme-provider";
 import { useKanban } from "@/lib/kanban-store";
 import { useAuth } from "@/lib/auth-store";
 import { useUserProfile } from "@/lib/user-profile-store";
@@ -42,21 +42,31 @@ function initials(email: string | undefined) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { theme, toggle } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { locale, setLocale, t } = useLocale();
-  const { search, setSearch, setCreateOpen, createOpen, tracks, cards, trackFilter, setTrackFilter } = useKanban();
+  const {
+    search,
+    setSearch,
+    setCreateOpen,
+    createOpen,
+    tracks,
+    cards,
+    trackFilter,
+    setTrackFilter,
+  } = useKanban();
   const urgentCount = cards.filter((c) => {
     const s = getDeadlineStatus(c);
     return s === "overdue" || s === "today";
   }).length;
   const { user, loading, signOut } = useAuth();
-  const { onboardingCompleted, loading: profileLoading } = useUserProfile();
+  const { onboardingCompleted, loading: profileLoading, setThemePreference } = useUserProfile();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [tracksOpen, setTracksOpen] = useState(true);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -153,7 +163,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {/* "Todos" — reseta o filtro de track */}
                 <button
                   type="button"
-                  onClick={() => { setTrackFilter("__all"); setMobileOpen(false); if (path !== "/") navigate({ to: "/" }); }}
+                  onClick={() => {
+                    setTrackFilter("__all");
+                    setMobileOpen(false);
+                    if (path !== "/") navigate({ to: "/" });
+                  }}
                   className={`flex items-center gap-2 rounded-sm px-2 py-1 text-xs transition-colors ${
                     trackFilter === "__all"
                       ? "nav-item-active text-foreground font-medium"
@@ -209,10 +223,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setLocale(locale === "pt" ? "en" : "pt")}
             className="flex items-center gap-2 rounded-sm px-2.5 py-[7px] text-muted-foreground nav-item-hover hover:text-foreground transition-colors"
           >
-            <span className="text-xs font-mono font-semibold">
-              {locale === "pt" ? "EN" : "PT"}
+            <span className="text-xs font-mono font-semibold">{locale === "pt" ? "EN" : "PT"}</span>
+            <span className="text-xs">
+              {locale === "pt" ? "Switch to English" : "Mudar para PT"}
             </span>
-            <span className="text-xs">{locale === "pt" ? "Switch to English" : "Mudar para PT"}</span>
           </button>
 
           <button
@@ -294,14 +308,41 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="hidden sm:inline">{t("create_btn")}</span>
             </button>
 
-            {/* Theme toggle */}
-            <button
-              onClick={toggle}
-              aria-label={t("toggle_theme")}
-              className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground header-icon-hover hover:text-foreground transition-colors"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+            {/* Theme selector — dropdown com 4 temas (Bloco 3.3) */}
+            <div className="relative">
+              <button
+                onClick={() => setThemeOpen((v) => !v)}
+                aria-label={t("toggle_theme")}
+                className="flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground header-icon-hover hover:text-foreground transition-colors"
+              >
+                <Palette className="h-4 w-4" />
+              </button>
+              {themeOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setThemeOpen(false)} />
+                  <div className="absolute right-0 top-9 z-20 min-w-[170px] rounded-lg border bg-card py-1 shadow-lg">
+                    {THEMES.map((th) => (
+                      <button
+                        key={th.id}
+                        onClick={() => {
+                          setTheme(th.id);
+                          setThemePreference(th.id);
+                          setThemeOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                      >
+                        <span
+                          className="h-3.5 w-3.5 shrink-0 rounded-full border border-border"
+                          style={{ backgroundColor: th.swatch }}
+                        />
+                        <span className="flex-1 text-left">{th.label}</span>
+                        {theme === th.id && <Check className="h-3.5 w-3.5 text-foreground" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Avatar */}
             <div className="relative">

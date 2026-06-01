@@ -196,6 +196,89 @@
   --sidebar-ring: oklch(1 0 0 / 30%);
 }
 
+/* ── Baby Blue (Bloco 3.3) — tema claro azul-bebê suave ── */
+.theme-babyblue {
+  --background: oklch(0.965 0.025 240);
+  --foreground: oklch(0.25 0.06 250);
+
+  --card: oklch(0.99 0.012 240);
+  --card-foreground: oklch(0.25 0.06 250);
+
+  --popover: oklch(0.99 0.012 240);
+  --popover-foreground: oklch(0.25 0.06 250);
+
+  --primary: oklch(0.55 0.13 250);
+  --primary-foreground: oklch(0.99 0.01 240);
+
+  --secondary: oklch(0.92 0.04 240);
+  --secondary-foreground: oklch(0.3 0.08 250);
+
+  --muted: oklch(0.93 0.03 240);
+  --muted-foreground: oklch(0.5 0.06 250);
+
+  --accent: oklch(0.9 0.05 240);
+  --accent-foreground: oklch(0.3 0.08 250);
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0.01 240);
+
+  --border: oklch(0.86 0.04 240);
+  --input: oklch(0.86 0.04 240);
+  --ring: oklch(0.6 0.12 250);
+
+  --sidebar: oklch(0.93 0.035 240);
+  --sidebar-foreground: oklch(0.25 0.06 250);
+  --sidebar-primary: oklch(0.55 0.13 250);
+  --sidebar-primary-foreground: oklch(0.99 0.01 240);
+  --sidebar-accent: oklch(0.88 0.05 240);
+  --sidebar-accent-foreground: oklch(0.3 0.08 250);
+  --sidebar-border: oklch(0.83 0.045 240);
+  --sidebar-ring: oklch(0.6 0.12 250);
+}
+
+/* ── Sépia / Gruvbox-inspired (Bloco 3.3) — tom quente, terroso ──
+   Paleta de referência: fundo #FBF1C7, superfície #EBDBB2, texto #3C3836,
+   acentos #D65D0E / #B57614. Não é cópia do Gruvbox — tom sépia aplicado à
+   identidade do Molas. */
+.theme-sepia {
+  --background: oklch(0.95 0.04 95); /* #FBF1C7 aprox */
+  --foreground: oklch(0.31 0.012 60); /* #3C3836 aprox */
+
+  --card: oklch(0.97 0.035 95);
+  --card-foreground: oklch(0.31 0.012 60);
+
+  --popover: oklch(0.97 0.035 95);
+  --popover-foreground: oklch(0.31 0.012 60);
+
+  --primary: oklch(0.6 0.16 47); /* #D65D0E terroso/alaranjado */
+  --primary-foreground: oklch(0.97 0.03 95);
+
+  --secondary: oklch(0.88 0.05 92); /* #EBDBB2 aprox */
+  --secondary-foreground: oklch(0.31 0.012 60);
+
+  --muted: oklch(0.89 0.045 92);
+  --muted-foreground: oklch(0.45 0.03 70);
+
+  --accent: oklch(0.86 0.055 90);
+  --accent-foreground: oklch(0.31 0.012 60);
+
+  --destructive: oklch(0.55 0.19 29);
+  --destructive-foreground: oklch(0.97 0.03 95);
+
+  --border: oklch(0.82 0.05 90);
+  --input: oklch(0.82 0.05 90);
+  --ring: oklch(0.58 0.11 65); /* #B57614 dourado/terroso */
+
+  --sidebar: oklch(0.9 0.05 93);
+  --sidebar-foreground: oklch(0.31 0.012 60);
+  --sidebar-primary: oklch(0.6 0.16 47);
+  --sidebar-primary-foreground: oklch(0.97 0.03 95);
+  --sidebar-accent: oklch(0.85 0.06 90);
+  --sidebar-accent-foreground: oklch(0.31 0.012 60);
+  --sidebar-border: oklch(0.8 0.055 90);
+  --sidebar-ring: oklch(0.58 0.11 65);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -304,7 +387,9 @@
 
 /* Light mode: sombra base para dar elevação real aos cards */
 :root:not(.dark) .kb-card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.07),
+    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .kb-card:hover {
