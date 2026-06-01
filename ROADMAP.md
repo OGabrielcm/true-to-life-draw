@@ -14,7 +14,9 @@
 > corrigido (busca agora casa também nome de etiqueta, além de título/descrição).
 > **2.2** (drag&drop mobile no modo claro) adiado: não reproduzível sem
 > dispositivo real — o handler de toque é idêntico nos dois temas. Pendente de
-> repro do sintoma.
+> repro do sintoma. **➡️ Retomar ao concluir o Bloco 6** (combinado com o
+> usuário em 2026-06-01): antes de fechar o Bloco 6, pedir o sintoma exato no
+> celular (modo claro) e tentar implementar.
 
 ---
 
