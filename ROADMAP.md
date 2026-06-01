@@ -1,7 +1,19 @@
 # 🗺️ Roadmap — Molas Kanban
 
+> ⚠️ **Este arquivo deve ser atualizado a cada implementação concluída.**
+> Ao finalizar qualquer bloco de implementação, marcar os itens como concluídos e adicionar a data.
+> Itens novos identificados durante o desenvolvimento devem ser adicionados na seção correspondente.
+
+---
+
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — Fases 1–5 completas ✅ · MVP em produção (Vercel)
+> Atualizado em: Junho 2026 — Fases 1–5 completas ✅ · Blocos 1–6 concluídos · MVP em produção (Vercel)
+>
+> **2026-06-01 — Bloco 6 (revisão do roadmap) concluído:** roadmap reconciliado
+> com o estado real do código (cada feature marcada ✅ foi verificada por grep,
+> não por confiança na lista de prompts — que já afirmou falsamente que anexos e
+> "rich text Tiptap" existiam). Regra de manutenção adicionada no topo. Anexos
+> (Bloco 4) e os 4 temas (Bloco 3.3) refletidos na seção "Já implementado".
 >
 > **2026-05-31 — Bloco 1 (refatoração estrutural) concluído:** migrations movidas
 > para `supabase/migrations/`, rotas de auth agrupadas em pathless group `(auth)/`
@@ -84,19 +96,21 @@
 | Cards com título, descrição, prioridade, prazo | ✅ |
 | Tipos de card: Task / Goal (relação pai-filho) | ✅ |
 | Tags / Trilhas (filtros visuais) | ✅ |
-| Drag & Drop (desktop + mobile) | ✅ |
+| Drag & Drop (desktop ✅ · mobile modo claro pendente de validação — ver 2.2) | ✅ |
 | Busca global | ✅ |
 | Tracks dinâmicas (criar, editar, excluir swimlanes) | ✅ |
 | Trilhas dinâmicas (criar, editar, excluir tags) | ✅ |
 | Arquivamento automático (Done > 7 dias) | ✅ |
 | For You (recentes + favoritos) | ✅ |
 | Dashboards (tabela com todas as tarefas) | ✅ |
-| Tema claro / escuro | ✅ |
+| 4 temas (Dark padrão, Light, Baby Blue, Sépia) com persistência por usuário no Supabase, cross-device | ✅ |
 | Autenticação (login, signup, perfil) | ✅ |
-| Responsividade mobile | ✅ |
+| Responsividade mobile (board, modal, dashboard com scroll horizontal na tabela) | ✅ |
+| Onboarding Beta obrigatório (`onboarding_completed`, sem trilhas/colunas padrão) | ✅ |
+| Filtro de trilhas na sidebar (mostra todas quando nenhuma selecionada) | ✅ |
 | Edição de cards (título, descrição, prazo, prioridade, tags) | ✅ |
 | Colunas customizáveis (criar, renomear, excluir colunas do board) | ✅ |
-| Reordenação de cards dentro da coluna (desktop + mobile) | ✅ |
+| Reordenação de cards dentro da coluna (desktop ✅ · mobile modo claro — ver 2.2) | ✅ |
 | Notificações de prazo (badge no header, indicador visual nos cards) | ✅ |
 | Progresso automático em Goals (% baseado em Tasks filhas) | ✅ |
 | Duplicar card | ✅ |
@@ -115,6 +129,7 @@
 | Histórico de atividades no card | ✅ |
 | Comentários no card | ✅ |
 | Time tracking (log de horas por card) | ✅ |
+| Anexos no card (upload p/ Storage, preview, download, excluir — Bloco 4) | ✅ |
 | README.md com setup, stack e schema Supabase | ✅ |
 | Código formatado com Prettier (zero lint errors) | ✅ |
 | Arquitetura em camadas (services, card-rules, dashboard-export) | ✅ |
