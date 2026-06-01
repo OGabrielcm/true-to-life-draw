@@ -42,6 +42,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     activitiesByCard,
     commentsByCard,
     timeLogsByCard,
+    attachmentsByCard,
     currentUserIdRef,
     logActivity,
     loadCardDetails,
@@ -50,6 +51,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     deleteComment,
     addTimeLog,
     deleteTimeLog,
+    addAttachment,
+    deleteAttachment,
   } = useCardDetails();
   const { templates, saveTemplate, updateTemplate, deleteTemplate } = useTemplates();
   const { cardColors, setCardColor } = useCardColors();
@@ -127,7 +130,9 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveCollapsed(collapsed);
   }, [collapsed]);
 
-  const value = useMemo<Omit<KanbanCtx, "activitiesByCard" | "commentsByCard" | "timeLogsByCard">>(
+  const value = useMemo<
+    Omit<KanbanCtx, "activitiesByCard" | "commentsByCard" | "timeLogsByCard" | "attachmentsByCard">
+  >(
     () => ({
       cards,
       trilhas,
@@ -374,6 +379,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       deleteComment,
       addTimeLog,
       deleteTimeLog,
+      addAttachment,
+      deleteAttachment,
 
       createTrilha: async (t) => {
         const {
@@ -564,8 +571,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   );
 
   const fullValue = useMemo(
-    () => ({ ...value, activitiesByCard, commentsByCard, timeLogsByCard }),
-    [value, activitiesByCard, commentsByCard, timeLogsByCard],
+    () => ({ ...value, activitiesByCard, commentsByCard, timeLogsByCard, attachmentsByCard }),
+    [value, activitiesByCard, commentsByCard, timeLogsByCard, attachmentsByCard],
   );
 
   return <Ctx.Provider value={fullValue}>{children}</Ctx.Provider>;

@@ -45,6 +45,7 @@ import { CommentsSection } from "./card-modal-sections/CommentsSection";
 import { TimeTrackingSection } from "./card-modal-sections/TimeTrackingSection";
 import { ActivitySection } from "./card-modal-sections/ActivitySection";
 import { DependenciesSection } from "./card-modal-sections/DependenciesSection";
+import { AttachmentsSection } from "./card-modal-sections/AttachmentsSection";
 
 export function CardDetailModal({
   card,
@@ -84,7 +85,8 @@ export function CardDetailModal({
   const [colorOpen, setColorOpen] = useState(false);
   const { theme } = useTheme();
   const { t } = useLocale();
-  const { loadCardDetails, commentsByCard, activitiesByCard, timeLogsByCard } = useKanban();
+  const { loadCardDetails, commentsByCard, activitiesByCard, timeLogsByCard, attachmentsByCard } =
+    useKanban();
 
   // Contadores reais por aba (3.1): exibem QUANTOS itens cada aba tem.
   // (Os números 1-5 ao lado do nome são atalhos de teclado, não contagem.)
@@ -100,16 +102,21 @@ export function CardDetailModal({
         : null,
     tempo:
       (timeLogsByCard[card.id]?.length ?? 0) > 0 ? String(timeLogsByCard[card.id].length) : null,
+    anexos:
+      (attachmentsByCard[card.id]?.length ?? 0) > 0
+        ? String(attachmentsByCard[card.id].length)
+        : null,
   };
 
   // Tabs — persiste a aba ativa no localStorage
-  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo";
+  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo" | "anexos";
   const TABS: { id: TabId; label: string; shortcut: string }[] = [
     { id: "detalhes", label: t("tab_details"), shortcut: "1" },
     { id: "checklist", label: t("tab_checklist"), shortcut: "2" },
     { id: "comentarios", label: t("tab_comments"), shortcut: "3" },
     { id: "atividade", label: t("tab_activity"), shortcut: "4" },
     { id: "tempo", label: t("tab_time"), shortcut: "5" },
+    { id: "anexos", label: t("tab_attachments"), shortcut: "6" },
   ];
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const saved = localStorage.getItem("molas-modal-tab") as TabId | null;
@@ -670,6 +677,9 @@ export function CardDetailModal({
 
           {/* Tab: Tempo */}
           {!editing && activeTab === "tempo" && <TimeTrackingSection cardId={card.id} />}
+
+          {/* Tab: Anexos */}
+          {!editing && activeTab === "anexos" && <AttachmentsSection cardId={card.id} />}
         </div>
       </div>
     </div>

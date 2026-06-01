@@ -15,6 +15,21 @@
 > temas (Dark padrão, Light, Baby Blue, Sépia/Gruvbox) com seletor dropdown e
 > persistência por usuário no Supabase (`user_profile.theme`), cross-device.
 >
+> **2026-06-01 — Bloco 4 (anexos no card) concluído:** o prompt assumia que o
+> código de upload já existia (só faltaria o bucket), mas **não havia nada de
+> anexos no projeto** — feature construída do zero. Nova tabela `attachments`
+> (metadados, RLS própria), bucket Storage `attachments` (público, 20MB) e
+> políticas das duas camadas (tabela + `storage.objects`). Seção de anexos no
+> card (upload múltiplo, listagem com preview de imagem, download, excluir).
+> Delete remove o arquivo do Storage **e** a row (validado por probe ao vivo —
+> download retorna 400 após excluir). Delete restrito ao dono via
+> `storage.objects.owner_id` (owner-pode-excluir validado; não-dono bloqueado
+> pela policy, não testado com 2ª conta).
+> **Limitação consciente (não implementada agora):** excluir um *card* faz
+> cascade nas rows de `attachments`, mas **orfana os objetos no Storage** — não
+> há trigger/edge-function de limpeza do bucket. Fora do escopo do critério;
+> registrado para decisão futura.
+>
 > **2026-06-01 — Bloco 2 (bugs) parcial:** 2.1 corrigido (board travava no
 > skeleton ao restaurar sessão — gatilho de load reativo a `user?.id`); 2.3
 > corrigido (busca agora casa também nome de etiqueta, além de título/descrição).

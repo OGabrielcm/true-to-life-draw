@@ -3,6 +3,7 @@
 import { createContext, useContext } from "react";
 import {
   Activity,
+  Attachment,
   Card,
   CardTemplate,
   Column,
@@ -69,12 +70,15 @@ export interface KanbanCtx {
   activitiesByCard: Record<string, Activity[]>;
   commentsByCard: Record<string, Comment[]>;
   timeLogsByCard: Record<string, TimeLog[]>;
+  attachmentsByCard: Record<string, Attachment[]>;
   loadCardDetails: (cardId: string) => Promise<void>;
   addComment: (cardId: string, text: string) => Promise<void>;
   updateComment: (commentId: string, text: string) => Promise<void>;
   deleteComment: (commentId: string, cardId: string) => Promise<void>;
   addTimeLog: (cardId: string, minutes: number, note?: string, loggedAt?: string) => Promise<void>;
   deleteTimeLog: (logId: string, cardId: string) => Promise<void>;
+  addAttachment: (cardId: string, file: File) => Promise<void>;
+  deleteAttachment: (attachment: Attachment) => Promise<void>;
 }
 
 export const Ctx = createContext<KanbanCtx | null>(null);

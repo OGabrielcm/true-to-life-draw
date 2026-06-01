@@ -292,6 +292,24 @@ export interface TimeLog {
   created_at: string;
 }
 
+export interface Attachment {
+  id: string;
+  task_id: string;
+  path: string; // caminho do objeto no bucket Storage `attachments`
+  name: string;
+  mime?: string;
+  size_bytes?: number;
+  created_at: string;
+}
+
+export function formatBytes(bytes?: number): string {
+  if (!bytes || bytes <= 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const val = bytes / Math.pow(1024, i);
+  return `${val >= 10 || i === 0 ? Math.round(val) : val.toFixed(1)} ${units[i]}`;
+}
+
 export function formatMinutes(min: number): string {
   if (min < 60) return `${min}m`;
   const h = Math.floor(min / 60);
