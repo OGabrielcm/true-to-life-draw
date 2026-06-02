@@ -125,7 +125,11 @@ export function Board() {
   }, [filterOpen]);
 
   return (
-    <div className="flex flex-col">
+    // kb-dragging: durante o arraste, desliga a box-shadow dos cards (existe só
+    // no modo claro) para baratear o repaint ao rolar entre colunas — origem da
+    // sensação "menos fluido no claro" relatada no 2.2. Hipótese a confirmar no
+    // dispositivo; o dark não tem shadow base, então não muda nada lá.
+    <div className={`flex flex-col${draggingId ? " kb-dragging" : ""}`}>
       {/* Filter bar */}
       <div className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6">
         <div className="flex items-center gap-1.5">

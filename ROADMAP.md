@@ -58,11 +58,15 @@
 > **2026-06-01 — Bloco 2 (bugs) parcial:** 2.1 corrigido (board travava no
 > skeleton ao restaurar sessão — gatilho de load reativo a `user?.id`); 2.3
 > corrigido (busca agora casa também nome de etiqueta, além de título/descrição).
-> **2.2** (drag&drop mobile no modo claro) adiado: não reproduzível sem
-> dispositivo real — o handler de toque é idêntico nos dois temas. Pendente de
-> repro do sintoma. **➡️ Retomar ao concluir o Bloco 6** (combinado com o
-> usuário em 2026-06-01): antes de fechar o Bloco 6, pedir o sintoma exato no
-> celular (modo claro) e tentar implementar.
+> **2.2** (drag&drop mobile no modo claro) — retomado ao fim do Bloco 6. O
+> sintoma relatado não é "quebrado" e sim "mais travado / menos fluido que no
+> dark ao passar o card entre colunas". Causa provável isolada: **só o modo
+> claro tem `box-shadow` base nos `.kb-card`** (o dark usa borda, sem shadow) —
+> e shadow é caro de repintar a cada frame ao rolar o board na horizontal. Fix
+> tentado: classe `kb-dragging` no board zera shadow+transition dos cards
+> enquanto há arraste ativo. **Hipótese a confirmar no dispositivo** (não é
+> mensurável localmente — touch + subjetivo). Se não melhorar, reapontar a
+> investigação com o novo dado, não insistir no mesmo palpite.
 
 ---
 
