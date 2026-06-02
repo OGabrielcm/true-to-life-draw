@@ -4,8 +4,16 @@
 //
 // RED→GREEN: rodar antes de implementar deve falhar; depois deve passar.
 
-import { getStreak, isScheduled, getDayState, toLogDateSet } from "../src/lib/habit-logic.ts";
-import type { Frequency } from "../src/lib/habit-types.ts";
+import {
+  getStreak,
+  isScheduled,
+  getDayState,
+  toLogDateSet,
+  getRecordStreak,
+  getMonthlyConsistency,
+  aggregateLogCountsByDate,
+} from "../src/lib/habit-logic.ts";
+import type { Frequency, Habit, HabitLog } from "../src/lib/habit-types.ts";
 import { toLocalIso } from "../src/lib/date-utils.ts";
 
 let fail = 0;
@@ -113,6 +121,80 @@ eq(
 
 // sanity: toLocalIso
 eq(toLocalIso(D("2026-06-01")), "2026-06-01", "toLocalIso formata local sem timezone");
+
+// ── Bloco 7: getRecordStreak ──
+console.log("\n── getRecordStreak ──");
+// daily, criado 06-01, hoje 06-06. logs 01,02,03 (run 3), furo 04, log 05 (run 1),
+// hoje 06 pendente. record = 3, current = 1.
+{
+  const created = D("2026-06-01");
+  const set = logs("2026-06-01", "2026-06-02", "2026-06-03", "2026-06-05");
+  eq(getRecordStreak(set, daily, D("2026-06-06"), created), 3, "record = maior sequência (3)");
+  eq(getStreak(set, daily, D("2026-06-06")), 1, "current = 1 (só 05; hoje pendente)");
+}
+// sem furo: record == current
+{
+  const created = D("2026-06-01");
+  const set = logs("2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05");
+  const rec = getRecordStreak(set, daily, D("2026-06-06"), created);
+  const cur = getStreak(set, daily, D("2026-06-06"));
+  eq(rec, 5, "record = 5 sem furo");
+  eq(rec >= cur, true, "invariante record >= current");
+}
+// nada feito → record 0
+eq(
+  getRecordStreak(new Set<string>(), daily, D("2026-06-06"), D("2026-06-01")),
+  0,
+  "record 0 sem logs",
+);
+
+// ── getMonthlyConsistency ──
+console.log("\n── getMonthlyConsistency ──");
+const mkHabit = (id: string, freq: Frequency, created: string): Habit => ({
+  id,
+  user_id: "u",
+  name: id,
+  frequency: freq,
+  archived: false,
+  // meio-dia LOCAL (sem Z) — não cruza fronteira de dia em nenhum fuso, então
+  // o dia de criação local é exatamente `created` (igual a como os logs são
+  // gravados via toLocalIso). Usar Z aqui daria off-by-one em fusos negativos.
+  created_at: `${created}T12:00:00`,
+});
+const mkLogs = (id: string, ...dates: string[]): HabitLog[] =>
+  dates.map((date, i) => ({ id: `${id}-${i}`, habit_id: id, user_id: "u", date, created_at: "" }));
+{
+  // 1 hábito daily criado 06-01; hoje 06-05. agendado 01-05 (5 dias). feito 01,02,03.
+  // dias com algo feito = 3, dias agendados = 5 → 60%.
+  const habits = [mkHabit("h1", daily, "2026-06-01")];
+  const lbh = { h1: mkLogs("h1", "2026-06-01", "2026-06-02", "2026-06-03") };
+  eq(getMonthlyConsistency(habits, lbh, D("2026-06-05")), 60, "consistência 3/5 = 60%");
+}
+{
+  // hábito criado no MEIO do mês (06-04); hoje 06-05. só conta 04,05 (2 dias). feito 04.
+  // → 1/2 = 50% (não retro-penaliza 01-03).
+  const habits = [mkHabit("h2", daily, "2026-06-04")];
+  const lbh = { h2: mkLogs("h2", "2026-06-04") };
+  eq(getMonthlyConsistency(habits, lbh, D("2026-06-05")), 50, "criado no meio: 1/2 = 50%");
+}
+{
+  // sem hábitos agendados → null
+  eq(getMonthlyConsistency([], {}, D("2026-06-05")), null, "sem hábitos → null");
+}
+
+// ── aggregateLogCountsByDate ──
+console.log("\n── aggregateLogCountsByDate ──");
+{
+  const habits = [mkHabit("a", daily, "2026-06-01"), mkHabit("b", daily, "2026-06-01")];
+  const lbh = {
+    a: mkLogs("a", "2026-06-01", "2026-06-02"),
+    b: mkLogs("b", "2026-06-01"),
+  };
+  const m = aggregateLogCountsByDate(habits, lbh);
+  eq(m.get("2026-06-01"), 2, "01: 2 hábitos feitos");
+  eq(m.get("2026-06-02"), 1, "02: 1 hábito feito");
+  eq(m.get("2026-06-03"), undefined, "03: nenhum");
+}
 
 console.log(`\n${fail === 0 ? "PROBE GREEN" : "PROBE RED"} (${fail} falhas)`);
 process.exit(fail === 0 ? 0 : 1);
