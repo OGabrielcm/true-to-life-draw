@@ -8,6 +8,7 @@ import { exportToCSV, exportToPDF } from "@/lib/dashboard-export";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 import { useTheme } from "@/components/theme-provider";
 import { useLocale } from "@/lib/locale-context";
+import { DashboardHabits } from "@/components/habits/DashboardHabits";
 
 type ArchiveFilter = "all" | "active" | "archived";
 type DeadlineFilter = "all" | "overdue" | "today" | "this_week";
@@ -272,6 +273,9 @@ function DashboardsPage() {
             </div>
           </div>
         </div>
+
+        {/* ── HÁBITOS (Bloco 7.1) ── */}
+        <DashboardHabits />
 
         {/* ── TABELA ── */}
         <div className="space-y-3">

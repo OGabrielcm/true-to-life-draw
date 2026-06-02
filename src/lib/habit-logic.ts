@@ -78,6 +78,10 @@ export function toLogDateSet(logs: { date: string }[]): Set<string> {
 //  • dia agendado passado SEM log → zera run
 //  • hoje agendado sem log → pendente: mantém run (igual a getStreak)
 // Invariante: record >= current streak.
+//
+// Premissa: logs nunca precedem o createdAt (o único caminho de marcação é o
+// toggle de HOJE; não há backfill). Se um dia houver importação/backfill de
+// datas passadas, ancorar `start` no log mais antigo em vez do createdAt.
 export function getRecordStreak(
   logDates: Set<string>,
   frequency: Frequency,
