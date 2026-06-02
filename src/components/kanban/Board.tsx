@@ -100,6 +100,18 @@ export function Board() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { setFilterOpen(false); return; }
+      // Não dispara o atalho "n" (novo card) quando o foco está num campo
+      // editável — senão digitar "n" na busca/nome de trilha criaria um card.
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
       if (e.key === "n" && !openCardId && !adding && !trilhasOpen && !tracksOpen && !columnsOpen && !filterOpen) {
         e.preventDefault();
         const firstTrack = tracks[0];
