@@ -214,6 +214,35 @@ Per-user preferences (one row per user).
 | `created_at` | timestamp | Record creation |
 | `updated_at` | timestamp | Last update |
 
+### `habits`
+Habit definitions for the habit tracker (`/habits`). Separate system — does not
+reference `tasks`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
+| `name` | text | Habit name |
+| `color` | text | Swatch color (hex) |
+| `frequency` | jsonb | `{type:"daily"}` or `{type:"weekdays", days:[0–6]}` (0=Sunday) |
+| `archived` | boolean | Soft-hide flag |
+| `created_at` | timestamp | Record creation |
+
+### `habit_logs`
+Daily completion log. The **presence** of a row marks the habit as done that day
+(toggle inserts/deletes). Streak, heatmap and consistency all derive from this table.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `habit_id` | uuid | FK to `habits` (ON DELETE CASCADE) |
+| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
+| `date` | date | Day completed (local ISO) |
+| `created_at` | timestamp | Record creation |
+
+**Constraint**: `unique (habit_id, date)` — one log per habit per day.
+**RLS**: per-user (SELECT/INSERT/DELETE where `auth.uid() = user_id`) on both tables.
+
 ### Authentication
 
 - **Provider**: Supabase Auth (email + password)
@@ -227,6 +256,10 @@ src/
 ├── components/              # React components (presentation layer)
 │   ├── kanban/             # Board, cards, modals
 │   │   └── card-modal-sections/  # Checklist, Comments, Activity, Time, Dependencies, Attachments
+│   ├── habits/             # Habit UI shared by /habits, Dashboard & For You
+│   │   ├── StreakBadge.tsx / HabitHeatmapStrip.tsx
+│   │   ├── DashboardHabits.tsx   # Dashboard habits section (Bloco 7)
+│   │   └── ForYouHabits.tsx      # For You contextual block (Bloco 7)
 │   ├── shell/              # Layout shell (AppShell), navigation
 │   ├── onboarding/         # Mandatory Beta onboarding
 │   └── theme-provider.tsx  # 4 themes + cross-device persistence bridge
@@ -238,8 +271,12 @@ src/
 │   │   ├── kanban-mappers.ts  # row ↔ Card mapping
 │   │   ├── use-card-details.ts # activities/comments/time/attachments slice
 │   │   ├── use-templates.ts / use-card-colors.ts
-│   ├── *-service.ts        # activity / comments / timelog / attachments services
+│   ├── habits-store/       # Habit tracker Context store (provider/context/index)
+│   ├── *-service.ts        # activity / comments / timelog / attachments / habits services
 │   ├── kanban-types.ts     # TypeScript types (Card, Column, Track, Attachment, …)
+│   ├── habit-types.ts      # Habit / HabitLog / Frequency types
+│   ├── habit-logic.ts      # Pure habit logic (streak, record, consistency, heatmap)
+│   ├── date-utils.ts       # Shared date helpers (calendar + habit heatmap)
 │   ├── auth-store.tsx      # Authentication state
 │   ├── user-profile-store.tsx # onboarding + theme preference (Supabase bridge)
 │   ├── supabase.ts         # Supabase client initialization
@@ -248,8 +285,9 @@ src/
 │   ├── __root.tsx          # Root layout + providers
 │   ├── index.tsx           # Board (main)
 │   ├── calendar.tsx        # Calendar view
-│   ├── dashboards.tsx      # Statistics & export
-│   ├── for-you.tsx         # Recents + favorites
+│   ├── habits.tsx          # Habit tracker (list, streak, heatmap)
+│   ├── dashboards.tsx      # Statistics & export (+ habits summary)
+│   ├── for-you.tsx         # Recents + favorites (+ habits block)
 │   ├── profile.tsx / settings.tsx
 │   └── (auth)/             # Pathless group: login, signup, reset-password (URLs unchanged)
 ├── hooks/
@@ -287,6 +325,24 @@ render — a slow/failed DB read can't hang the UI.
 Files are uploaded to the `attachments` Storage bucket (public, 20 MB);
 metadata lives in the `attachments` table. Deleting an attachment removes the
 Storage object **and** the row.
+
+### Habit Tracker
+
+A separate system from the board (`/habits`). A habit has a `frequency`
+(`daily` or specific `weekdays`); marking it done on a day inserts a row in
+`habit_logs` (the row's **presence** = done). All derived metrics are computed
+from the logs by pure, unit-tested functions in `habit-logic.ts`:
+
+- **Streak** — consecutive *scheduled* days with a log (a Mon/Wed/Fri habit
+  doesn't break on weekends); today is pending until marked.
+- **Record** — the longest streak ever achieved.
+- **Monthly consistency** — % of days this month with ≥1 scheduled habit done.
+- **Heatmaps** — per-habit month grid (`/habits`) and a 30-day aggregate strip
+  (Dashboard).
+
+These metrics surface in three places: the `/habits` tab, a Dashboard summary
+section, and a contextual For You block (today's pending + streak-at-risk alert).
+Time-of-day is **not** tracked (logs store the date only).
 
 ### Activity Tracking
 
