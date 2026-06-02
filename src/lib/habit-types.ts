@@ -7,9 +7,7 @@
 // 0 = domingo … 6 = sábado (casa com o startOfWeek domingo-base do calendário).
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-export type Frequency =
-  | { type: "daily" }
-  | { type: "weekdays"; days: Weekday[] };
+export type Frequency = { type: "daily" } | { type: "weekdays"; days: Weekday[] };
 // futuro: | { type: "timesPerWeek"; count: number };
 
 export interface Habit {
