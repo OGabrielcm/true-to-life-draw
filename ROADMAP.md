@@ -9,6 +9,15 @@
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
 > Atualizado em: Junho 2026 — Fases 1–5 completas ✅ · Blocos 1–6 concluídos · MVP em produção (Vercel)
 >
+> **2026-06-02 — Habit Tracker (feature nova) concluído:** aba separada do board
+> (`/habits`). Pesquisa de referências (Streaks/Loop/Way of Life) destilou o núcleo
+> ao mínimo: marcar feito + streak, frequência flexível (diário / dias-da-semana —
+> `Nx/semana` adiado, jsonb já comporta sem migration), heatmap mensal. Duas tabelas
+> (`habits` + `habit_logs`, presença da row = feito) com RLS per-user. Lógica de
+> streak pura e testada (`probe-streak.ts`, RED→GREEN); data-layer e UI validados
+> por probes interativos. Sistema isolado — não toca no board. Reusou o grid do
+> calendário via `date-utils.ts` (extração com regressão verde).
+>
 > **2026-06-01 — Bloco 6 (revisão do roadmap) concluído:** roadmap reconciliado
 > com o estado real do código (cada feature marcada ✅ foi verificada por grep,
 > não por confiança na lista de prompts — que já afirmou falsamente que anexos e
@@ -134,6 +143,7 @@
 | Comentários no card | ✅ |
 | Time tracking (log de horas por card) | ✅ |
 | Anexos no card (upload p/ Storage, preview, download, excluir — Bloco 4) | ✅ |
+| Habit Tracker (aba `/habits`: marcar feito, streak, frequência, heatmap) | ✅ |
 | README.md com setup, stack e schema Supabase | ✅ |
 | Código formatado com Prettier (zero lint errors) | ✅ |
 | Arquitetura em camadas (services, card-rules, dashboard-export) | ✅ |
