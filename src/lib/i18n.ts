@@ -105,7 +105,8 @@ const pt = {
 
   // ── TrilhasModal ──
   manage_tags: "Gerenciar etiquetas",
-  manage_tags_desc: "Etiquetas categorizam seus cards. Excluir uma etiqueta remove ela de todos os cards.",
+  manage_tags_desc:
+    "Etiquetas categorizam seus cards. Excluir uma etiqueta remove ela de todos os cards.",
   no_tags_yet: "Nenhuma etiqueta ainda.",
   new_tag: "Nova etiqueta",
   tag_name_placeholder: "Nome da etiqueta",
@@ -113,15 +114,18 @@ const pt = {
 
   // ── TracksModal ──
   manage_tracks: "Gerenciar trilhas",
-  manage_tracks_desc: "Trilhas são as swimlanes do board. Excluir uma trilha move todos os cards dela para a primeira trilha restante.",
+  manage_tracks_desc:
+    "Trilhas são as swimlanes do board. Excluir uma trilha move todos os cards dela para a primeira trilha restante.",
   no_tracks_yet: "Nenhuma trilha ainda.",
   new_track: "Nova trilha",
   track_name_placeholder: "Nome da trilha",
 
   // ── ColumnsModal ──
   manage_columns: "Gerenciar colunas",
-  manage_columns_desc: "Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira coluna restante.",
-  manage_columns_track_desc: "Colunas específicas desta trilha. Quando vazias, usam o template global.",
+  manage_columns_desc:
+    "Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira coluna restante.",
+  manage_columns_track_desc:
+    "Colunas específicas desta trilha. Quando vazias, usam o template global.",
   no_columns_yet: "Nenhuma coluna ainda.",
   new_column: "Nova coluna",
   column_name_placeholder: "Nome da coluna",
@@ -175,10 +179,28 @@ const pt = {
   nav_home: "Home",
   nav_for_you: "For You",
   nav_calendar: "Calendário",
+  nav_habits: "Hábitos",
   nav_dashboards: "Dashboards",
   nav_settings: "Configurações",
   nav_profile: "Profile",
   nav_templates: "Templates",
+  // ── Habit Tracker ──
+  habits_title: "Hábitos",
+  habit_add: "Novo hábito",
+  habit_name_placeholder: "Nome do hábito",
+  habit_empty: "Nenhum hábito ainda. Crie o primeiro!",
+  habit_streak: "sequência",
+  habit_streak_days: "dias",
+  habit_delete: "Excluir hábito",
+  habit_delete_confirm: "Excluir este hábito e todo o histórico?",
+  habit_freq_daily: "Todo dia",
+  habit_freq_weekdays: "Dias da semana",
+  habit_freq_label: "Frequência",
+  habit_color_label: "Cor",
+  habit_today: "Hoje",
+  habit_create: "Criar",
+  habit_cancel: "Cancelar",
+  habit_history: "Histórico",
 
   // ── Calendar ──
   upcoming_deadlines: "Próximos prazos",
@@ -188,7 +210,8 @@ const pt = {
   prev: "Anterior",
   next_btn: "Próximo",
   today_btn: "Hoje",
-  no_cards_deadline: "Nenhum card com prazo. Adicione uma data de entrega a um card para vê-lo aqui.",
+  no_cards_deadline:
+    "Nenhum card com prazo. Adicione uma data de entrega a um card para vê-lo aqui.",
   past: "passado",
 
   // ── Dashboards ──
@@ -342,15 +365,18 @@ const en = {
 
   // ── TracksModal ──
   manage_tracks: "Manage tracks",
-  manage_tracks_desc: "Tracks are the board's swimlanes. Deleting a track moves all its cards to the first remaining track.",
+  manage_tracks_desc:
+    "Tracks are the board's swimlanes. Deleting a track moves all its cards to the first remaining track.",
   no_tracks_yet: "No tracks yet.",
   new_track: "New track",
   track_name_placeholder: "Track name",
 
   // ── ColumnsModal ──
   manage_columns: "Manage columns",
-  manage_columns_desc: "Columns are the board's stages. Deleting a column moves its cards to the first remaining column.",
-  manage_columns_track_desc: "Columns specific to this track. When empty, the global template is used.",
+  manage_columns_desc:
+    "Columns are the board's stages. Deleting a column moves its cards to the first remaining column.",
+  manage_columns_track_desc:
+    "Columns specific to this track. When empty, the global template is used.",
   no_columns_yet: "No columns yet.",
   new_column: "New column",
   column_name_placeholder: "Column name",
@@ -404,10 +430,28 @@ const en = {
   nav_home: "Home",
   nav_for_you: "For You",
   nav_calendar: "Calendar",
+  nav_habits: "Habits",
   nav_dashboards: "Dashboards",
   nav_settings: "Settings",
   nav_profile: "Profile",
   nav_templates: "Templates",
+  // ── Habit Tracker ──
+  habits_title: "Habits",
+  habit_add: "New habit",
+  habit_name_placeholder: "Habit name",
+  habit_empty: "No habits yet. Create your first!",
+  habit_streak: "streak",
+  habit_streak_days: "days",
+  habit_delete: "Delete habit",
+  habit_delete_confirm: "Delete this habit and all its history?",
+  habit_freq_daily: "Every day",
+  habit_freq_weekdays: "Days of week",
+  habit_freq_label: "Frequency",
+  habit_color_label: "Color",
+  habit_today: "Today",
+  habit_create: "Create",
+  habit_cancel: "Cancel",
+  habit_history: "History",
 
   // ── Calendar ──
   upcoming_deadlines: "Upcoming deadlines",

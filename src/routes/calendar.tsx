@@ -7,6 +7,15 @@ import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 import { Card, isArchived, getDeadlineStatus, PRIO_COLORS, formatDate } from "@/lib/kanban-types";
 import { useTheme } from "@/components/theme-provider";
 import { useLocale } from "@/lib/locale-context";
+import {
+  toLocalIso,
+  startOfMonth,
+  startOfWeek,
+  addDays,
+  addMonths,
+  isSameDay,
+  parseLocalDate,
+} from "@/lib/date-utils";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarPage,
@@ -14,51 +23,6 @@ export const Route = createFileRoute("/calendar")({
 });
 
 type ViewMode = "month" | "week" | "list";
-
-
-// Parse "YYYY-MM-DD" como data local (evita timezone)
-function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function toLocalIso(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-function startOfWeek(d: Date): Date {
-  const r = new Date(d);
-  r.setDate(d.getDate() - d.getDay());
-  r.setHours(0, 0, 0, 0);
-  return r;
-}
-
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(d.getDate() + n);
-  return r;
-}
-
-function addMonths(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setMonth(d.getMonth() + n);
-  return r;
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
 
 function CalendarPage() {
   const {
@@ -82,8 +46,34 @@ function CalendarPage() {
   const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const WEEKDAYS = locale === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
 
-  const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-  const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const MONTHS_PT = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+  const MONTHS_EN = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   const MONTHS = locale === "pt" ? MONTHS_PT : MONTHS_EN;
 
   const [view, setView] = useState<ViewMode>("month");
@@ -151,7 +141,8 @@ function CalendarPage() {
             >
               {(["month", "week", "list"] as ViewMode[]).map((v) => {
                 const active = view === v;
-                const label = v === "month" ? t("view_month") : v === "week" ? t("view_week") : t("view_list");
+                const label =
+                  v === "month" ? t("view_month") : v === "week" ? t("view_week") : t("view_list");
                 return (
                   <button
                     key={v}
@@ -483,10 +474,14 @@ function WeekView({
                           {c.prio}
                         </span>
                         {status === "overdue" && (
-                          <span className="text-[9px] font-semibold text-red-600">{t("overdue")}</span>
+                          <span className="text-[9px] font-semibold text-red-600">
+                            {t("overdue")}
+                          </span>
                         )}
                         {status === "today" && (
-                          <span className="text-[9px] font-semibold text-orange-600">{t("today")}</span>
+                          <span className="text-[9px] font-semibold text-orange-600">
+                            {t("today")}
+                          </span>
                         )}
                       </div>
                     </button>
@@ -628,7 +623,9 @@ function ListView({
                       </span>
                     )}
                     {!isDone && isPast && status !== "overdue" && (
-                      <span className="text-[10px] text-muted-foreground shrink-0">{t("past")}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {t("past")}
+                      </span>
                     )}
                   </button>
                 );
