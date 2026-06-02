@@ -1,4 +1,12 @@
 # Relatório de Estado — Molas Kanban
+
+> ⚠️ **DOCUMENTO HISTÓRICO — CONGELADO EM 21/05/2026. NÃO É O ESTADO ATUAL.**
+> A fonte de verdade do estado do projeto é o [`ROADMAP.md`](./ROADMAP.md).
+> Este relatório reflete apenas o snapshot de maio/2026 e **não inclui** os
+> Blocos 1–7 nem o Habit Tracker (entregues em junho/2026). Há também
+> imprecisões já corrigidas no código (ex.: cita "Zustand", mas o app usa
+> stores via React Context). Mantido apenas como registro histórico.
+
 **Data:** 21 de maio de 2026  
 **Ambiente:** Produção (`true-to-life-draw.vercel.app`) · Supabase `smdelyasoqtgcjdbldpf`
 
