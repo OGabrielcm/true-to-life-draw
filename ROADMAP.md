@@ -25,6 +25,14 @@
 > grid de cards existente** (não na seção nova de hábitos) — bug de responsividade
 > pré-existente, registrado para um fix futuro.
 >
+> **2026-06-02 — Busca oculta trilhas vazias (2.3) + verificações:** durante a
+> busca, trilhas sem nenhum card correspondente agora são ocultadas — só aparecem
+> as que têm resultado (validado por probe, RED→GREEN; limpar a busca restaura
+> todas). **2.4** (resetar cor do card para "Nenhuma") foi **investigado e já
+> funciona** — a hipótese do prompt (dado legado/constraint no banco) estava
+> errada: cor de card é localStorage, não tem coluna no banco, e o reset deleta a
+> chave corretamente (probe GREEN). Nenhuma mudança feita no 2.4.
+>
 > **2026-06-02 — Habit Tracker (feature nova) concluído:** aba separada do board
 > (`/habits`). Pesquisa de referências (Streaks/Loop/Way of Life) destilou o núcleo
 > ao mínimo: marcar feito + streak, frequência flexível (diário / dias-da-semana —

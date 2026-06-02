@@ -254,6 +254,10 @@ export function Board() {
           )}
           {tracks
             .filter((tr) => trackFilter === "__all" || tr.id === trackFilter)
+            // Durante a busca (2.3), oculta trilhas sem nenhum card correspondente
+            // — só mostra as trilhas onde há resultado. Sem busca, todas aparecem
+            // (estado normal, inclusive trilhas vazias).
+            .filter((tr) => !search.trim() || filtered.some((c) => c.track === tr.id))
             .map((track) => (
             <Swimlane
               key={track.id}
