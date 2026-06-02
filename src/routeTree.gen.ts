@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as HabitsRouteImport } from './routes/habits'
 import { Route as ForYouRouteImport } from './routes/for-you'
 import { Route as DashboardsRouteImport } from './routes/dashboards'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -27,6 +28,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HabitsRoute = HabitsRouteImport.update({
+  id: '/habits',
+  path: '/habits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForYouRoute = ForYouRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/dashboards': typeof DashboardsRoute
   '/for-you': typeof ForYouRoute
+  '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/login': typeof authLoginRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/dashboards': typeof DashboardsRoute
   '/for-you': typeof ForYouRoute
+  '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/login': typeof authLoginRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/dashboards': typeof DashboardsRoute
   '/for-you': typeof ForYouRoute
+  '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/(auth)/login': typeof authLoginRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboards'
     | '/for-you'
+    | '/habits'
     | '/profile'
     | '/settings'
     | '/login'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboards'
     | '/for-you'
+    | '/habits'
     | '/profile'
     | '/settings'
     | '/login'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboards'
     | '/for-you'
+    | '/habits'
     | '/profile'
     | '/settings'
     | '/(auth)/login'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   DashboardsRoute: typeof DashboardsRoute
   ForYouRoute: typeof ForYouRoute
+  HabitsRoute: typeof HabitsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   authLoginRoute: typeof authLoginRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/habits': {
+      id: '/habits'
+      path: '/habits'
+      fullPath: '/habits'
+      preLoaderRoute: typeof HabitsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for-you': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   DashboardsRoute: DashboardsRoute,
   ForYouRoute: ForYouRoute,
+  HabitsRoute: HabitsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   authLoginRoute: authLoginRoute,
