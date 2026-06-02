@@ -1,13 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Check, Flame, Plus, Trash2, X } from "lucide-react";
+import {
+  Check,
+  Flame,
+  Plus,
+  Trash2,
+  X,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useHabits } from "@/lib/habits-store";
 import { useLocale } from "@/lib/locale-context";
 import type { Frequency, Habit, Weekday } from "@/lib/habit-types";
 import { HABIT_COLORS, DEFAULT_HABIT_COLOR } from "@/lib/habit-types";
-import { isScheduled, getStreak, toLogDateSet } from "@/lib/habit-logic";
-import { toLocalIso } from "@/lib/date-utils";
+import { isScheduled, getStreak, getDayState, toLogDateSet } from "@/lib/habit-logic";
+import {
+  toLocalIso,
+  startOfMonth,
+  startOfWeek,
+  addDays,
+  addMonths,
+  isSameDay,
+} from "@/lib/date-utils";
 
 export const Route = createFileRoute("/habits")({
   component: HabitsPage,
@@ -80,6 +96,7 @@ function HabitRow({
   onDelete: () => void;
 }) {
   const { t } = useLocale();
+  const [showHistory, setShowHistory] = useState(false);
   const logSet = toLogDateSet(logs);
   const streak = getStreak(logSet, habit.frequency, today);
   const scheduledToday = isScheduled(habit.frequency, today);
@@ -87,43 +104,171 @@ function HabitRow({
   const color = habit.color ?? DEFAULT_HABIT_COLOR;
 
   return (
-    <div className="group flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
-      <button
-        onClick={onToggleToday}
-        disabled={!scheduledToday}
-        aria-label={t("habit_today")}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-30"
-        style={{ borderColor: color, backgroundColor: doneToday ? color : "transparent" }}
-      >
-        {doneToday && <Check className="h-4 w-4 text-white" />}
-      </button>
+    <div className="rounded-lg border bg-card">
+      <div className="group flex items-center gap-3 px-3 py-2.5">
+        <button
+          onClick={onToggleToday}
+          disabled={!scheduledToday}
+          aria-label={t("habit_today")}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-30"
+          style={{ borderColor: color, backgroundColor: doneToday ? color : "transparent" }}
+        >
+          {doneToday && <Check className="h-4 w-4 text-white" />}
+        </button>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{habit.name}</p>
-        <p className="text-[11px] text-muted-foreground">
-          {habit.frequency.type === "daily" ? t("habit_freq_daily") : t("habit_freq_weekdays")}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground">{habit.name}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {habit.frequency.type === "daily" ? t("habit_freq_daily") : t("habit_freq_weekdays")}
+          </p>
+        </div>
+
+        {streak > 0 && (
+          <span
+            className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+            style={{ backgroundColor: `${color}1a`, color }}
+            title={t("habit_streak")}
+          >
+            <Flame className="h-3 w-3" />
+            {streak}
+          </span>
+        )}
+
+        <button
+          onClick={() => setShowHistory((v) => !v)}
+          aria-label={t("habit_history")}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded hover:bg-muted ${
+            showHistory ? "text-foreground" : "text-muted-foreground"
+          }`}
+        >
+          <CalendarDays className="h-3.5 w-3.5" />
+        </button>
+
+        {/* Excluir — visível no mobile, fade no desktop (lição 3.2) */}
+        <button
+          onClick={onDelete}
+          aria-label={t("habit_delete")}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 md:opacity-0 md:group-hover:opacity-100"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
       </div>
 
-      {streak > 0 && (
-        <span
-          className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
-          style={{ backgroundColor: `${color}1a`, color }}
-          title={t("habit_streak")}
-        >
-          <Flame className="h-3 w-3" />
-          {streak}
-        </span>
-      )}
+      {showHistory && <HabitHeatmap habit={habit} logSet={logSet} today={today} color={color} />}
+    </div>
+  );
+}
 
-      {/* Excluir — visível no mobile, fade no desktop (lição 3.2) */}
-      <button
-        onClick={onDelete}
-        aria-label={t("habit_delete")}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 md:opacity-0 md:group-hover:opacity-100"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
+// Heatmap mensal por hábito — reusa o grid de 42 dias do calendário (date-utils).
+// Cada dia colorido por getDayState: feito (cor) / agendado-sem-log (borda) /
+// não-agendado (apagado).
+function HabitHeatmap({
+  habit,
+  logSet,
+  today,
+  color,
+}: {
+  habit: Habit;
+  logSet: Set<string>;
+  today: Date;
+  color: string;
+}) {
+  const { t, locale } = useLocale();
+  const [cursor, setCursor] = useState(() => startOfMonth(today));
+
+  const WEEKDAYS =
+    locale === "pt" ? ["D", "S", "T", "Q", "Q", "S", "S"] : ["S", "M", "T", "W", "T", "F", "S"];
+  const MONTHS_PT = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
+  const MONTHS_EN = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const MONTHS = locale === "pt" ? MONTHS_PT : MONTHS_EN;
+
+  const days = useMemo(() => {
+    const gridStart = startOfWeek(startOfMonth(cursor));
+    return Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
+  }, [cursor]);
+
+  return (
+    <div className="border-t px-3 py-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">
+          {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setCursor((c) => addMonths(c, -1))}
+            className="rounded p-1 text-muted-foreground hover:bg-muted"
+            aria-label={t("prev")}
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => setCursor((c) => addMonths(c, 1))}
+            className="rounded p-1 text-muted-foreground hover:bg-muted"
+            aria-label={t("next_btn")}
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid max-w-xs grid-cols-7 gap-1">
+        {WEEKDAYS.map((w, i) => (
+          <div key={i} className="text-center text-[9px] text-muted-foreground">
+            {w}
+          </div>
+        ))}
+        {days.map((d) => {
+          const inMonth = d.getMonth() === cursor.getMonth();
+          const state = getDayState(logSet, habit.frequency, d, today);
+          const isToday = isSameDay(d, today);
+          let bg = "transparent";
+          let border = "transparent";
+          if (state === "done") bg = color;
+          else if (state === "missed") border = "var(--border)";
+          return (
+            <div
+              key={toLocalIso(d)}
+              className="flex aspect-square items-center justify-center rounded text-[9px]"
+              style={{
+                backgroundColor: bg,
+                border: border === "transparent" ? undefined : `1px solid ${border}`,
+                opacity: inMonth ? 1 : 0.25,
+                color: state === "done" ? "#fff" : "var(--muted-foreground)",
+                outline: isToday ? `1px solid ${color}` : undefined,
+              }}
+              title={toLocalIso(d)}
+            >
+              {d.getDate()}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
