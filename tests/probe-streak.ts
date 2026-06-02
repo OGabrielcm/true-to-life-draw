@@ -98,6 +98,18 @@ eq(
   "off",
   "hoje agendado sem log → off (pendente, não missed)",
 );
+// dia ANTES da criação do hábito não é "missed" (o hábito nem existia)
+eq(
+  getDayState(new Set<string>(), daily, D("2026-06-01"), D("2026-06-06"), D("2026-06-05")),
+  "off",
+  "dia anterior à criação → off (não missed)",
+);
+// dia após a criação, agendado e sem log, segue "missed"
+eq(
+  getDayState(new Set<string>(), daily, D("2026-06-05"), D("2026-06-06"), D("2026-06-04")),
+  "missed",
+  "dia após criação, passado sem log → missed",
+);
 
 // sanity: toLocalIso
 eq(toLocalIso(D("2026-06-01")), "2026-06-01", "toLocalIso formata local sem timezone");

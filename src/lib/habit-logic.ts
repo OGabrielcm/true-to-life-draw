@@ -32,9 +32,13 @@ export function getDayState(
   frequency: Frequency,
   date: Date,
   today: Date,
+  createdAt?: Date,
 ): DayState {
   if (!isScheduled(frequency, date)) return "off";
   if (logDates.has(toLocalIso(date))) return "done";
+  // Antes da criação do hábito não há "falha" — o hábito nem existia.
+  if (createdAt && date.getTime() < createdAt.getTime() && !isSameDay(date, createdAt))
+    return "off";
   // dia agendado sem log: só é "missed" se já passou (antes de hoje).
   // hoje (e futuro) sem log = pendente, exibido como "off" no heatmap.
   if (date.getTime() < today.getTime() && !isSameDay(date, today)) return "missed";

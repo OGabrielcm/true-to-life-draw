@@ -208,6 +208,12 @@ function HabitHeatmap({
   ];
   const MONTHS = locale === "pt" ? MONTHS_PT : MONTHS_EN;
 
+  const createdAt = useMemo(() => {
+    const d = new Date(habit.created_at);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [habit.created_at]);
+
   const days = useMemo(() => {
     const gridStart = startOfWeek(startOfMonth(cursor));
     return Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -245,7 +251,7 @@ function HabitHeatmap({
         ))}
         {days.map((d) => {
           const inMonth = d.getMonth() === cursor.getMonth();
-          const state = getDayState(logSet, habit.frequency, d, today);
+          const state = getDayState(logSet, habit.frequency, d, today, createdAt);
           const isToday = isSameDay(d, today);
           let bg = "transparent";
           let border = "transparent";
