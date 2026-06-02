@@ -201,6 +201,18 @@ const pt = {
   habit_create: "Criar",
   habit_cancel: "Cancelar",
   habit_history: "Histórico",
+  // ── Bloco 7: habits no Dashboard / For You ──
+  habits_section: "Hábitos",
+  habit_consistency: "Consistência do mês",
+  habit_last30: "Últimos 30 dias",
+  habit_record: "recorde",
+  habit_no_habits: "Nenhum hábito ainda",
+  habit_today_progress: "Hábitos de hoje",
+  habit_today_done: "feitos",
+  habit_today_left: "faltam",
+  habit_all_done_today: "Tudo feito por hoje 🎉",
+  habit_none_today: "Nenhum hábito para hoje",
+  habit_streak_risk: "Seu streak de {n} dias em {name} quebra hoje",
 
   // ── Calendar ──
   upcoming_deadlines: "Próximos prazos",
@@ -452,6 +464,18 @@ const en = {
   habit_create: "Create",
   habit_cancel: "Cancel",
   habit_history: "History",
+  // ── Bloco 7: habits no Dashboard / For You ──
+  habits_section: "Habits",
+  habit_consistency: "This month's consistency",
+  habit_last30: "Last 30 days",
+  habit_record: "record",
+  habit_no_habits: "No habits yet",
+  habit_today_progress: "Today's habits",
+  habit_today_done: "done",
+  habit_today_left: "left",
+  habit_all_done_today: "All done for today 🎉",
+  habit_none_today: "No habits for today",
+  habit_streak_risk: "Your {n}-day streak in {name} breaks today",
 
   // ── Calendar ──
   upcoming_deadlines: "Upcoming deadlines",

@@ -9,6 +9,22 @@
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
 > Atualizado em: Junho 2026 — Fases 1–5 completas ✅ · Blocos 1–6 concluídos · MVP em produção (Vercel)
 >
+> **2026-06-02 — Bloco 7 (habits no Dashboard e For You) concluído:** integra os
+> dados do habit tracker em duas telas existentes, sem tocar no board nem na aba
+> `/habits`. **Dashboard:** seção de hábitos com consistência do mês (% que respeita
+> o `created_at`, inclui hoje), heatmap agregado de 30 dias (intensidade = nº de
+> hábitos feitos no dia) e lista com streak atual + recorde. **For You:** bloco
+> contextual com contagem do dia (X feitos · Y faltam), pendentes com toggle e
+> alerta de streak em risco (streak ≥2 + pendente hoje). Lógica nova pura e testada
+> (`getRecordStreak`, `getMonthlyConsistency`, `aggregateLogCountsByDate` —
+> `probe-streak.ts`, RED→GREEN; o RED pegou um off-by-one de timezone no mock).
+> Componentes compartilhados em `components/habits/`. Ambas as seções somem sem
+> hábitos. **7.2 "sugestão por horário" CORTADA** — `habit_logs` só guarda `date`
+> (sem hora); exigiria migration.
+> **Achado (fora de escopo):** `/for-you` já tem overflow horizontal em 375px **no
+> grid de cards existente** (não na seção nova de hábitos) — bug de responsividade
+> pré-existente, registrado para um fix futuro.
+>
 > **2026-06-02 — Busca oculta trilhas vazias (2.3) + verificações:** durante a
 > busca, trilhas sem nenhum card correspondente agora são ocultadas — só aparecem
 > as que têm resultado (validado por probe, RED→GREEN; limpar a busca restaura
@@ -152,6 +168,7 @@
 | Time tracking (log de horas por card) | ✅ |
 | Anexos no card (upload p/ Storage, preview, download, excluir — Bloco 4) | ✅ |
 | Habit Tracker (aba `/habits`: marcar feito, streak, frequência, heatmap) | ✅ |
+| Hábitos no Dashboard e For You (consistência, heatmap 30d, streak+recorde, pendentes, alerta de risco) | ✅ |
 | README.md com setup, stack e schema Supabase | ✅ |
 | Código formatado com Prettier (zero lint errors) | ✅ |
 | Arquitetura em camadas (services, card-rules, dashboard-export) | ✅ |

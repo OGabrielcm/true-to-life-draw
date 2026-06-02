@@ -5,6 +5,7 @@ import { useKanban } from "@/lib/kanban-store";
 import { CardItem } from "@/components/kanban/CardItem";
 import { CardDetailModal } from "@/components/kanban/CardDetailModal";
 import { isArchived } from "@/lib/kanban-types";
+import { ForYouHabits } from "@/components/habits/ForYouHabits";
 
 export const Route = createFileRoute("/for-you")({
   component: ForYouPage,
@@ -85,6 +86,8 @@ function ForYouPage() {
             renderGrid(starred)
           )}
         </section>
+        {/* Hábitos contextuais (Bloco 7.2) */}
+        <ForYouHabits />
       </div>
       {open && (
         <CardDetailModal
