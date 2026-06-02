@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRouteWithContext, useRouter } from "@tanstack/r
 import { AuthProvider } from "@/lib/auth-store";
 import { ThemeProvider } from "@/components/theme-provider";
 import { KanbanProvider } from "@/lib/kanban-store";
+import { HabitsProvider } from "@/lib/habits-store";
 import { LocaleProvider } from "@/lib/locale-context";
 import { UserProfileProvider } from "@/lib/user-profile-store";
 
@@ -79,7 +80,9 @@ function RootComponent() {
           <AuthProvider>
             <UserProfileProvider>
               <KanbanProvider>
-                <Outlet />
+                <HabitsProvider>
+                  <Outlet />
+                </HabitsProvider>
               </KanbanProvider>
             </UserProfileProvider>
           </AuthProvider>
