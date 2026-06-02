@@ -158,6 +158,19 @@ export function CardDetailModal({
         }
         onClose();
       }
+      // Não dispara atalhos de tecla única (e/d/1-5) quando o foco está num
+      // campo editável — senão digitar "e" no checklist/comentário abriria a
+      // edição do card. Escape acima continua valendo em qualquer foco.
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
       if (e.key === "e" && !editing && !savingTemplate) {
         e.preventDefault();
         setEditing(true);
