@@ -1,3 +1,19 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// DECISÃO DE NOMENCLATURA — Track vs Trilha (não fundir os dois!)
+//
+// O projeto tem DOIS conceitos distintos que, no PT-BR visível ao usuário,
+// ambos aparecem como "Trilhas". No CÓDIGO eles permanecem separados:
+//
+//   • Track  → swimlane horizontal do board (uma lane). Tem colunas próprias,
+//              ordem, cores claras/escuras. Gerenciado por TracksModal.
+//   • Trilha → tag/etiqueta de filtro (sistema de tags legado). Aparece em
+//              Card.tags como lista de ids. Gerenciada por TrilhasModal.
+//
+// Padrão de UI: rótulos visíveis usam "Trilha(s)" (ver i18n.ts). Padrão de
+// código: mantém-se `track`/`Track` para swimlane e `trilha`/`Trilha` para tag.
+// NÃO renomear um no outro — fundiria swimlane e tag e quebraria board/filtros.
+// ─────────────────────────────────────────────────────────────────────────────
+
 export type ColumnId = string;
 export type Priority = "Alta" | "Média" | "Baixa";
 export type TrackId = string;
@@ -274,6 +290,24 @@ export interface TimeLog {
   note?: string;
   logged_at: string;
   created_at: string;
+}
+
+export interface Attachment {
+  id: string;
+  task_id: string;
+  path: string; // caminho do objeto no bucket Storage `attachments`
+  name: string;
+  mime?: string;
+  size_bytes?: number;
+  created_at: string;
+}
+
+export function formatBytes(bytes?: number): string {
+  if (!bytes || bytes <= 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const val = bytes / Math.pow(1024, i);
+  return `${val >= 10 || i === 0 ? Math.round(val) : val.toFixed(1)} ${units[i]}`;
 }
 
 export function formatMinutes(min: number): string {

@@ -1,173 +1,30 @@
+// Kernel do KanbanProvider: entidades (cards/tracks/trilhas/columns) +
+// estado de UI fortemente acoplado (filter/trackFilter/collapsed/search/
+// createOpen/loading) + efeito de load + TODAS as ações que tocam essas
+// entidades. Mantido junto DE PROPÓSITO: as ações de delete cruzam domínios
+// (deleteTrack mexe em cards/trackFilter/collapsed; deleteTrilha em cards/
+// filter), então separá-las criaria acoplamento via setters injetados.
+//
+// Ações movidas VERBATIM de kanban-store.tsx (sem edição de lógica).
+// Slices independentes (card-details, templates, card-colors) compostos via
+// hooks. A divisão value/fullValue (dois useMemo) é preservada para que
+// mudanças em activities/comments/timeLogs NÃO recriem os closures do kernel.
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Card, Column, Track, Trilha, loadCollapsed, saveCollapsed } from "../kanban-types";
+import { supabase } from "../supabase";
+import { useAuth } from "../auth-store";
+import { Ctx, KanbanCtx } from "./context";
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  Activity,
-  ActivityType,
-  Card,
-  CardTemplate,
-  Column,
-  ColumnId,
-  Comment,
-  TimeLog,
-  Track,
-  TrackId,
-  Trilha,
-  loadCollapsed,
-  saveCollapsed,
-  loadTemplates,
-  saveTemplates,
-  loadCardColors,
-  saveCardColors,
-} from "./kanban-types";
-import { supabase } from "./supabase";
-import * as ActivityService from "./activity-service";
-import * as CommentsService from "./comments-service";
-import * as TimelogService from "./timelog-service";
-
-type AddInput = Omit<
-  Card,
-  "id" | "created_at" | "updated_at" | "starred" | "checklist" | "blocked_by" | "order"
-> & {
-  starred?: boolean;
-  checklist?: Card["checklist"];
-  blocked_by?: Card["blocked_by"];
-  order?: number;
-};
-
-interface KanbanCtx {
-  cards: Card[];
-  trilhas: Trilha[];
-  tracks: Track[];
-  columns: Column[];
-  collapsed: Record<string, boolean>;
-  search: string;
-  setSearch: (s: string) => void;
-  filter: string;
-  setFilter: (s: string) => void;
-  trackFilter: string;
-  setTrackFilter: (s: string) => void;
-  loading: boolean;
-  addCard: (data: AddInput) => void;
-  updateCard: (id: string, patch: Partial<Card>) => void;
-  moveCard: (id: string, col: ColumnId, track?: TrackId) => void;
-  reorderCard: (
-    id: string,
-    target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
-  ) => void;
-  deleteCard: (id: string) => void;
-  toggleStar: (id: string) => void;
-  duplicateCard: (id: string) => void;
-  toggleCollapsed: (id: TrackId) => void;
-  createTrilha: (t: Omit<Trilha, "id">) => void;
-  updateTrilha: (id: string, data: Omit<Trilha, "id">) => void;
-  deleteTrilha: (id: string) => void;
-  createTrack: (t: Omit<Track, "id" | "order"> & { order?: number }) => void;
-  updateTrack: (id: string, data: Omit<Track, "id">) => void;
-  deleteTrack: (id: string) => void;
-  createColumn: (name: string, trackId?: string) => void;
-  updateColumn: (id: string, data: { name?: string; wip_limit?: number | null }) => void;
-  deleteColumn: (id: string) => void;
-  getColumnsForTrack: (trackId: string) => Column[];
-  createOpen: boolean;
-  setCreateOpen: (v: boolean) => void;
-  templates: CardTemplate[];
-  saveTemplate: (card: Card, name: string) => void;
-  updateTemplate: (id: string, name: string) => void;
-  deleteTemplate: (id: string) => void;
-  cardColors: Record<string, string>;
-  setCardColor: (cardId: string, color: string) => void;
-  activitiesByCard: Record<string, Activity[]>;
-  commentsByCard: Record<string, Comment[]>;
-  timeLogsByCard: Record<string, TimeLog[]>;
-  loadCardDetails: (cardId: string) => Promise<void>;
-  addComment: (cardId: string, text: string) => Promise<void>;
-  updateComment: (commentId: string, text: string) => Promise<void>;
-  deleteComment: (commentId: string, cardId: string) => Promise<void>;
-  addTimeLog: (cardId: string, minutes: number, note?: string, loggedAt?: string) => Promise<void>;
-  deleteTimeLog: (logId: string, cardId: string) => Promise<void>;
-}
-
-const Ctx = createContext<KanbanCtx | null>(null);
-
-function rowToCard(row: Record<string, unknown>): Card {
-  return {
-    id: row.id as string,
-    col: row.col as ColumnId,
-    track: row.track as TrackId,
-    type: (row.type as Card["type"]) ?? "Task",
-    parent_id: row.parent_id as string | undefined,
-    title: row.title as string,
-    desc: row.desc as string | undefined,
-    prio: row.prio as Card["prio"],
-    date: row.date as string | undefined,
-    starred: (row.starred as boolean) ?? false,
-    tags: (row.tags as string[]) ?? [],
-    order: (row.order as number) ?? 0,
-    checklist: (row.checklist as Card["checklist"]) ?? [],
-    blocked_by: (row.blocked_by as string[]) ?? [],
-    created_at: row.created_at as string,
-    updated_at: row.updated_at as string,
-  };
-}
-
-// Calcula o próximo `order` para um card recém-criado em (track, col):
-// um a mais que o maior existente naquela coluna+track.
-function nextOrder(cards: Card[], track: TrackId, col: ColumnId): number {
-  const inSameCol = cards.filter((c) => c.track === track && c.col === col);
-  if (inSameCol.length === 0) return 1;
-  return Math.max(...inSameCol.map((c) => c.order)) + 1;
-}
-
-function rowToTrilha(row: Record<string, unknown>): Trilha {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    bg: row.bg as string,
-    fg: row.fg as string,
-  };
-}
-
-function rowToColumn(row: Record<string, unknown>): Column {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    order: (row.order as number) ?? 0,
-    wip_limit: row.wip_limit as number | undefined,
-    track_id: (row.track_id as string | null) ?? undefined,
-  };
-}
-
-function rowToTrack(row: Record<string, unknown>): Track {
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    bg: row.bg as string,
-    border: row.border as string,
-    fg: row.fg as string,
-    darkBg: row.dark_bg as string,
-    darkFg: row.dark_fg as string,
-    order: (row.order as number) ?? 0,
-  };
-}
-
-function trackToRow(t: Omit<Track, "id">): Record<string, unknown> {
-  return {
-    name: t.name,
-    bg: t.bg,
-    border: t.border,
-    fg: t.fg,
-    dark_bg: t.darkBg,
-    dark_fg: t.darkFg,
-    order: t.order,
-  };
-}
+  nextOrder,
+  rowToCard,
+  rowToColumn,
+  rowToTrack,
+  rowToTrilha,
+  trackToRow,
+} from "./kanban-mappers";
+import { useCardDetails } from "./use-card-details";
+import { useTemplates } from "./use-templates";
+import { useCardColors } from "./use-card-colors";
 
 export function KanbanProvider({ children }: { children: ReactNode }) {
   const [cards, setCards] = useState<Card[]>([]);
@@ -180,39 +37,59 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [trackFilter, setTrackFilter] = useState("__all");
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [templates, setTemplates] = useState<CardTemplate[]>(loadTemplates);
-  const [cardColors, setCardColors] = useState<Record<string, string>>(loadCardColors);
-  const [activitiesByCard, setActivitiesByCard] = useState<Record<string, Activity[]>>({});
-  const [commentsByCard, setCommentsByCard] = useState<Record<string, Comment[]>>({});
-  const [timeLogsByCard, setTimeLogsByCard] = useState<Record<string, TimeLog[]>>({});
 
-  const currentUserIdRef = useRef<string | null>(null);
+  const {
+    activitiesByCard,
+    commentsByCard,
+    timeLogsByCard,
+    attachmentsByCard,
+    currentUserIdRef,
+    logActivity,
+    loadCardDetails,
+    addComment,
+    updateComment,
+    deleteComment,
+    addTimeLog,
+    deleteTimeLog,
+    addAttachment,
+    deleteAttachment,
+  } = useCardDetails();
+  const { templates, saveTemplate, updateTemplate, deleteTemplate } = useTemplates();
+  const { cardColors, setCardColor } = useCardColors();
+
+  // Bloco 2.1: consome a sessão do auth-store em vez de manter getUser()/
+  // onAuthStateChange próprios. O padrão anterior tinha 3 gatilhos de load
+  // (chamada direta + SIGNED_IN + load inicial) correndo sobre um único
+  // loadInFlightRef cujo dedup, sob StrictMode (mount→cleanup→mount), devolvia
+  // uma Promise presa ao `cancelled` da instância morta → o board travava no
+  // skeleton ao restaurar sessão (reload). O auth-store já usa getSession()
+  // (leitura local, sem race) e expõe user/loading; este efeito reage a eles —
+  // um único gatilho, igual ao padrão de user-profile-store.
+  const { user, loading: authLoading } = useAuth();
   const loadInFlightRef = useRef<Promise<void> | null>(null);
 
-  const logActivityRef = useRef<
-    (taskId: string, type: ActivityType, message: string) => Promise<void>
-  >(async () => {});
-
-  const logActivityFn = async (taskId: string, type: ActivityType, message: string) => {
-    const userId = currentUserIdRef.current;
-    if (!userId) return;
-    await ActivityService.logActivity(setActivitiesByCard, userId, taskId, type, message);
-  };
-
-  logActivityRef.current = logActivityFn;
-  const logActivity = (taskId: string, type: ActivityType, message: string) =>
-    logActivityRef.current(taskId, type, message);
-
   useEffect(() => {
+    // Aguarda o auth-store hidratar a sessão antes de decidir.
+    if (authLoading) return;
+
+    // Sem usuário (sessão expirada/deslogado): limpa o estado e encerra o
+    // loading — o guard do AppShell (!user && !loading) redireciona ao /login,
+    // em vez de skeleton infinito e silencioso.
+    if (!user) {
+      setCards([]);
+      setTrilhas([]);
+      setTracks([]);
+      setColumns([]);
+      currentUserIdRef.current = null;
+      loadInFlightRef.current = null;
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
+    currentUserIdRef.current = user.id;
 
     const runLoad = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
-      currentUserIdRef.current = user.id;
-
       const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] =
         await Promise.all([
           supabase.from("tasks").select("*").order("created_at"),
@@ -225,61 +102,37 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       // Sem seed automático: trilhas, tracks, columns e cards iniciais
       // são criadas pelo usuário no Onboarding Beta (e depois em /settings).
-      if (!cancelled) {
-        setTracks((dbTracks ?? []).map(rowToTrack));
-        setCards((dbCards ?? []).map(rowToCard));
-        setTrilhas((dbTrilhas ?? []).map(rowToTrilha));
-        setColumns(
-          (dbColumns ?? []).map(rowToColumn).sort((a, b) => a.order - b.order),
-        );
-        setLoading(false);
-      }
+      setTracks((dbTracks ?? []).map(rowToTrack));
+      setCards((dbCards ?? []).map(rowToCard));
+      setTrilhas((dbTrilhas ?? []).map(rowToTrilha));
+      setColumns((dbColumns ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
+      setLoading(false);
     };
 
-    // Deduplica chamadas concorrentes: se já houver um load() em curso,
-    // retorna a mesma Promise em vez de iniciar outro (evita race condition
-    // que duplicava o seed em contas novas — load inicial vs SIGNED_IN).
-    const load = () => {
-      if (loadInFlightRef.current) return loadInFlightRef.current;
-      const p = runLoad().finally(() => {
+    // Dedup de fetches concorrentes redundantes (StrictMode + re-render).
+    if (!loadInFlightRef.current) {
+      loadInFlightRef.current = runLoad().finally(() => {
         loadInFlightRef.current = null;
       });
-      loadInFlightRef.current = p;
-      return p;
-    };
-
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") load();
-      if (event === "SIGNED_OUT") {
-        setCards([]);
-        setTrilhas([]);
-        setTracks([]);
-        setColumns([]);
-        setLoading(true);
-      }
-    });
-
-    load();
+    }
 
     return () => {
       cancelled = true;
-      sub.subscription.unsubscribe();
     };
-  }, []);
+    // Depende de user?.id (primitivo estável), NÃO do objeto `user`: o auth-store
+    // recria session?.user a cada setSession (INITIAL_SESSION → SIGNED_IN →
+    // TOKEN_REFRESHED no reload). Chavear pelo objeto causaria re-runs espúrios
+    // que cancelavam o load em voo e travavam o board no skeleton (Bloco 2.1).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading]);
 
   useEffect(() => {
     saveCollapsed(collapsed);
   }, [collapsed]);
 
-  useEffect(() => {
-    saveTemplates(templates);
-  }, [templates]);
-
-  useEffect(() => {
-    saveCardColors(cardColors);
-  }, [cardColors]);
-
-  const value = useMemo<Omit<KanbanCtx, "activitiesByCard" | "commentsByCard" | "timeLogsByCard">>(
+  const value = useMemo<
+    Omit<KanbanCtx, "activitiesByCard" | "commentsByCard" | "timeLogsByCard" | "attachmentsByCard">
+  >(
     () => ({
       cards,
       trilhas,
@@ -509,43 +362,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 
       toggleCollapsed: (id) => setCollapsed((cur) => ({ ...cur, [id]: !cur[id] })),
 
-      saveTemplate: (card, name) => {
-        const tpl: CardTemplate = {
-          id: crypto.randomUUID(),
-          name: name.trim(),
-          type: card.type,
-          prio: card.prio,
-          desc: card.desc,
-          tags: card.tags,
-          checklist: (card.checklist ?? []).map((i) => ({
-            ...i,
-            id: crypto.randomUUID(),
-            done: false,
-          })),
-          created_at: new Date().toISOString(),
-        };
-        setTemplates((cur) => [...cur, tpl]);
-      },
-
-      updateTemplate: (id, name) => {
-        setTemplates((cur) => cur.map((t) => (t.id === id ? { ...t, name: name.trim() } : t)));
-      },
-
-      deleteTemplate: (id) => {
-        setTemplates((cur) => cur.filter((t) => t.id !== id));
-      },
-
-      setCardColor: (cardId, color) => {
-        setCardColors((cur) => {
-          const next = { ...cur };
-          if (color === "none") {
-            delete next[cardId];
-          } else {
-            next[cardId] = color;
-          }
-          return next;
-        });
-      },
+      saveTemplate,
+      updateTemplate,
+      deleteTemplate,
+      setCardColor,
 
       getColumnsForTrack: (trackId) => {
         const trackCols = columns.filter((c) => c.track_id === trackId);
@@ -553,51 +373,14 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         return columns.filter((c) => !c.track_id).sort((a, b) => a.order - b.order);
       },
 
-      loadCardDetails: async (cardId) => {
-        const [acts, cmts, logs] = await Promise.all([
-          ActivityService.fetchActivities(cardId),
-          CommentsService.fetchComments(cardId),
-          TimelogService.fetchTimeLogs(cardId),
-        ]);
-        setActivitiesByCard((cur) => ({ ...cur, [cardId]: acts }));
-        setCommentsByCard((cur) => ({ ...cur, [cardId]: cmts }));
-        setTimeLogsByCard((cur) => ({ ...cur, [cardId]: logs }));
-      },
-
-      addComment: async (cardId, text) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-        await CommentsService.addComment(setCommentsByCard, user.id, cardId, text);
-      },
-
-      updateComment: async (commentId, text) => {
-        await CommentsService.updateComment(setCommentsByCard, commentId, text);
-      },
-
-      deleteComment: async (commentId, cardId) => {
-        await CommentsService.deleteComment(setCommentsByCard, commentId, cardId);
-      },
-
-      addTimeLog: async (cardId, minutes, note, loggedAt) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-        await TimelogService.addTimeLog(
-          setTimeLogsByCard,
-          user.id,
-          cardId,
-          minutes,
-          note,
-          loggedAt,
-        );
-      },
-
-      deleteTimeLog: async (logId, cardId) => {
-        await TimelogService.deleteTimeLog(setTimeLogsByCard, logId, cardId);
-      },
+      loadCardDetails,
+      addComment,
+      updateComment,
+      deleteComment,
+      addTimeLog,
+      deleteTimeLog,
+      addAttachment,
+      deleteAttachment,
 
       createTrilha: async (t) => {
         const {
@@ -706,7 +489,13 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         setColumns((cur) => [...cur, newCol].sort((a, b) => a.order - b.order));
         const { data: inserted, error } = await supabase
           .from("columns")
-          .insert({ id: tempId, name: name.trim(), order, user_id: user.id, track_id: trackId ?? null })
+          .insert({
+            id: tempId,
+            name: name.trim(),
+            order,
+            user_id: user.id,
+            track_id: trackId ?? null,
+          })
           .select()
           .single();
         if (error) {
@@ -757,6 +546,14 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         await supabase.from("columns").delete().eq("id", id);
       },
     }),
+    // IMPORTANTE: array de dependências IDÊNTICO ao original (verbatim).
+    // As funções dos slices (logActivity, addComment, saveTemplate, ...) e os
+    // refs são intencionalmente OMITIDOS: incluí-los recriaria este memo a cada
+    // render (essas funções não são memoizadas nos hooks), anulando a divisão
+    // value/fullValue que existe justamente para que mudanças em
+    // activities/comments/timeLogs não recriem os closures do kernel. As ações
+    // do kernel só leem entidades + estado de UI, que estão todos listados aqui.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       cards,
       trilhas,
@@ -774,15 +571,9 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   );
 
   const fullValue = useMemo(
-    () => ({ ...value, activitiesByCard, commentsByCard, timeLogsByCard }),
-    [value, activitiesByCard, commentsByCard, timeLogsByCard],
+    () => ({ ...value, activitiesByCard, commentsByCard, timeLogsByCard, attachmentsByCard }),
+    [value, activitiesByCard, commentsByCard, timeLogsByCard, attachmentsByCard],
   );
 
   return <Ctx.Provider value={fullValue}>{children}</Ctx.Provider>;
-}
-
-export function useKanban() {
-  const v = useContext(Ctx);
-  if (!v) throw new Error("useKanban must be used inside KanbanProvider");
-  return v;
 }

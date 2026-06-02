@@ -67,16 +67,30 @@ export function Board() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<{ track: TrackId; col: ColumnId } | null>(null);
 
+  // Busca (2.3): casa o termo contra TÍTULO, DESCRIÇÃO e NOME das etiquetas do
+  // card. Atenção: c.tags guarda IDs de trilha, não nomes — por isso resolvemos
+  // id→nome via `trilhas` antes de comparar (um c.tags.includes(q) casaria IDs
+  // e nunca acertaria o que o usuário digita). `filter` continua casando por ID.
+  const trilhaNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const t of trilhas) m.set(t.id, t.name.toLowerCase());
+    return m;
+  }, [trilhas]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return cards.filter((c) => {
       if (isArchived(c)) return false;
       if (filter !== "__all" && !c.tags.includes(filter)) return false;
-      if (q && !c.title.toLowerCase().includes(q) && !(c.desc ?? "").toLowerCase().includes(q))
-        return false;
+      if (q) {
+        const inTitle = c.title.toLowerCase().includes(q);
+        const inDesc = (c.desc ?? "").toLowerCase().includes(q);
+        const inTags = c.tags.some((id) => (trilhaNameById.get(id) ?? "").includes(q));
+        if (!inTitle && !inDesc && !inTags) return false;
+      }
       return true;
     });
-  }, [cards, filter, search]);
+  }, [cards, filter, search, trilhaNameById]);
 
   const archivedCount = useMemo(() => cards.filter(isArchived).length, [cards]);
 
@@ -111,7 +125,11 @@ export function Board() {
   }, [filterOpen]);
 
   return (
-    <div className="flex flex-col">
+    // kb-dragging: durante o arraste, desliga a box-shadow dos cards (existe só
+    // no modo claro) para baratear o repaint ao rolar entre colunas — origem da
+    // sensação "menos fluido no claro" relatada no 2.2. Hipótese a confirmar no
+    // dispositivo; o dark não tem shadow base, então não muda nada lá.
+    <div className={`flex flex-col${draggingId ? " kb-dragging" : ""}`}>
       {/* Filter bar */}
       <div className="sticky top-12 z-[5] border-b bg-background/80 px-3 py-2 backdrop-blur sm:px-6">
         <div className="flex items-center gap-1.5">

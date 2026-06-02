@@ -26,6 +26,7 @@ import {
   formatDate,
   getDeadlineStatus,
   getGoalProgress,
+  getChecklistProgress,
 } from "@/lib/kanban-types";
 
 function getDeadlineColor(status: ReturnType<typeof getDeadlineStatus>): string {
@@ -44,6 +45,7 @@ import { CommentsSection } from "./card-modal-sections/CommentsSection";
 import { TimeTrackingSection } from "./card-modal-sections/TimeTrackingSection";
 import { ActivitySection } from "./card-modal-sections/ActivitySection";
 import { DependenciesSection } from "./card-modal-sections/DependenciesSection";
+import { AttachmentsSection } from "./card-modal-sections/AttachmentsSection";
 
 export function CardDetailModal({
   card,
@@ -83,16 +85,38 @@ export function CardDetailModal({
   const [colorOpen, setColorOpen] = useState(false);
   const { theme } = useTheme();
   const { t } = useLocale();
-  const { loadCardDetails } = useKanban();
+  const { loadCardDetails, commentsByCard, activitiesByCard, timeLogsByCard, attachmentsByCard } =
+    useKanban();
+
+  // Contadores reais por aba (3.1): exibem QUANTOS itens cada aba tem.
+  // (Os números 1-5 ao lado do nome são atalhos de teclado, não contagem.)
+  const checklistProg = getChecklistProgress(card);
+  const tabCounts: Record<string, string | null> = {
+    detalhes: null,
+    checklist: checklistProg.total > 0 ? `${checklistProg.done}/${checklistProg.total}` : null,
+    comentarios:
+      (commentsByCard[card.id]?.length ?? 0) > 0 ? String(commentsByCard[card.id].length) : null,
+    atividade:
+      (activitiesByCard[card.id]?.length ?? 0) > 0
+        ? String(activitiesByCard[card.id].length)
+        : null,
+    tempo:
+      (timeLogsByCard[card.id]?.length ?? 0) > 0 ? String(timeLogsByCard[card.id].length) : null,
+    anexos:
+      (attachmentsByCard[card.id]?.length ?? 0) > 0
+        ? String(attachmentsByCard[card.id].length)
+        : null,
+  };
 
   // Tabs — persiste a aba ativa no localStorage
-  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo";
+  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo" | "anexos";
   const TABS: { id: TabId; label: string; shortcut: string }[] = [
     { id: "detalhes", label: t("tab_details"), shortcut: "1" },
     { id: "checklist", label: t("tab_checklist"), shortcut: "2" },
     { id: "comentarios", label: t("tab_comments"), shortcut: "3" },
     { id: "atividade", label: t("tab_activity"), shortcut: "4" },
     { id: "tempo", label: t("tab_time"), shortcut: "5" },
+    { id: "anexos", label: t("tab_attachments"), shortcut: "6" },
   ];
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const saved = localStorage.getItem("molas-modal-tab") as TabId | null;
@@ -353,8 +377,19 @@ export function CardDetailModal({
                   }`}
                   style={{ fontFamily: "var(--font-display)", letterSpacing: "0.06em" }}
                 >
+                  <span className="mr-1 opacity-30 text-[9px] font-mono">{tab.shortcut}</span>
                   {tab.label}
-                  <span className="ml-1 opacity-40 text-[9px] font-mono">{tab.shortcut}</span>
+                  {tabCounts[tab.id] && (
+                    <span
+                      className={`ml-1.5 inline-flex items-center rounded-full px-1.5 text-[9px] font-mono tabular-nums ${
+                        activeTab === tab.id
+                          ? "bg-foreground/15 text-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {tabCounts[tab.id]}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -452,7 +487,9 @@ export function CardDetailModal({
                   return (
                     <div className="mb-5">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-medium text-muted-foreground">{t("progress")}</span>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {t("progress")}
+                        </span>
                         <span className="text-xs font-semibold text-foreground">
                           {progress.percent}%
                         </span>
@@ -476,8 +513,8 @@ export function CardDetailModal({
                 />
               ) : (
                 <p className="mb-5 text-xs text-muted-foreground italic">
-                  {t("no_desc")}{" "}
-                  <kbd className="rounded border px-1 py-0.5 text-[10px]">e</kbd> {t("no_desc_hint")}
+                  {t("no_desc")} <kbd className="rounded border px-1 py-0.5 text-[10px]">e</kbd>{" "}
+                  {t("no_desc_hint")}
                 </p>
               )}
               {/* Mover coluna/track */}
@@ -504,7 +541,9 @@ export function CardDetailModal({
                   </div>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">{t("move_to_track")}</p>
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">
+                    {t("move_to_track")}
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {tracks
                       .filter((t) => t.id !== card.track)
@@ -638,6 +677,9 @@ export function CardDetailModal({
 
           {/* Tab: Tempo */}
           {!editing && activeTab === "tempo" && <TimeTrackingSection cardId={card.id} />}
+
+          {/* Tab: Anexos */}
+          {!editing && activeTab === "anexos" && <AttachmentsSection cardId={card.id} />}
         </div>
       </div>
     </div>

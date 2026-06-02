@@ -28,7 +28,11 @@ async function globalSetup() {
   await page.locator('input[type="password"]').fill(password);
   await page.locator('button[type="submit"]').click();
 
-  await page.waitForSelector('text=Gerenciador de Molas', { timeout: 30_000 });
+  // Login concluído quando saímos de /login e o board carrega.
+  // (O título "Gerenciador de Molas" é apenas <title> do head, não texto
+  // visível — não serve como seletor de DOM.)
+  await page.waitForURL(`${BASE_URL}/`, { timeout: 30_000 });
+  await page.waitForSelector("[data-track]", { timeout: 30_000 });
   await page.context().storageState({ path: STATE_PATH });
 
   await browser.close();

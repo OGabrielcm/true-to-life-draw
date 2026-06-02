@@ -65,18 +65,23 @@ export function ChecklistSection({
         </div>
       )}
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {items.map((item) => (
           <div
             key={item.id}
-            className="group flex items-center gap-2 rounded-md px-1 py-1 hover:bg-muted/40"
+            className={`group flex items-center gap-2.5 rounded-md px-1.5 py-1.5 transition-colors hover:bg-muted/40 ${
+              item.done ? "opacity-60" : ""
+            }`}
           >
-            <input
-              type="checkbox"
-              checked={item.done}
-              onChange={() => toggle(item.id)}
-              className="h-3.5 w-3.5 shrink-0 cursor-pointer accent-foreground"
-            />
+            {/* Alvo de toque maior no checkbox (≥40px) sem inchar o desktop */}
+            <label className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center -my-1 md:h-auto md:w-auto md:py-0">
+              <input
+                type="checkbox"
+                checked={item.done}
+                onChange={() => toggle(item.id)}
+                className="h-4 w-4 cursor-pointer accent-foreground"
+              />
+            </label>
             {editingId === item.id ? (
               <>
                 <input
@@ -86,35 +91,38 @@ export function ChecklistSection({
                     if (e.key === "Enter") saveEdit();
                     if (e.key === "Escape") setEditingId(null);
                   }}
-                  className="flex-1 rounded-md border bg-background px-2 py-0.5 text-sm outline-none focus:border-foreground/40"
+                  className="flex-1 rounded-md border bg-background px-2 py-1 text-sm outline-none focus:border-foreground/40"
                   autoFocus
                 />
                 <button
                   onClick={saveEdit}
-                  className="rounded p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 md:h-7 md:w-7"
                 >
-                  <Check className="h-3 w-3" />
+                  <Check className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setEditingId(null)}
-                  className="rounded p-1 text-muted-foreground hover:bg-muted"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted md:h-7 md:w-7"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </button>
               </>
             ) : (
               <>
                 <span
                   onClick={() => startEdit(item)}
-                  className={`flex-1 cursor-text text-sm ${item.done ? "line-through text-muted-foreground" : "text-foreground"}`}
+                  className={`flex-1 cursor-text text-sm leading-snug ${item.done ? "line-through text-muted-foreground" : "text-foreground"}`}
                 >
                   {item.text}
                 </span>
+                {/* Botão excluir: sempre visível em touch (sem hover no mobile),
+                    revela no hover apenas no desktop. Alvo de toque ≥36px. */}
                 <button
                   onClick={() => remove(item.id)}
-                  className="opacity-0 group-hover:opacity-100 rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  aria-label="Excluir item"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100"
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
                 </button>
               </>
             )}

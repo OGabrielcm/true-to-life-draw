@@ -1,7 +1,72 @@
 # 🗺️ Roadmap — Molas Kanban
 
+> ⚠️ **Este arquivo deve ser atualizado a cada implementação concluída.**
+> Ao finalizar qualquer bloco de implementação, marcar os itens como concluídos e adicionar a data.
+> Itens novos identificados durante o desenvolvimento devem ser adicionados na seção correspondente.
+
+---
+
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Maio 2026 — Fases 1–5 completas ✅ · MVP em produção (Vercel)
+> Atualizado em: Junho 2026 — Fases 1–5 completas ✅ · Blocos 1–6 concluídos · MVP em produção (Vercel)
+>
+> **2026-06-01 — Bloco 6 (revisão do roadmap) concluído:** roadmap reconciliado
+> com o estado real do código (cada feature marcada ✅ foi verificada por grep,
+> não por confiança na lista de prompts — que já afirmou falsamente que anexos e
+> "rich text Tiptap" existiam). Regra de manutenção adicionada no topo. Anexos
+> (Bloco 4) e os 4 temas (Bloco 3.3) refletidos na seção "Já implementado".
+>
+> **2026-05-31 — Bloco 1 (refatoração estrutural) concluído:** migrations movidas
+> para `supabase/migrations/`, rotas de auth agrupadas em pathless group `(auth)/`
+> (URLs preservadas), distinção Track/Trilha documentada e `kanban-store` dividido
+> em slices. A revisão completa do roadmap (itens implementados, datas) está
+> planejada para o Bloco 6.
+>
+> **2026-06-01 — Bloco 3 (melhorias visuais) concluído:** 3.1 contadores reais
+> nas abas do card (o número ao lado do nome é atalho de teclado, não contagem);
+> 3.2 polish do checklist + fix do botão excluir invisível no mobile; 3.3 quatro
+> temas (Dark padrão, Light, Baby Blue, Sépia/Gruvbox) com seletor dropdown e
+> persistência por usuário no Supabase (`user_profile.theme`), cross-device.
+>
+> **2026-06-01 — Bloco 4 (anexos no card) concluído:** o prompt assumia que o
+> código de upload já existia (só faltaria o bucket), mas **não havia nada de
+> anexos no projeto** — feature construída do zero. Nova tabela `attachments`
+> (metadados, RLS própria), bucket Storage `attachments` (público, 20MB) e
+> políticas das duas camadas (tabela + `storage.objects`). Seção de anexos no
+> card (upload múltiplo, listagem com preview de imagem, download, excluir).
+> Delete remove o arquivo do Storage **e** a row (validado por probe ao vivo —
+> download retorna 400 após excluir). Delete restrito ao dono via
+> `storage.objects.owner_id` (owner-pode-excluir validado; não-dono bloqueado
+> pela policy, não testado com 2ª conta).
+> **Limitação consciente (não implementada agora):** excluir um *card* faz
+> cascade nas rows de `attachments`, mas **orfana os objetos no Storage** — não
+> há trigger/edge-function de limpeza do bucket. Fora do escopo do critério;
+> registrado para decisão futura.
+>
+> **2026-06-01 — Bloco 5 (responsividade mobile do dashboard) concluído:** o
+> dashboard já era responsivo (trabalho anterior); o mapeamento foi feito por
+> RENDERIZAÇÃO real em 390px e 375px (probe visual `probe-dashboard-mobile.mjs`),
+> não por leitura de classes. Resultado: KPIs, os três gráficos de barras e os
+> filtros já se comportam bem; a única quebra real era a **tabela** — rola na
+> horizontal (não cabe em 390px) mas **sem indicação visual** de que há mais
+> colunas (inclusive as ações). Fix: degradê na borda direita (só mobile, `md:`
+> esconde) sinalizando o scroll. Sem overflow de página, sem texto truncado.
+> **Nota de breakpoint:** "768px (não alterar)" é guardrail, não diretiva — o
+> divisor mobile do app é `md:` (768px, AppShell). Converter os `sm:` (640px) do
+> dashboard para `md:` seria **no-op em 390/375** (ambos caem no base) e fora do
+> escopo; mantido como está.
+>
+> **2026-06-01 — Bloco 2 (bugs) parcial:** 2.1 corrigido (board travava no
+> skeleton ao restaurar sessão — gatilho de load reativo a `user?.id`); 2.3
+> corrigido (busca agora casa também nome de etiqueta, além de título/descrição).
+> **2.2** (drag&drop mobile no modo claro) — retomado ao fim do Bloco 6. O
+> sintoma relatado não é "quebrado" e sim "mais travado / menos fluido que no
+> dark ao passar o card entre colunas". Causa provável isolada: **só o modo
+> claro tem `box-shadow` base nos `.kb-card`** (o dark usa borda, sem shadow) —
+> e shadow é caro de repintar a cada frame ao rolar o board na horizontal. Fix
+> tentado: classe `kb-dragging` no board zera shadow+transition dos cards
+> enquanto há arraste ativo. **Hipótese a confirmar no dispositivo** (não é
+> mensurável localmente — touch + subjetivo). Se não melhorar, reapontar a
+> investigação com o novo dado, não insistir no mesmo palpite.
 
 ---
 
@@ -21,7 +86,7 @@
 |--------|----|-------------|
 | **Haiku 4.5** | `claude-haiku-4-5-20251001` | Tarefas simples, 1–2 arquivos, sem migration |
 | **Sonnet 4.6** | `claude-sonnet-4-6[1m]` | Tarefas médias, 3–5 arquivos, novo modal/componente |
-| **Opus 4.7** | `claude-opus-4-7` | Tarefas complexas, 6+ arquivos, nova tabela Supabase |
+| **Opus 4.8** | `claude-opus-4-8` | Tarefas complexas, 6+ arquivos, nova tabela Supabase |
 
 > ⚠️ **Regra:** Antes de iniciar qualquer feature, verificar se o modelo ativo coincide com o modelo recomendado abaixo. Se não coincidir, pausar e avisar o usuário.
 
@@ -35,19 +100,21 @@
 | Cards com título, descrição, prioridade, prazo | ✅ |
 | Tipos de card: Task / Goal (relação pai-filho) | ✅ |
 | Tags / Trilhas (filtros visuais) | ✅ |
-| Drag & Drop (desktop + mobile) | ✅ |
+| Drag & Drop (desktop ✅ · mobile modo claro pendente de validação — ver 2.2) | ✅ |
 | Busca global | ✅ |
 | Tracks dinâmicas (criar, editar, excluir swimlanes) | ✅ |
 | Trilhas dinâmicas (criar, editar, excluir tags) | ✅ |
 | Arquivamento automático (Done > 7 dias) | ✅ |
 | For You (recentes + favoritos) | ✅ |
 | Dashboards (tabela com todas as tarefas) | ✅ |
-| Tema claro / escuro | ✅ |
+| 4 temas (Dark padrão, Light, Baby Blue, Sépia) com persistência por usuário no Supabase, cross-device | ✅ |
 | Autenticação (login, signup, perfil) | ✅ |
-| Responsividade mobile | ✅ |
+| Responsividade mobile (board, modal, dashboard com scroll horizontal na tabela) | ✅ |
+| Onboarding Beta obrigatório (`onboarding_completed`, sem trilhas/colunas padrão) | ✅ |
+| Filtro de trilhas na sidebar (mostra todas quando nenhuma selecionada) | ✅ |
 | Edição de cards (título, descrição, prazo, prioridade, tags) | ✅ |
 | Colunas customizáveis (criar, renomear, excluir colunas do board) | ✅ |
-| Reordenação de cards dentro da coluna (desktop + mobile) | ✅ |
+| Reordenação de cards dentro da coluna (desktop ✅ · mobile modo claro — ver 2.2) | ✅ |
 | Notificações de prazo (badge no header, indicador visual nos cards) | ✅ |
 | Progresso automático em Goals (% baseado em Tasks filhas) | ✅ |
 | Duplicar card | ✅ |
@@ -66,6 +133,7 @@
 | Histórico de atividades no card | ✅ |
 | Comentários no card | ✅ |
 | Time tracking (log de horas por card) | ✅ |
+| Anexos no card (upload p/ Storage, preview, download, excluir — Bloco 4) | ✅ |
 | README.md com setup, stack e schema Supabase | ✅ |
 | Código formatado com Prettier (zero lint errors) | ✅ |
 | Arquitetura em camadas (services, card-rules, dashboard-export) | ✅ |

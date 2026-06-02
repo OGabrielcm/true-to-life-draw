@@ -47,3 +47,4 @@ tests/e2e/.auth-state.json
 playwright.config.emmanuel.ts
 playwright-report/
 test-results/
+tmp-shots/

@@ -1,13 +1,13 @@
 # True to Life Draw — Kanban Board
 
-A modern, real-time collaborative kanban board built with React, TypeScript, and Supabase. Designed for task management with visual prioritization, activity tracking, and time-based insights.
+A modern kanban board built with React, TypeScript, and Supabase. Designed for task management with visual prioritization, checklists, dependencies, attachments, activity tracking, and time-based insights.
 
 ## Tech Stack
 
 - **Frontend**: React 19, TypeScript, TanStack Router, TanStack Start (Vite)
 - **Styling**: Tailwind CSS v4, shadcn/ui components, Radix UI
-- **State & Data**: TanStack React Query, Supabase Realtime
-- **Backend**: Supabase (PostgreSQL, authentication, RLS)
+- **State & Data**: React Context stores + TanStack React Query + Supabase client (no realtime subscriptions yet — see ROADMAP T2)
+- **Backend**: Supabase (PostgreSQL, authentication, RLS, Storage)
 - **Deployment**: Vercel
 - **Testing**: Playwright (E2E)
 - **Code Quality**: ESLint, Prettier, TypeScript strict mode
@@ -32,14 +32,14 @@ bun install  # or npm install / pnpm install
 
 2. **Environment variables**
 
-Create a `.env.local` file at the project root:
+Create a `.env` file at the project root:
 
 ```env
 VITE_SUPABASE_URL=https://your-supabase-instance.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
-These are loaded automatically by Vite at build time.
+These are loaded automatically by Vite at build time. (E2E tests use a separate `.env.test`.)
 
 3. **Start development server**
 
@@ -70,53 +70,78 @@ bun run preview  # Test production build locally
 
 ## Supabase Schema
 
-### `cards`
+> **Nota de nomenclatura:** a tabela principal chama-se **`tasks`** no banco
+> (no código TypeScript o tipo é `Card`). As tabelas-filhas referenciam-na por
+> **`task_id`**.
+
+### `tasks`
 Main task/goal entities with full metadata.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
+| `user_id` | uuid | Owner (FK to `auth.users`) |
 | `col` | text | Column ID (backlog, todo, inprogress, review, done) |
 | `track` | uuid | Track/category reference (FK to `tracks`) |
 | `type` | text | "Task" or "Goal" |
-| `parent_id` | uuid | Optional parent card for sub-tasks (FK to `cards`) |
+| `parent_id` | uuid | Optional parent card for sub-tasks (FK to `tasks`) |
 | `title` | text | Card title |
 | `desc` | text | Card description (markdown) |
 | `prio` | text | Priority: "Alta", "Média", or "Baixa" |
 | `date` | text | Optional deadline (ISO 8601) |
 | `starred` | boolean | User favorite flag |
-| `tags` | text[] | Array of track IDs for legacy filtering |
+| `tags` | text[] | Array of trilha IDs for legacy filtering |
 | `order` | float | Position within column (allows insertion without renumbering) |
 | `checklist` | jsonb | Array of `{id, text, done}` objects |
 | `blocked_by` | text[] | Array of card IDs that block this card |
 | `created_at` | timestamp | Record creation |
-| `updated_at` | timestamp | Last modification (updated via Supabase trigger) |
+| `updated_at` | timestamp | Last modification |
 
-**Indexes**: `(col, order)`, `(track)`, `(parent_id)`
+> Há também uma coluna `attachments` (jsonb) legada nesta tabela, **não usada** —
+> os anexos vivem na tabela dedicada `attachments` (abaixo).
 
 ### `columns`
 Board structure configuration.
 
 | Column | Type | Notes |
 |--------|------|-------|
-| `id` | text | Fixed IDs: "backlog", "todo", "inprogress", "review", "done" |
+| `id` | text | Column ID ("backlog", "todo", "inprogress", "review", "done" or custom) |
+| `user_id` | uuid | Owner (FK to `auth.users`) |
 | `name` | text | Display name |
 | `order` | int | Column position |
 | `wip_limit` | int | Optional work-in-progress limit |
+| `track_id` | uuid | Owning track; `null` = global/template column |
+| `created_at` | timestamp | Record creation |
 
 ### `tracks`
-Categories/swimlanes for organizing cards by theme.
+Swimlanes — horizontal lanes of the board with their own columns and colors.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
+| `user_id` | uuid | Owner (FK to `auth.users`) |
 | `name` | text | Track name |
 | `bg` | text | Background color (hex) |
 | `border` | text | Border color (hex) |
 | `fg` | text | Foreground/text color (hex) |
-| `darkBg` | text | Dark mode background |
-| `darkFg` | text | Dark mode foreground |
+| `dark_bg` | text | Dark mode background |
+| `dark_fg` | text | Dark mode foreground |
 | `order` | int | Track position |
+| `created_at` | timestamp | Record creation |
+
+### `trilhas`
+Tags/labels for filtering (legacy tag system — **distinct** from `tracks`).
+A card's `tags` array holds `trilha` IDs. See the Track vs Trilha note in
+`kanban-types.ts`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | Owner (FK to `auth.users`) |
+| `name` | text | Label name |
+| `bg` | text | Background color (hex) |
+| `fg` | text | Foreground/text color (hex) |
+| `created_at` | timestamp | Record creation |
 
 ### `comments`
 Card discussion threads.
@@ -124,13 +149,13 @@ Card discussion threads.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
-| `card_id` | uuid | FK to `cards` (ON DELETE CASCADE) |
+| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
 | `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `content` | text | Markdown comment text |
+| `text` | text | Comment text |
 | `created_at` | timestamp | Record creation |
 | `updated_at` | timestamp | Last edit |
 
-**RLS**: Enabled; users can only view/edit comments on their board's cards.
+**RLS**: Enabled; users can only view/edit their own comments.
 
 ### `activities`
 Activity log for audit trail and card history.
@@ -138,9 +163,10 @@ Activity log for audit trail and card history.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
-| `card_id` | uuid | FK to `cards` (ON DELETE CASCADE) |
-| `action` | text | "created", "edited", "moved", "completed", etc. |
-| `description` | text | Human-readable log entry |
+| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
+| `user_id` | uuid | FK to `auth.users` |
+| `type` | text | "created", "moved", "edited", "starred", "checklist", etc. |
+| `message` | text | Human-readable log entry |
 | `created_at` | timestamp | When action occurred |
 
 ### `time_logs`
@@ -149,11 +175,44 @@ Time tracking entries per card.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
-| `card_id` | uuid | FK to `cards` (ON DELETE CASCADE) |
+| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
 | `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `duration_minutes` | int | Time spent (in minutes) |
-| `date` | date | Date of entry |
+| `minutes` | int | Time spent (in minutes) |
+| `note` | text | Optional note |
+| `logged_at` | timestamp | When the work happened |
 | `created_at` | timestamp | Record creation |
+
+### `attachments`
+File attachments per card. Binaries live in the `attachments` Storage bucket;
+this table holds only metadata. (Bloco 4)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
+| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
+| `path` | text | Object path in the bucket: `${task_id}/${uuid}-${name}` |
+| `name` | text | Original filename |
+| `mime` | text | MIME type |
+| `size_bytes` | int | File size |
+| `created_at` | timestamp | Record creation |
+
+**RLS** (two layers): table — SELECT for authenticated, INSERT/DELETE by owner;
+Storage `objects` — INSERT authenticated, SELECT public, DELETE by `owner_id`.
+**Bucket**: `attachments` (public, 20 MB limit).
+> **Limitação conhecida:** excluir um card faz cascade nas rows, mas **orfana os
+> objetos no Storage** (sem trigger de limpeza).
+
+### `user_profile`
+Per-user preferences (one row per user).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | uuid | Primary key / FK to `auth.users` |
+| `onboarding_completed` | boolean | Gates the mandatory Beta onboarding |
+| `theme` | text | UI theme: `dark` (default), `light`, `babyblue`, `sepia` — cross-device |
+| `created_at` | timestamp | Record creation |
+| `updated_at` | timestamp | Last update |
 
 ### Authentication
 
@@ -165,24 +224,38 @@ Time tracking entries per card.
 
 ```
 src/
-├── components/          # React components (presentation layer)
-│   ├── kanban/         # Board, cards, modals
-│   ├── shell/          # Layout shell, navigation
-│   └── theme-provider.tsx
-├── lib/                # Utilities and shared logic
-│   ├── kanban-store.tsx    # Zustand store (state + persistence)
-│   ├── kanban-types.ts     # TypeScript interfaces (Card, Column, Track)
-│   ├── supabase.ts         # Supabase client initialization
+├── components/              # React components (presentation layer)
+│   ├── kanban/             # Board, cards, modals
+│   │   └── card-modal-sections/  # Checklist, Comments, Activity, Time, Dependencies, Attachments
+│   ├── shell/              # Layout shell (AppShell), navigation
+│   ├── onboarding/         # Mandatory Beta onboarding
+│   └── theme-provider.tsx  # 4 themes + cross-device persistence bridge
+├── lib/
+│   ├── kanban-store/       # Kanban Context store, split into slices (Bloco 1)
+│   │   ├── index.tsx          # Public barrel (KanbanProvider, useKanban)
+│   │   ├── provider.tsx       # Kernel: entities + filters + actions
+│   │   ├── context.ts         # KanbanCtx type + useKanban hook
+│   │   ├── kanban-mappers.ts  # row ↔ Card mapping
+│   │   ├── use-card-details.ts # activities/comments/time/attachments slice
+│   │   ├── use-templates.ts / use-card-colors.ts
+│   ├── *-service.ts        # activity / comments / timelog / attachments services
+│   ├── kanban-types.ts     # TypeScript types (Card, Column, Track, Attachment, …)
 │   ├── auth-store.tsx      # Authentication state
-│   └── utils.ts            # Helper functions
-├── routes/             # TanStack Router pages
-│   ├── index.tsx      # Dashboard (main board)
-│   ├── calendar.tsx   # Calendar view
-│   ├── dashboards.tsx # Statistics & export
-│   └── login.tsx      # Authentication
-├── hooks/              # Custom React hooks
-├── main.tsx            # App entry point
-└── start.ts            # TanStack Start server configuration
+│   ├── user-profile-store.tsx # onboarding + theme preference (Supabase bridge)
+│   ├── supabase.ts         # Supabase client initialization
+│   ├── i18n.ts / locale-context.tsx / markdown.ts / utils.ts
+├── routes/                 # TanStack Router (file-based)
+│   ├── __root.tsx          # Root layout + providers
+│   ├── index.tsx           # Board (main)
+│   ├── calendar.tsx        # Calendar view
+│   ├── dashboards.tsx      # Statistics & export
+│   ├── for-you.tsx         # Recents + favorites
+│   ├── profile.tsx / settings.tsx
+│   └── (auth)/             # Pathless group: login, signup, reset-password (URLs unchanged)
+├── hooks/
+├── main.tsx                # App entry point
+├── router.tsx              # Router setup
+└── start.ts                # TanStack Start server configuration
 ```
 
 ## Key Concepts
@@ -202,13 +275,26 @@ Three priority levels with semantic colors:
 - **Média** (Medium): Orange tones — standard work
 - **Baixa** (Low): Green tones — backlog/nice-to-have
 
-### Real-time Sync
+### Themes
 
-Supabase Realtime subscriptions keep all clients synchronized. When a card is edited, moved, or commented on, all connected users see the change instantly.
+Four themes ship: **Dark** (default), **Light**, **Baby Blue**, and **Sépia**.
+The choice is persisted per user in `user_profile.theme` (cross-device) and
+mirrored to `localStorage` for instant, flash-free paint. The theme never gates
+render — a slow/failed DB read can't hang the UI.
+
+### Attachments
+
+Files are uploaded to the `attachments` Storage bucket (public, 20 MB);
+metadata lives in the `attachments` table. Deleting an attachment removes the
+Storage object **and** the row.
 
 ### Activity Tracking
 
-Every card action (created, edited, moved, etc.) is logged to the `activities` table for audit trails and historical context.
+Every card action (created, edited, moved, etc.) is logged to the `activities`
+table for audit trails and historical context.
+
+> **Sync:** the app is single-client (refetch on load/navigation); there are no
+> realtime subscriptions yet. Multi-tab realtime is a future item (ROADMAP T2).
 
 ## Development Workflow
 
@@ -253,7 +339,7 @@ The project uses the `project-booster` skill to intelligently assess pull reques
 
 ### Official Deploy Provider: Vercel
 
-This project is deployed on **Vercel** (https://vercel.com). No additional configuration needed; push to `main` branch for production deployment.
+This project is deployed on **Vercel** (https://vercel.com). No additional configuration needed; merging a PR to `main` triggers a production deployment. (Commit via feature branches + PRs — never push to `main` directly.)
 
 - Production URL: https://true-to-life-draw.vercel.app
 - Preview URLs: Auto-generated per pull request
@@ -281,7 +367,7 @@ Ensure `tsconfig.json` paths are correctly resolved. Check `vite-tsconfig-paths`
 
 ### Supabase connection fails
 
-1. Verify `.env.local` has correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+1. Verify `.env` has correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 2. Check Supabase project is running and RLS policies permit your user
 3. Ensure Supabase client is initialized in `src/lib/supabase.ts`
 
