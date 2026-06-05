@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-store";
+import { validateSignupForm } from "@/lib/signup-form";
 
 export const Route = createFileRoute("/(auth)/signup")({
   component: SignUpPage,
@@ -10,25 +11,42 @@ export const Route = createFileRoute("/(auth)/signup")({
 function SignUpPage() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailConfirmation, setEmailConfirmation] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres.");
+    const validated = validateSignupForm({
+      fullName,
+      email,
+      emailConfirmation,
+      password,
+      passwordConfirmation,
+    });
+
+    if (!validated.ok) {
+      setError(validated.error);
       return;
     }
+
     setBusy(true);
     setError("");
-    const err = await signUp(email, password);
+    const err = await signUp(
+      validated.data.email,
+      validated.data.password,
+      validated.data.fullName,
+    );
     setBusy(false);
     if (err) {
       setError(err);
     } else {
+      setEmail(validated.data.email);
       setSuccess(true);
     }
   };
@@ -77,12 +95,39 @@ function SignUpPage() {
           )}
 
           <div>
+            <label className="text-xs font-medium text-muted-foreground">Nome</label>
+            <input
+              type="text"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+              autoComplete="name"
+              placeholder="Seu nome"
+            />
+          </div>
+
+          <div>
             <label className="text-xs font-medium text-muted-foreground">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+              autoComplete="email"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Confirmar email</label>
+            <input
+              type="email"
+              required
+              value={emailConfirmation}
+              onChange={(e) => setEmailConfirmation(e.target.value)}
               className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
               style={{ borderWidth: "0.5px" }}
               autoComplete="email"
@@ -98,6 +143,19 @@ function SignUpPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              style={{ borderWidth: "0.5px" }}
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Confirmar senha</label>
+            <input
+              type="password"
+              required
+              value={passwordConfirmation}
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
               className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
               style={{ borderWidth: "0.5px" }}
               autoComplete="new-password"

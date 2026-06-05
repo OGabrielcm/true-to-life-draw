@@ -7,7 +7,7 @@ interface AuthCtx {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<string | null>;
-  signUp: (email: string, password: string) => Promise<string | null>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<string | null>;
   updatePassword: (newPassword: string) => Promise<string | null>;
@@ -37,8 +37,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error?.message ?? null;
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: fullName?.trim()
+        ? {
+            data: {
+              full_name: fullName.trim(),
+            },
+          }
+        : undefined,
+    });
     return error?.message ?? null;
   };
 
@@ -60,7 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ session, user: session?.user ?? null, loading, signIn, signUp, signOut, resetPassword, updatePassword }}
+      value={{
+        session,
+        user: session?.user ?? null,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        resetPassword,
+        updatePassword,
+      }}
     >
       {children}
     </Ctx.Provider>

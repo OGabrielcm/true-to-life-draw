@@ -68,6 +68,13 @@ bun run preview  # Test production build locally
 | `bun run test:e2e` | Run Playwright E2E tests against `.env.test` |
 | `bun run test:e2e:ui` | Run tests with Playwright UI inspector |
 
+## Auth e cadastro
+
+- `/signup` coleta nome, email, confirmação de email, senha e confirmação de senha antes de criar a conta.
+- A validação local bloqueia nome vazio, emails divergentes e senhas divergentes.
+- O cadastro envia o nome para o Supabase Auth em `user_metadata.full_name` para uso futuro em perfil/onboarding.
+- `/login` continua com fluxo simples de email/senha e recuperação separada.
+
 ## Supabase Schema
 
 > **Nota de nomenclatura:** a tabela principal chama-se **`tasks`** no banco
