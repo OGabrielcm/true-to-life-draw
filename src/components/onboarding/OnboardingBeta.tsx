@@ -66,7 +66,7 @@ export function OnboardingBeta() {
     await markOnboardingCompleted();
     setSubmitting(false);
     sessionStorage.setItem("molas_onboarding_just_completed", "1");
-    navigate({ to: "/settings" });
+    navigate({ to: "/" });
   };
 
   return (

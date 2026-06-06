@@ -138,7 +138,7 @@ export function CardItem({
           ? "oklch(0.7 0.18 50)"
           : cardColor && cardColor !== "none"
             ? cardColor
-            : null;
+            : prio.fg;
 
   return (
     <div
