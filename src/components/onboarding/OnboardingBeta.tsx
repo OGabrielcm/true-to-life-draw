@@ -16,6 +16,7 @@ export function OnboardingBeta() {
 
   const [step, setStep] = useState<Step>("track");
   const [trackName, setTrackName] = useState("");
+  const [trackColor, setTrackColor] = useState(TRACK_COLOR_PRESETS[0]);
   // Lista local de colunas que o usuário monta antes de persistir.
   const [pendingColumns, setPendingColumns] = useState<string[]>([]);
   const [columnInput, setColumnInput] = useState("");
@@ -32,8 +33,7 @@ export function OnboardingBeta() {
     if (!name) { setError("Dê um nome para sua trilha."); return; }
     setSubmitting(true);
     setError(null);
-    const preset = TRACK_COLOR_PRESETS[0];
-    await createTrack({ name, bg: preset.bg, border: preset.border, fg: preset.fg, darkBg: preset.darkBg, darkFg: preset.darkFg });
+    await createTrack({ name, bg: trackColor.bg, border: trackColor.border, fg: trackColor.fg, darkBg: trackColor.darkBg, darkFg: trackColor.darkFg });
     setSubmitting(false);
     setStep("column");
   };
@@ -114,6 +114,24 @@ export function OnboardingBeta() {
               placeholder="Nome da trilha"
               className="w-full rounded-sm border bg-muted px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40 transition-colors"
             />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs text-muted-foreground">Cor</span>
+              <div className="flex flex-wrap gap-2">
+                {TRACK_COLOR_PRESETS.map((c) => (
+                  <button
+                    key={c.bg}
+                    type="button"
+                    onClick={() => setTrackColor(c)}
+                    className="h-6 w-6 rounded-full transition-transform hover:scale-110"
+                    style={{
+                      backgroundColor: c.bg,
+                      outline: c.bg === trackColor.bg ? `2px solid ${c.fg}` : "2px solid transparent",
+                      outlineOffset: "2px",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
             <button
               type="submit"
