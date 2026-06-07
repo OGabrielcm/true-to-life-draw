@@ -3,11 +3,22 @@
 > ⚠️ **Este arquivo deve ser atualizado a cada implementação concluída.**
 > Ao finalizar qualquer bloco de implementação, marcar os itens como concluídos e adicionar a data.
 > Itens novos identificados durante o desenvolvimento devem ser adicionados na seção correspondente.
+> **Claude Code:** atualizar ROADMAP.md e README.md a cada entrega relevante, antes do commit. Não acumular.
 
 ---
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: Junho 2026 — Fases 1–5 completas ✅ · Blocos 1–6 concluídos · MVP em produção (Vercel)
+> Atualizado em: 2026-06-07 — Fases 1–5 completas ✅ · Blocos 1–7 + UX fixes concluídos · MVP em produção (Vercel)
+>
+> **2026-06-07 — UX: Modal two-column + confirmação de exclusão:**
+> CardDetailModal redesenhado no layout two-column estilo Jira (max-w-4xl). Coluna esquerda
+> (flexível): descrição com inline editing por clique, goal progress bar, tabs Checklist /
+> Comentários / Atividade / Tempo / Anexos (atalhos 1–5). Sidebar direita (264px): prioridade
+> clicável para ciclar, prazo com date picker inline, trilhas como toggle-pills, mover coluna/track,
+> template, excluir. Mobile: sidebar empilha abaixo (flex-col < md). Inline editing por campo
+> (sem modo edição global — atalho `e` removido). Exclusão no modal e no hover do card usam
+> AlertDialog para confirmação — sem risco de perda acidental. Botões de ação rápida (favoritar
+> e excluir) adicionados no hover do card diretamente no board.
 >
 > **2026-06-02 — Bloco 7 (habits no Dashboard e For You) concluído:** integra os
 > dados do habit tracker em duas telas existentes, sem tocar no board nem na aba
@@ -160,9 +171,13 @@
 | Filtros avançados no board | ✅ |
 | Templates de cards | ✅ |
 | Markdown na descrição dos cards | ✅ |
-| Atalhos de teclado (e=editar, d=deletar, n=novo) | ✅ |
+| Atalhos de teclado (1–5=trocar aba, n=novo, d=deletar no modal) | ✅ |
 | Card aging (opacidade por inatividade) | ✅ |
 | Cor de destaque / cover no card | ✅ |
+| Modal two-column estilo Jira (descrição + tabs à esq., metadados à dir.) | ✅ |
+| Inline editing por campo no modal (título e descrição — sem modo global) | ✅ |
+| Ações rápidas no hover do card (favoritar, excluir com confirmação) | ✅ |
+| Confirmação AlertDialog antes de excluir card (modal e hover) | ✅ |
 | Histórico de atividades no card | ✅ |
 | Comentários no card | ✅ |
 | Time tracking (log de horas por card) | ✅ |
