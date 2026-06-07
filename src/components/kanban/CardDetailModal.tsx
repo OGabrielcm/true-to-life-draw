@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
-  Pencil,
   Star,
   Trash2,
   Target,
-  Check,
   X,
   Copy,
   LayoutTemplate,
-  Activity as ActivityIcon,
-  MessageSquare,
-  Clock,
+  Check,
+  ChevronDown,
 } from "lucide-react";
 import {
   Card,
@@ -31,10 +28,11 @@ import {
 
 function getDeadlineColor(status: ReturnType<typeof getDeadlineStatus>): string {
   if (status === "overdue") return "var(--color-destructive)";
-  if (status === "today") return "rgb(249 115 22)"; // orange-500
-  if (status === "soon") return "rgb(234 179 8)"; // yellow-500
+  if (status === "today") return "rgb(249 115 22)";
+  if (status === "soon") return "rgb(234 179 8)";
   return "var(--muted-foreground)";
 }
+
 import { useTheme } from "@/components/theme-provider";
 import { useLocale } from "@/lib/locale-context";
 import { renderMarkdown } from "@/lib/markdown";
@@ -46,6 +44,17 @@ import { TimeTrackingSection } from "./card-modal-sections/TimeTrackingSection";
 import { ActivitySection } from "./card-modal-sections/ActivitySection";
 import { DependenciesSection } from "./card-modal-sections/DependenciesSection";
 import { AttachmentsSection } from "./card-modal-sections/AttachmentsSection";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function CardDetailModal({
   card,
@@ -78,21 +87,30 @@ export function CardDetailModal({
   onSetCardColor?: (cardId: string, color: string) => void;
   cardColor?: string;
 }) {
-  const [confirm, setConfirm] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [colorOpen, setColorOpen] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [editTitle, setEditTitle] = useState(card.title);
+  const [editDesc, setEditDesc] = useState(card.desc ?? "");
   const { theme } = useTheme();
   const { t } = useLocale();
   const { loadCardDetails, commentsByCard, activitiesByCard, timeLogsByCard, attachmentsByCard } =
     useKanban();
 
-  // Contadores reais por aba (3.1): exibem QUANTOS itens cada aba tem.
-  // (Os números 1-5 ao lado do nome são atalhos de teclado, não contagem.)
   const checklistProg = getChecklistProgress(card);
-  const tabCounts: Record<string, string | null> = {
-    detalhes: null,
+
+  type TabId = "checklist" | "comentarios" | "atividade" | "tempo" | "anexos";
+  const TABS: { id: TabId; label: string; shortcut: string }[] = [
+    { id: "checklist", label: t("tab_checklist"), shortcut: "1" },
+    { id: "comentarios", label: t("tab_comments"), shortcut: "2" },
+    { id: "atividade", label: t("tab_activity"), shortcut: "3" },
+    { id: "tempo", label: t("tab_time"), shortcut: "4" },
+    { id: "anexos", label: t("tab_attachments"), shortcut: "5" },
+  ];
+
+  const tabCounts: Record<TabId, string | null> = {
     checklist: checklistProg.total > 0 ? `${checklistProg.done}/${checklistProg.total}` : null,
     comentarios:
       (commentsByCard[card.id]?.length ?? 0) > 0 ? String(commentsByCard[card.id].length) : null,
@@ -108,59 +126,33 @@ export function CardDetailModal({
         : null,
   };
 
-  // Tabs — persiste a aba ativa no localStorage
-  type TabId = "detalhes" | "checklist" | "comentarios" | "atividade" | "tempo" | "anexos";
-  const TABS: { id: TabId; label: string; shortcut: string }[] = [
-    { id: "detalhes", label: t("tab_details"), shortcut: "1" },
-    { id: "checklist", label: t("tab_checklist"), shortcut: "2" },
-    { id: "comentarios", label: t("tab_comments"), shortcut: "3" },
-    { id: "atividade", label: t("tab_activity"), shortcut: "4" },
-    { id: "tempo", label: t("tab_time"), shortcut: "5" },
-    { id: "anexos", label: t("tab_attachments"), shortcut: "6" },
-  ];
   const [activeTab, setActiveTab] = useState<TabId>(() => {
-    const saved = localStorage.getItem("molas-modal-tab") as TabId | null;
-    return saved && TABS.some((t) => t.id === saved) ? saved : "detalhes";
+    const saved = localStorage.getItem("molas-modal-tab-v2") as TabId | null;
+    return saved && TABS.some((t) => t.id === saved) ? saved : "checklist";
   });
   const switchTab = (id: TabId) => {
     setActiveTab(id);
-    localStorage.setItem("molas-modal-tab", id);
+    localStorage.setItem("molas-modal-tab-v2", id);
   };
 
   useEffect(() => {
     loadCardDetails(card.id);
   }, [card.id, loadCardDetails]);
 
-  // Edit state
-  const [editTitle, setEditTitle] = useState(card.title);
-  const [editDesc, setEditDesc] = useState(card.desc ?? "");
-  const [editPrio, setEditPrio] = useState(card.prio);
-  const [editDate, setEditDate] = useState(card.date ?? "");
-  const [editTags, setEditTags] = useState<string[]>(card.tags);
-
-  // Sync when card changes externally (e.g. optimistic update)
+  // Sync when card changes externally
   useEffect(() => {
-    if (!editing) {
-      setEditTitle(card.title);
-      setEditDesc(card.desc ?? "");
-      setEditPrio(card.prio);
-      setEditDate(card.date ?? "");
-      setEditTags(card.tags);
-    }
-  }, [card, editing]);
+    if (!editingTitle) setEditTitle(card.title);
+    if (!editingDesc) setEditDesc(card.desc ?? "");
+  }, [card, editingTitle, editingDesc]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (editing) {
-          setEditing(false);
-          return;
-        }
+        if (editingTitle) { setEditingTitle(false); setEditTitle(card.title); return; }
+        if (editingDesc) { setEditingDesc(false); setEditDesc(card.desc ?? ""); return; }
         onClose();
+        return;
       }
-      // Não dispara atalhos de tecla única (e/d/1-5) quando o foco está num
-      // campo editável — senão digitar "e" no checklist/comentário abriria a
-      // edição do card. Escape acima continua valendo em qualquer foco.
       const target = e.target as HTMLElement | null;
       if (
         target &&
@@ -168,107 +160,97 @@ export function CardDetailModal({
           target.tagName === "TEXTAREA" ||
           target.tagName === "SELECT" ||
           target.isContentEditable)
-      ) {
-        return;
-      }
-      if (e.key === "e" && !editing && !savingTemplate) {
-        e.preventDefault();
-        setEditing(true);
-      }
-      if (e.key === "d" && !editing && !savingTemplate) {
-        e.preventDefault();
-        setConfirm(true);
-      }
-      // Atalhos 1–5 para trocar de tab
+      ) return;
+
+      // 1-5 para tabs
       const idx = parseInt(e.key) - 1;
-      if (!editing && idx >= 0 && idx < TABS.length) {
+      if (idx >= 0 && idx < TABS.length) {
         e.preventDefault();
         switchTab(TABS[idx].id);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, editing, savingTemplate]);
+  }, [onClose, editingTitle, editingDesc, card]);
 
-  const saveEdit = () => {
-    if (!editTitle.trim()) return;
-    onUpdate(card.id, {
-      title: editTitle.trim(),
-      desc: editDesc.trim() || undefined,
-      prio: editPrio,
-      date: editDate || undefined,
-      tags: editTags,
-    });
-    setEditing(false);
+  const saveTitle = () => {
+    if (!editTitle.trim()) { setEditTitle(card.title); setEditingTitle(false); return; }
+    onUpdate(card.id, { title: editTitle.trim() });
+    setEditingTitle(false);
   };
 
-  const cancelEdit = () => {
-    setEditTitle(card.title);
-    setEditDesc(card.desc ?? "");
-    setEditPrio(card.prio);
-    setEditDate(card.date ?? "");
-    setEditTags(card.tags);
-    setEditing(false);
+  const saveDesc = () => {
+    onUpdate(card.id, { desc: editDesc.trim() || undefined });
+    setEditingDesc(false);
   };
 
-  const toggleTag = (id: string) =>
-    setEditTags((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
-
-  const prioRaw = PRIO_COLORS[editing ? editPrio : card.prio];
-  const prio =
-    theme === "dark"
-      ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
-      : { bg: prioRaw.bg, fg: prioRaw.fg };
+  const prioRaw = PRIO_COLORS[card.prio];
+  const prio = theme === "dark"
+    ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
+    : { bg: prioRaw.bg, fg: prioRaw.fg };
   const parent = card.parent_id ? allCards.find((c) => c.id === card.parent_id) : null;
+
+  const cyclePrio = () => {
+    const idx = PRIORITIES.indexOf(card.prio);
+    const next = PRIORITIES[(idx + 1) % PRIORITIES.length];
+    onUpdate(card.id, { prio: next });
+  };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 bg-foreground/20 backdrop-blur-sm"
-      onClick={editing ? undefined : onClose}
+      onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="modal-enter w-full max-w-2xl rounded-xl bg-card shadow-2xl max-h-[88vh] flex flex-col overflow-hidden border border-border"
+        className="modal-enter w-full max-w-4xl rounded-xl bg-card shadow-2xl max-h-[88vh] flex flex-col overflow-hidden border border-border"
       >
-        {/* ── TOPO: eyebrow + título + ações ── */}
-        <div className="p-5 pb-0 flex-shrink-0">
-          {/* Eyebrow: track + tipo + badges */}
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-2 font-mono uppercase tracking-widest">
-            <span
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5"
-              style={{ backgroundColor: prio.bg, color: prio.fg }}
-            >
-              {card.prio}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5">
-              {card.type === "Goal" && <Target className="h-3 w-3" />}
-              {card.type}
-            </span>
-            {card.date && (
-              <span
-                className="inline-flex items-center gap-1"
-                style={{ color: getDeadlineColor(getDeadlineStatus(card)) }}
-              >
-                <Calendar className="h-3 w-3" />
-                {formatDate(card.date)}
-              </span>
-            )}
-            {card.tags.map((tid) => {
-              const t = trilhas.find((x) => x.id === tid);
-              if (!t) return null;
-              return (
-                <span
-                  key={tid}
-                  className="rounded-full px-1.5 py-0.5"
-                  style={{ backgroundColor: t.bg, color: t.fg }}
-                >
-                  {t.name}
+        {/* ── HEADER ── */}
+        <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-border">
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              {/* Eyebrow */}
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-2 font-mono uppercase tracking-widest flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5">
+                  {card.type === "Goal" && <Target className="h-3 w-3" />}
+                  {card.type}
                 </span>
-              );
-            })}
-            {/* Ações no canto direito */}
-            <div className="ml-auto flex items-center gap-0.5">
-              {!editing && onSetCardColor && (
+                {parent && (
+                  <span className="text-muted-foreground">
+                    ↳ <span className="text-foreground">{parent.title}</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Title — inline edit */}
+              {editingTitle ? (
+                <input
+                  autoFocus
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  onBlur={saveTitle}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveTitle();
+                    if (e.key === "Escape") { setEditingTitle(false); setEditTitle(card.title); }
+                  }}
+                  className="w-full rounded-md border bg-background px-3 py-1.5 text-xl font-semibold outline-none focus:border-foreground/40"
+                  style={{ fontFamily: "var(--font-display)" }}
+                />
+              ) : (
+                <h2
+                  onClick={() => setEditingTitle(true)}
+                  className="text-xl font-semibold text-card-foreground leading-snug cursor-text hover:bg-muted/50 rounded px-1 -mx-1 py-0.5"
+                  style={{ fontFamily: "var(--font-display)", letterSpacing: "0.02em" }}
+                  title="Clique para editar"
+                >
+                  {card.title}
+                </h2>
+              )}
+            </div>
+
+            {/* Header actions */}
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              {onSetCardColor && (
                 <div className="relative">
                   <button
                     onClick={() => setColorOpen(!colorOpen)}
@@ -290,17 +272,11 @@ export function CardDetailModal({
                         {CARD_COLOR_PRESETS.map((preset) => (
                           <button
                             key={preset.name}
-                            onClick={() => {
-                              onSetCardColor(card.id, preset.name);
-                              setColorOpen(false);
-                            }}
+                            onClick={() => { onSetCardColor!(card.id, preset.name); setColorOpen(false); }}
                             className="h-6 w-6 rounded transition-transform hover:scale-110"
                             style={{
                               backgroundColor: preset.bg,
-                              border:
-                                preset.bg === "transparent"
-                                  ? "1px dashed var(--border)"
-                                  : undefined,
+                              border: preset.bg === "transparent" ? "1px dashed var(--border)" : undefined,
                             }}
                             title={preset.label}
                           />
@@ -310,28 +286,14 @@ export function CardDetailModal({
                   )}
                 </div>
               )}
-              {!editing && (
-                <>
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    aria-label={t("edit")}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  {onDuplicate && (
-                    <button
-                      onClick={() => {
-                        onDuplicate(card.id);
-                        onClose();
-                      }}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                      aria-label={t("duplicate")}
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </>
+              {onDuplicate && (
+                <button
+                  onClick={() => { onDuplicate(card.id); onClose(); }}
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label={t("duplicate")}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
               )}
               <button
                 onClick={() => onToggleStar(card.id)}
@@ -352,33 +314,85 @@ export function CardDetailModal({
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Título */}
-          {!editing ? (
-            <h2
-              className="text-xl font-semibold text-card-foreground leading-snug"
-              style={{ fontFamily: "var(--font-display)", letterSpacing: "0.02em" }}
-            >
-              {card.title}
-            </h2>
-          ) : (
-            <input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              className="w-full rounded-md border bg-background px-3 py-2 text-lg font-medium outline-none focus:border-foreground/40"
-              autoFocus
-            />
-          )}
+        {/* ── BODY: two-column on md+, stacked on mobile ── */}
+        <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
 
-          {parent && (
-            <div className="mt-1 text-xs text-muted-foreground">
-              {t("goal_parent_label")} <span className="text-foreground">{parent.title}</span>
+          {/* ── LEFT: description + tabs ── */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 min-w-0">
+            {/* Goal progress */}
+            {card.type === "Goal" &&
+              (() => {
+                const progress = getGoalProgress(card, allCards);
+                return (
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">{t("progress")}</span>
+                      <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+                    </div>
+                    <div className="h-[3px] w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-foreground transition-all duration-300"
+                        style={{ width: `${progress.percent}%` }}
+                      />
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {progress.done} / {progress.total} {t("tasks_done")}
+                    </div>
+                  </div>
+                );
+              })()}
+
+            {/* Description — inline edit */}
+            <div className="mb-5">
+              <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                {t("tab_details")}
+              </p>
+              {editingDesc ? (
+                <div>
+                  <textarea
+                    autoFocus
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    rows={5}
+                    placeholder={t("desc_optional")}
+                    className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={saveDesc}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      {t("save")}
+                    </button>
+                    <button
+                      onClick={() => { setEditingDesc(false); setEditDesc(card.desc ?? ""); }}
+                      className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+                    >
+                      {t("cancel")}
+                    </button>
+                  </div>
+                </div>
+              ) : card.desc ? (
+                <div
+                  onClick={() => setEditingDesc(true)}
+                  className="text-sm text-card-foreground/80 prose prose-sm dark:prose-invert cursor-text hover:bg-muted/40 rounded p-1 -mx-1"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }}
+                />
+              ) : (
+                <button
+                  onClick={() => setEditingDesc(true)}
+                  className="text-xs text-muted-foreground italic hover:text-foreground text-left"
+                >
+                  {t("no_desc")} — clique para adicionar
+                </button>
+              )}
             </div>
-          )}
 
-          {/* Tabs — só no modo view */}
-          {!editing && (
-            <div className="mt-4 flex gap-0 border-b -mx-5 px-5">
+            {/* Tabs */}
+            <div className="flex gap-0 border-b -mx-6 px-6 mb-5">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -406,293 +420,224 @@ export function CardDetailModal({
                 </button>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* ── CORPO COM SCROLL ── */}
-        <div className="flex-1 overflow-y-auto p-5">
-          {/* Modo edição — mostra tudo inline */}
-          {editing && (
-            <>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <select
-                    value={editPrio}
-                    onChange={(e) => setEditPrio(e.target.value as Card["prio"])}
-                    className="rounded border bg-background px-2 py-1 text-xs outline-none"
+            {activeTab === "checklist" && (
+              <div>
+                <ChecklistSection
+                  card={card}
+                  onUpdate={(items) => onUpdate(card.id, { checklist: items })}
+                />
+                <DependenciesSection
+                  card={card}
+                  allCards={allCards}
+                  onUpdate={(blockedBy) => onUpdate(card.id, { blocked_by: blockedBy })}
+                />
+              </div>
+            )}
+            {activeTab === "comentarios" && <CommentsSection cardId={card.id} />}
+            {activeTab === "atividade" && <ActivitySection cardId={card.id} />}
+            {activeTab === "tempo" && <TimeTrackingSection cardId={card.id} />}
+            {activeTab === "anexos" && <AttachmentsSection cardId={card.id} />}
+          </div>
+
+          {/* ── RIGHT SIDEBAR ── */}
+          <div className="w-full md:w-64 flex-shrink-0 border-t md:border-t-0 md:border-l border-border overflow-y-auto px-4 py-5 space-y-5">
+            {/* Priority */}
+            <div>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                Prioridade
+              </p>
+              <button
+                onClick={cyclePrio}
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80"
+                style={{ backgroundColor: prio.bg, color: prio.fg }}
+                title="Clique para trocar"
+              >
+                {card.prio}
+                <ChevronDown className="h-3 w-3 opacity-60" />
+              </button>
+            </div>
+
+            {/* Deadline */}
+            <div>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                Prazo
+              </p>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="date"
+                  value={card.date ?? ""}
+                  onChange={(e) => onUpdate(card.id, { date: e.target.value || undefined })}
+                  className="rounded border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
+                  style={{ color: card.date ? getDeadlineColor(getDeadlineStatus(card)) : undefined }}
+                />
+                {card.date && (
+                  <button
+                    onClick={() => onUpdate(card.id, { date: undefined })}
+                    className="text-muted-foreground hover:text-foreground"
                   >
-                    {PRIORITIES.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    <input
-                      type="date"
-                      value={editDate}
-                      onChange={(e) => setEditDate(e.target.value)}
-                      className="rounded border bg-background px-2 py-1 text-xs outline-none"
-                    />
-                    {editDate && (
-                      <button
-                        onClick={() => setEditDate("")}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Trilhas (tags) */}
+            {trilhas.length > 0 && (
+              <div>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Trilhas
+                </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {trilhas.map((t) => {
-                    const active = editTags.includes(t.id);
+                  {trilhas.map((tr) => {
+                    const active = card.tags.includes(tr.id);
                     return (
                       <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => toggleTag(t.id)}
+                        key={tr.id}
+                        onClick={() => {
+                          const next = active
+                            ? card.tags.filter((x) => x !== tr.id)
+                            : [...card.tags, tr.id];
+                          onUpdate(card.id, { tags: next });
+                        }}
                         className="rounded-full px-2 py-0.5 text-[10px] font-medium transition-opacity"
                         style={{
-                          backgroundColor: active ? t.bg : "transparent",
-                          color: active ? t.fg : "var(--muted-foreground)",
-                          border: `1px solid ${active ? t.bg : "var(--border)"}`,
+                          backgroundColor: active ? tr.bg : "transparent",
+                          color: active ? tr.fg : "var(--muted-foreground)",
+                          border: `1px solid ${active ? tr.bg : "var(--border)"}`,
                         }}
                       >
-                        {t.name}
+                        {tr.name}
                       </button>
                     );
                   })}
                 </div>
-                <textarea
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  rows={5}
-                  placeholder={t("desc_optional")}
-                  className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
-                />
               </div>
-              <div className="mt-4 flex items-center gap-2">
-                <button
-                  onClick={saveEdit}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90"
-                >
-                  <Check className="h-3.5 w-3.5" />
-                  {t("save")}
-                </button>
-                <button
-                  onClick={cancelEdit}
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-                >
-                  {t("cancel")}
-                </button>
-              </div>
-            </>
-          )}
+            )}
 
-          {/* Tab: Detalhes */}
-          {!editing && activeTab === "detalhes" && (
+            {/* Move column */}
             <div>
-              {card.type === "Goal" &&
-                (() => {
-                  const progress = getGoalProgress(card, allCards);
-                  return (
-                    <div className="mb-5">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {t("progress")}
-                        </span>
-                        <span className="text-xs font-semibold text-foreground">
-                          {progress.percent}%
-                        </span>
-                      </div>
-                      <div className="h-[3px] w-full rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-foreground transition-all duration-300"
-                          style={{ width: `${progress.percent}%` }}
-                        />
-                      </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {progress.done} / {progress.total} {t("tasks_done")}
-                      </div>
-                    </div>
-                  );
-                })()}
-              {card.desc ? (
-                <div
-                  className="mb-5 text-sm text-card-foreground/80 prose prose-sm dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(card.desc) }}
-                />
-              ) : (
-                <p className="mb-5 text-xs text-muted-foreground italic">
-                  {t("no_desc")} <kbd className="rounded border px-1 py-0.5 text-[10px]">e</kbd>{" "}
-                  {t("no_desc_hint")}
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                {t("move_to_column")}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {columns
+                  .filter((c) => c.id !== card.col)
+                  .map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => { onMove(card.id, c.id); onClose(); }}
+                      className="rounded border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            {/* Move track */}
+            {tracks.length > 1 && (
+              <div>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                  {t("move_to_track")}
                 </p>
-              )}
-              {/* Mover coluna/track */}
-              <div className="space-y-4">
-                <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">
-                    {t("move_to_column")}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {columns
-                      .filter((c) => c.id !== card.col)
-                      .map((c) => (
+                <div className="flex flex-wrap gap-1">
+                  {tracks
+                    .filter((tr) => tr.id !== card.track)
+                    .map((tr) => {
+                      const bg = theme === "dark" ? tr.darkBg : tr.bg;
+                      const fg = theme === "dark" ? tr.darkFg : tr.fg;
+                      return (
                         <button
-                          key={c.id}
-                          onClick={() => {
-                            onMove(card.id, c.id);
-                            onClose();
-                          }}
-                          className="rounded-sm border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted"
+                          key={tr.id}
+                          onClick={() => { onMove(card.id, card.col, tr.id); onClose(); }}
+                          className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
+                          style={{ backgroundColor: bg, color: fg, border: `1px solid ${tr.border}` }}
                         >
-                          {c.name}
+                          {tr.name}
                         </button>
-                      ))}
-                  </div>
+                      );
+                    })}
                 </div>
-                <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">
-                    {t("move_to_track")}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tracks
-                      .filter((t) => t.id !== card.track)
-                      .map((t) => {
-                        const bg = theme === "dark" ? t.darkBg : t.bg;
-                        const fg = theme === "dark" ? t.darkFg : t.fg;
-                        return (
-                          <button
-                            key={t.id}
-                            onClick={() => {
-                              onMove(card.id, card.col, t.id);
-                              onClose();
-                            }}
-                            className="rounded-sm px-2.5 py-1 text-xs font-medium hover:opacity-80"
-                            style={{
-                              backgroundColor: bg,
-                              color: fg,
-                              border: `1px solid ${t.border}`,
-                            }}
-                          >
-                            {t.name}
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
-                {/* Template + Excluir */}
-                <div className="flex items-center gap-2 flex-wrap pt-2 border-t">
-                  {onSaveTemplate && !savingTemplate && (
+              </div>
+            )}
+
+            {/* Divider + actions */}
+            <div className="pt-2 border-t border-border space-y-1">
+              {onSaveTemplate && !savingTemplate && (
+                <button
+                  onClick={() => { setSavingTemplate(true); setTemplateName(card.title); }}
+                  className="inline-flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <LayoutTemplate className="h-3.5 w-3.5" />
+                  {t("save_as_template")}
+                </button>
+              )}
+              {savingTemplate && (
+                <div className="space-y-2">
+                  <input
+                    autoFocus
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setSavingTemplate(false);
+                      if (e.key === "Enter" && templateName.trim()) {
+                        onSaveTemplate!(card, templateName.trim());
+                        setSavingTemplate(false);
+                      }
+                    }}
+                    placeholder={t("template_name_placeholder")}
+                    className="w-full rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none"
+                  />
+                  <div className="flex gap-1">
                     <button
                       onClick={() => {
-                        setSavingTemplate(true);
-                        setTemplateName(card.title);
+                        if (templateName.trim()) {
+                          onSaveTemplate!(card, templateName.trim());
+                          setSavingTemplate(false);
+                        }
                       }}
-                      className="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"
                     >
-                      <LayoutTemplate className="h-3.5 w-3.5" />
-                      {t("save_as_template")}
+                      {t("save")}
                     </button>
-                  )}
-                  {savingTemplate && (
-                    <div className="flex items-center gap-2">
-                      <input
-                        autoFocus
-                        value={templateName}
-                        onChange={(e) => setTemplateName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") setSavingTemplate(false);
-                          if (e.key === "Enter" && templateName.trim()) {
-                            onSaveTemplate!(card, templateName.trim());
-                            setSavingTemplate(false);
-                          }
-                        }}
-                        placeholder={t("template_name_placeholder")}
-                        className="flex-1 rounded-md border bg-background px-2.5 py-1.5 text-xs outline-none"
-                      />
-                      <button
-                        onClick={() => {
-                          if (templateName.trim()) {
-                            onSaveTemplate!(card, templateName.trim());
-                            setSavingTemplate(false);
-                          }
-                        }}
-                        className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background hover:opacity-90"
-                      >
-                        {t("save")}
-                      </button>
-                      <button
-                        onClick={() => setSavingTemplate(false)}
-                        className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                  <div className="ml-auto">
-                    {!confirm ? (
-                      <button
-                        onClick={() => setConfirm(true)}
-                        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        {t("delete")}
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{t("confirm")}</span>
-                        <button
-                          onClick={() => {
-                            onDelete(card.id);
-                            onClose();
-                          }}
-                          className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
-                        >
-                          {t("delete")}
-                        </button>
-                        <button
-                          onClick={() => setConfirm(false)}
-                          className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-                        >
-                          {t("cancel")}
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      onClick={() => setSavingTemplate(false)}
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
-              </div>
+              )}
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="inline-flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {t("delete")}
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir card</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir <strong>{card.title}</strong>? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => { onDelete(card.id); onClose(); }}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {t("delete")}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-          )}
-
-          {/* Tab: Checklist */}
-          {!editing && activeTab === "checklist" && (
-            <div>
-              <ChecklistSection
-                card={card}
-                onUpdate={(items) => onUpdate(card.id, { checklist: items })}
-              />
-              <DependenciesSection
-                card={card}
-                allCards={allCards}
-                onUpdate={(blockedBy) => onUpdate(card.id, { blocked_by: blockedBy })}
-              />
-            </div>
-          )}
-
-          {/* Tab: Comentários */}
-          {!editing && activeTab === "comentarios" && <CommentsSection cardId={card.id} />}
-
-          {/* Tab: Atividade */}
-          {!editing && activeTab === "atividade" && <ActivitySection cardId={card.id} />}
-
-          {/* Tab: Tempo */}
-          {!editing && activeTab === "tempo" && <TimeTrackingSection cardId={card.id} />}
-
-          {/* Tab: Anexos */}
-          {!editing && activeTab === "anexos" && <AttachmentsSection cardId={card.id} />}
+          </div>
         </div>
       </div>
     </div>

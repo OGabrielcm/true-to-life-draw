@@ -1,4 +1,15 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Calendar, CheckSquare, GripVertical, Link2, Star, Target, Trash2 } from "lucide-react";
 import {
   Card,
@@ -171,13 +182,34 @@ export function CardItem({
           </button>
         )}
         {onDelete && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
-            className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
-            aria-label="Excluir"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+                aria-label="Excluir"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir card</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir <strong>{card.title}</strong>? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(card.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
 
