@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Calendar, CheckSquare, GripVertical, Link2, Star, Target } from "lucide-react";
+import { Calendar, CheckSquare, GripVertical, Link2, Star, Target, Trash2 } from "lucide-react";
 import {
   Card,
   ColumnId,
@@ -25,6 +25,8 @@ export function CardItem({
   isDragging,
   onTouchDrop,
   cardColor,
+  onToggleStar,
+  onDelete,
 }: {
   card: Card;
   allCards: Card[];
@@ -40,6 +42,8 @@ export function CardItem({
     afterId?: string;
   }) => void;
   cardColor?: string;
+  onToggleStar?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const { theme } = useTheme();
   const prioRaw = PRIO_COLORS[card.prio];
@@ -143,13 +147,39 @@ export function CardItem({
   return (
     <div
       data-card-id={card.id}
-      className="kb-card relative w-full overflow-hidden rounded-lg border bg-card"
+      className="kb-card group relative w-full overflow-hidden rounded-lg border bg-card"
       style={{ opacity: isDragging ? 0.4 * aging : aging }}
     >
       {/* Top indicator bar — substitui side-stripe */}
       {topBarColor && (
         <div className="h-[3px] w-full" style={{ backgroundColor: topBarColor }} />
       )}
+
+      {/* Hover actions — só desktop */}
+      <div className="absolute right-1.5 top-1.5 hidden items-center gap-0.5 md:flex opacity-0 group-hover:opacity-100 transition-opacity">
+        {onToggleStar && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleStar(card.id); }}
+            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Favoritar"
+          >
+            <Star
+              className="h-3.5 w-3.5"
+              fill={card.starred ? "currentColor" : "none"}
+              style={{ color: card.starred ? "rgb(234 179 8)" : undefined }}
+            />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
+            className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+            aria-label="Excluir"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
 
       {/* Grip handle — só este elemento captura toque para drag */}
       <div
@@ -186,7 +216,7 @@ export function CardItem({
               {card.title}
             </h3>
           </div>
-          {card.starred && (
+          {card.starred && !onToggleStar && (
             <Star className="h-3.5 w-3.5 shrink-0 text-yellow-500" fill="currentColor" />
           )}
         </div>

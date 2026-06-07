@@ -278,6 +278,8 @@ export function Board() {
               moveCard={moveCard}
               reorderCard={reorderCard}
               cardColors={cardColors}
+              onToggleStar={toggleStar}
+              onDelete={deleteCard}
             />
           ))}
           {tracks.length <= 1 && (
@@ -409,6 +411,8 @@ function CardDropZone({
   draggingId,
   reorderCard,
   cardColor,
+  onToggleStar,
+  onDelete,
 }: {
   card: Card;
   allCards: Card[];
@@ -424,6 +428,8 @@ function CardDropZone({
     target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
   ) => void;
   cardColor?: string;
+  onToggleStar?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const [dropPos, setDropPos] = useState<"before" | "after" | null>(null);
 
@@ -482,6 +488,8 @@ function CardDropZone({
           setDraggingId(null);
         }}
         cardColor={cardColor}
+        onToggleStar={onToggleStar}
+        onDelete={onDelete}
       />
       {dropPos === "after" && (
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-foreground" />
@@ -508,6 +516,8 @@ function Swimlane({
   moveCard,
   reorderCard,
   cardColors,
+  onToggleStar,
+  onDelete,
 }: {
   track: Track;
   columns: Column[];
@@ -529,6 +539,8 @@ function Swimlane({
     target: { col?: ColumnId; track?: TrackId; beforeId?: string; afterId?: string },
   ) => void;
   cardColors: Record<string, string>;
+  onToggleStar?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const { theme } = useTheme();
   const { t } = useLocale();
@@ -650,6 +662,8 @@ function Swimlane({
                       draggingId={draggingId}
                       reorderCard={reorderCard}
                       cardColor={cardColors[c.id]}
+                      onToggleStar={onToggleStar}
+                      onDelete={onDelete}
                     />
                   ))}
                 </div>
