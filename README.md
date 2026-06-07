@@ -327,6 +327,16 @@ The choice is persisted per user in `user_profile.theme` (cross-device) and
 mirrored to `localStorage` for instant, flash-free paint. The theme never gates
 render — a slow/failed DB read can't hang the UI.
 
+### Card Detail Modal
+
+The card detail modal uses a **two-column layout** (inspired by Jira):
+
+- **Left column** (flexible): description (inline editable — click to edit), goal progress bar, and a tab bar for secondary content (Checklist · Comentários · Atividade · Tempo · Anexos). Keyboard shortcuts 1–5 switch tabs.
+- **Right sidebar** (264px): priority badge (click to cycle through Alta/Média/Baixa), deadline date picker, trilha toggles, move-to-column, move-to-track, save-as-template, and delete with `AlertDialog` confirmation.
+- **Mobile**: sidebar stacks below the main column (`flex-col` under `md`).
+- **Inline editing**: title and description edit on click (no global edit mode). Escape cancels, Enter/blur saves.
+- **Deletion** (both modal and hover card actions) requires `AlertDialog` confirmation before executing.
+
 ### Attachments
 
 Files are uploaded to the `attachments` Storage bucket (public, 20 MB);
