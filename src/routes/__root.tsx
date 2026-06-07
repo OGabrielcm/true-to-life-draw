@@ -6,6 +6,7 @@ import { KanbanProvider } from "@/lib/kanban-store";
 import { HabitsProvider } from "@/lib/habits-store";
 import { LocaleProvider } from "@/lib/locale-context";
 import { UserProfileProvider } from "@/lib/user-profile-store";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -82,6 +83,7 @@ function RootComponent() {
               <KanbanProvider>
                 <HabitsProvider>
                   <Outlet />
+                  <Toaster />
                 </HabitsProvider>
               </KanbanProvider>
             </UserProfileProvider>

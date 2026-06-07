@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
 import { Paperclip, Trash2, Download, Loader2, FileText } from "lucide-react";
+import { toast } from "sonner";
 import { useKanban } from "@/lib/kanban-store";
 import { useLocale } from "@/lib/locale-context";
 import { formatBytes } from "@/lib/kanban-types";
 import { attachmentPublicUrl } from "@/lib/attachments-service";
+
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024; // 20 MB
 
 function isImage(mime?: string) {
   return !!mime && mime.startsWith("image/");
@@ -19,8 +22,11 @@ export function AttachmentsSection({ cardId }: { cardId: string }) {
   const onPick = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploading(true);
-    // Sobe os arquivos selecionados em sequência (mantém a ordem mais recente no topo).
     for (const file of Array.from(files)) {
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        toast.error(`"${file.name}" ${t("attach_too_large")}`);
+        continue;
+      }
       await addAttachment(cardId, file);
     }
     setUploading(false);
