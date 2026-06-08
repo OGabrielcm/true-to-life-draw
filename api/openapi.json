@@ -1,0 +1,155 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "True to Life Draw — Kanban API",
+    "description": "CLI API for managing Kanban tasks on true-to-life-draw.vercel.app",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "https://true-to-life-draw.vercel.app" }
+  ],
+  "security": [{ "bearerAuth": [] }],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "col": { "type": "string", "description": "Column ID (e.g. backlog, todo, inprogress, review, done)" },
+          "track": { "type": "string", "description": "Track UUID (swimlane)" },
+          "type": { "type": "string", "enum": ["Task", "Goal"] },
+          "prio": { "type": "string", "enum": ["Alta", "Média", "Baixa"] },
+          "desc": { "type": "string", "nullable": true },
+          "date": { "type": "string", "format": "date", "nullable": true },
+          "starred": { "type": "boolean" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "checklist": { "type": "array", "items": { "type": "object" } },
+          "blocked_by": { "type": "array", "items": { "type": "string" } },
+          "order": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateTaskInput": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": { "type": "string", "description": "Task title" },
+          "col": { "type": "string", "default": "backlog", "description": "Column ID" },
+          "track": { "type": "string", "description": "Track UUID" },
+          "type": { "type": "string", "enum": ["Task", "Goal"], "default": "Task" },
+          "prio": { "type": "string", "enum": ["Alta", "Média", "Baixa"], "default": "Média" },
+          "desc": { "type": "string" },
+          "date": { "type": "string", "format": "date", "description": "Due date YYYY-MM-DD" },
+          "starred": { "type": "boolean", "default": false },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "Track": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "order": { "type": "integer" }
+        }
+      },
+      "Column": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "order": { "type": "integer" },
+          "track_id": { "type": "string", "nullable": true }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/tasks": {
+      "get": {
+        "operationId": "listTasks",
+        "summary": "List tasks",
+        "parameters": [
+          { "name": "col", "in": "query", "schema": { "type": "string" }, "description": "Filter by column ID" },
+          { "name": "track", "in": "query", "schema": { "type": "string" }, "description": "Filter by track UUID" },
+          { "name": "prio", "in": "query", "schema": { "type": "string", "enum": ["Alta", "Média", "Baixa"] } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["Task", "Goal"] } },
+          { "name": "starred", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tasks": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createTask",
+        "summary": "Create a new task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "task": { "$ref": "#/components/schemas/Task" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tracks": {
+      "get": {
+        "operationId": "listTracks",
+        "summary": "List tracks (swimlanes) and columns",
+        "responses": {
+          "200": {
+            "description": "Tracks and columns",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tracks": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } },
+                    "columns": { "type": "array", "items": { "$ref": "#/components/schemas/Column" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
