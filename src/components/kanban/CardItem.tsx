@@ -156,7 +156,7 @@ export function CardItem({
         onTouchStart={handleGripTouchStart}
         onTouchMove={handleGripTouchMove}
         onTouchEnd={handleGripTouchEnd}
-        className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-muted-foreground/40 md:hidden"
+        className="absolute right-1 top-2 flex items-center justify-center p-1.5 text-muted-foreground/40 md:hidden"
         style={{ touchAction: "none" }}
         aria-label="Arrastar card"
       >
@@ -192,7 +192,7 @@ export function CardItem({
         </div>
 
         {card.desc && (
-          <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+          <p className="mt-1 text-xs text-muted-foreground line-clamp-2 leading-normal">
             {card.desc}
           </p>
         )}
@@ -219,61 +219,66 @@ export function CardItem({
             );
           })()}
 
-        {/* Chips — com border colorida conforme redesign */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <span
-            className="rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
-            style={{
-              backgroundColor: prio.bg,
-              color: prio.fg,
-              borderColor: prio.fg + "33",
-            }}
-          >
-            {card.prio}
-          </span>
-          {blocked && (
+        {/* Metadados: chips + data em linha única separada do conteúdo */}
+        <div className="mt-2 flex items-center justify-between gap-1.5 border-t pt-2">
+          {/* Chips à esquerda — sem quebra de linha, overflow com "+N" */}
+          <div className="flex min-w-0 items-center gap-1">
             <span
-              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
+              className="shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
               style={{
-                backgroundColor: "var(--blocked-bg)",
-                color: "var(--blocked-fg)",
-                borderColor: "var(--blocked-border)",
+                backgroundColor: prio.bg,
+                color: prio.fg,
+                borderColor: prio.fg + "33",
               }}
-              title="Bloqueado por dependências pendentes"
             >
-              <Link2 className="h-2.5 w-2.5" />
-              Bloqueado
+              {card.prio}
             </span>
-          )}
-          {checklistProgress.total > 0 && (
-            <span
-              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground border"
-              title={`${checklistProgress.done} de ${checklistProgress.total} concluídos`}
-            >
-              <CheckSquare className="h-2.5 w-2.5" />
-              {checklistProgress.done}/{checklistProgress.total}
-            </span>
-          )}
-          {card.tags.map((tid) => {
-            const t = trilhas.find((x) => x.id === tid);
-            if (!t) return null;
-            return (
+            {blocked && (
               <span
-                key={tid}
-                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                style={{ backgroundColor: t.bg, color: t.fg }}
+                className="shrink-0 inline-flex items-center gap-0.5 rounded-sm px-1.5 py-0.5 text-[10px] font-mono font-medium border"
+                style={{
+                  backgroundColor: "var(--blocked-bg)",
+                  color: "var(--blocked-fg)",
+                  borderColor: "var(--blocked-border)",
+                }}
+                title="Bloqueado por dependências pendentes"
               >
-                {t.name}
+                <Link2 className="h-2.5 w-2.5" />
+                Bloqueado
               </span>
-            );
-          })}
-        </div>
-
-        {/* Footer com deadline */}
-        {card.date && (
-          <div className="mt-2 flex items-center border-t pt-2">
+            )}
+            {checklistProgress.total > 0 && (
+              <span
+                className="shrink-0 inline-flex items-center gap-0.5 rounded-sm px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground border"
+                title={`${checklistProgress.done} de ${checklistProgress.total} concluídos`}
+              >
+                <CheckSquare className="h-2.5 w-2.5" />
+                {checklistProgress.done}/{checklistProgress.total}
+              </span>
+            )}
+            {card.tags.slice(0, 2).map((tid) => {
+              const t = trilhas.find((x) => x.id === tid);
+              if (!t) return null;
+              return (
+                <span
+                  key={tid}
+                  className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                  style={{ backgroundColor: t.bg, color: t.fg }}
+                >
+                  {t.name}
+                </span>
+              );
+            })}
+            {card.tags.length > 2 && (
+              <span className="shrink-0 text-[10px] text-muted-foreground">
+                +{card.tags.length - 2}
+              </span>
+            )}
+          </div>
+          {/* Data à direita */}
+          {card.date && (
             <span
-              className={`inline-flex items-center gap-1 text-[10px] font-mono ${
+              className={`shrink-0 inline-flex items-center gap-0.5 text-[10px] font-mono whitespace-nowrap ${
                 deadlineStatus === "overdue"
                   ? "text-destructive"
                   : deadlineStatus === "today"
@@ -283,16 +288,16 @@ export function CardItem({
                       : "text-muted-foreground"
               }`}
             >
-              <Calendar className="h-3 w-3" />
+              <Calendar className="h-2.5 w-2.5" />
               {deadlineStatus === "overdue"
-                ? "Vencido · "
+                ? "Venc. "
                 : deadlineStatus === "today"
-                  ? "Hoje · "
+                  ? "Hoje "
                   : ""}
               {formatDate(card.date)}
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </button>
     </div>
   );
