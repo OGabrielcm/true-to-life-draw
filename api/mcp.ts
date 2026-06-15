@@ -136,26 +136,29 @@ function createMcpServer() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Auth via Bearer header OU query param ?key=xxx (para conectores Desktop)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Mcp-Session-Id");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+
+  // Auth via Bearer header OU query param ?key=xxx
   const header = req.headers["authorization"] ?? "";
   const headerKey = header.startsWith("Bearer ") ? header.slice(7) : "";
   const queryKey = (req.query?.key as string) ?? "";
   const key = headerKey || queryKey;
-  if (!TTL_API_KEY || key !== TTL_API_KEY) {
+  if (TTL_API_KEY && key !== TTL_API_KEY) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed — use POST" });
+  if (req.method !== "POST" && req.method !== "GET" && req.method !== "DELETE") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   const server = createMcpServer();
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless
   });
-
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
 
   await server.connect(transport);
   await transport.handleRequest(req, res, req.body);
