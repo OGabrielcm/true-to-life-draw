@@ -9,7 +9,11 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const TTL_API_KEY = process.env.TTL_API_KEY!;
 const TTL_USER_ID = process.env.TTL_USER_ID!;
 
-function createMcpServer() {
+const UNAUTHORIZED = {
+  content: [{ type: "text" as const, text: "Não autorizado. A URL do conector precisa incluir ?key=<TTL_API_KEY>." }],
+};
+
+function createMcpServer(authorized: boolean) {
   const server = new McpServer({
     name: "molas-kanban",
     version: "1.0.0",
@@ -29,6 +33,7 @@ function createMcpServer() {
       limit: z.number().optional().default(50).describe("Máximo de tasks a retornar"),
     },
     async ({ col, track, prio, type, starred, limit }) => {
+      if (!authorized) return UNAUTHORIZED;
       let query = supabase
         .from("tasks")
         .select("id, title, col, track, type, prio, desc, date, starred, tags, checklist, order, created_at, updated_at")
@@ -69,6 +74,7 @@ function createMcpServer() {
       tags: z.array(z.string()).optional().default([]).describe("Etiquetas"),
     },
     async ({ title, col, track, prio, desc, type, date, starred, tags }) => {
+      if (!authorized) return UNAUTHORIZED;
       const { data: existing } = await supabase
         .from("tasks")
         .select("order")
@@ -114,6 +120,7 @@ function createMcpServer() {
     "Lista as trilhas e colunas disponíveis no board Molas Kanban",
     {},
     async () => {
+      if (!authorized) return UNAUTHORIZED;
       const [{ data: tracks, error: tracksError }, { data: columns, error: colsError }] =
         await Promise.all([
           supabase.from("tracks").select("id, name, order").eq("user_id", TTL_USER_ID).order("order"),
@@ -142,20 +149,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === "OPTIONS") return res.status(204).end();
 
-  // Auth via Bearer header OU query param ?key=xxx
-  const header = req.headers["authorization"] ?? "";
-  const headerKey = header.startsWith("Bearer ") ? header.slice(7) : "";
-  const queryKey = (req.query?.key as string) ?? "";
-  const key = headerKey || queryKey;
-  if (TTL_API_KEY && key !== TTL_API_KEY) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
   if (req.method !== "POST" && req.method !== "GET" && req.method !== "DELETE") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const server = createMcpServer();
+  // "Soft auth": NUNCA retornamos 401 — isso dispararia o fluxo OAuth do
+  // Claude. Em vez disso, conectamos sempre (probe/initialize passa) e
+  // exigimos a key ?key=xxx dentro de cada tool para devolver dados reais.
+  const header = req.headers["authorization"] ?? "";
+  const headerKey = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const queryKey = (req.query?.key as string) ?? "";
+  const key = headerKey || queryKey;
+  const authorized = !TTL_API_KEY || key === TTL_API_KEY;
+
+  const server = createMcpServer(authorized);
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless
   });
