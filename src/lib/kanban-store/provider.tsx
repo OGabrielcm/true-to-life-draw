@@ -188,10 +188,15 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         const now = new Date().toISOString();
         const before = cards.find((c) => c.id === id);
         setCards((cur) => cur.map((c) => (c.id === id ? { ...c, ...patch, updated_at: now } : c)));
-        await supabase
+        const { error: updateError } = await supabase
           .from("tasks")
           .update({ ...patch, updated_at: now })
           .eq("id", id);
+        if (updateError) {
+          setCards((cur) => cur.map((c) => (c.id === id && before ? before : c)));
+          console.error("[updateCard] Falha ao salvar no Supabase:", updateError);
+          return;
+        }
         if (before) {
           if (patch.title !== undefined && patch.title !== before.title) {
             logActivity(id, "edited", `Título alterado para "${patch.title}"`);
@@ -242,7 +247,15 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
               : c,
           ),
         );
-        await supabase.from("tasks").update(patch).eq("id", id);
+        const { error: moveError } = await supabase.from("tasks").update(patch).eq("id", id);
+        if (moveError) {
+          // Rollback optimistic update
+          setCards((cur) =>
+            cur.map((c) => (c.id === id && before ? before : c)),
+          );
+          console.error("[moveCard] Falha ao salvar no Supabase:", moveError);
+          return;
+        }
         if (before && before.col !== col) {
           const fromName = columns.find((c) => c.id === before.col)?.name ?? before.col;
           const toName = columns.find((c) => c.id === col)?.name ?? col;
@@ -284,6 +297,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         if (!colChanged && !trackChanged && !orderChanged) return;
 
         const now = new Date().toISOString();
+        const snapshot = card;
         setCards((cur) =>
           cur.map((c) =>
             c.id === id
@@ -291,10 +305,17 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
               : c,
           ),
         );
-        await supabase
+        const { error: reorderError } = await supabase
           .from("tasks")
           .update({ col: targetCol, track: targetTrack, order: newOrder, updated_at: now })
           .eq("id", id);
+        if (reorderError) {
+          // Rollback optimistic update
+          setCards((cur) =>
+            cur.map((c) => (c.id === id ? snapshot : c)),
+          );
+          console.error("[reorderCard] Falha ao salvar no Supabase:", reorderError);
+        }
       },
 
       deleteCard: async (id) => {
