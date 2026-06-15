@@ -136,9 +136,11 @@ function createMcpServer() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Auth via API key no header
+  // Auth via Bearer header OU query param ?key=xxx (para conectores Desktop)
   const header = req.headers["authorization"] ?? "";
-  const key = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const headerKey = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const queryKey = (req.query?.key as string) ?? "";
+  const key = headerKey || queryKey;
   if (!TTL_API_KEY || key !== TTL_API_KEY) {
     return res.status(401).json({ error: "Unauthorized" });
   }
