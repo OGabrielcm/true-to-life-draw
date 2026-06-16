@@ -1,17 +1,23 @@
 // Kernel do KanbanProvider: entidades (cards/tracks/trilhas/columns) +
-// estado de UI fortemente acoplado (filter/trackFilter/collapsed/search/
-// createOpen/loading) + efeito de load + TODAS as ações que tocam essas
-// entidades. Mantido junto DE PROPÓSITO: as ações de delete cruzam domínios
-// (deleteTrack mexe em cards/trackFilter/collapsed; deleteTrilha em cards/
-// filter), então separá-las criaria acoplamento via setters injetados.
+// estado de UI (filter/trackFilter/collapsed/search/createOpen/loading) +
+// efeito de load + TODAS as ações que tocam essas entidades. Mantido junto DE
+// PROPÓSITO: as ações de delete cruzam domínios (deleteTrack mexe em cards/
+// trackFilter/collapsed; deleteTrilha em cards/filter), então separá-las
+// criaria acoplamento via setters injetados.
 //
-// Ações movidas VERBATIM de kanban-store.tsx (sem edição de lógica).
-// Slices independentes (card-details, templates, card-colors) compostos via
-// hooks. A divisão value/fullValue (dois useMemo) é preservada para que
-// mudanças em activities/comments/timeLogs NÃO recriem os closures do kernel.
+// ARQUITETURA (refatorado): as ações do kernel são memoizadas UMA vez (deps
+// `[]`) e leem o estado SEMPRE fresco através de `stateRef`/`slicesRef`, em vez
+// de capturá-lo por closure. Isso elimina o antigo array de dependências manual
+// (com `eslint-disable`) que era o footgun real: adicionar uma ação que lê um
+// novo pedaço de estado e esquecer de listá-lo dava closure obsoleta, bug
+// silencioso, zero erro de compilação. Agora `value` só depende de DADOS
+// reativos reais — sem `eslint-disable`, sem closure presa.
+//
+// Persistência isolada em kanban-repo.ts; lógica não-trivial (ordem do reorder,
+// cascata de delete) em kanban-logic.ts (testada). Slices independentes
+// (card-details, templates, card-colors) compostos via hooks.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Card, Column, Track, Trilha, loadCollapsed, saveCollapsed } from "../kanban-types";
-import { supabase } from "../supabase";
 import { useAuth } from "../auth-store";
 import { Ctx, KanbanCtx } from "./context";
 import {
@@ -22,6 +28,8 @@ import {
   rowToTrilha,
   trackToRow,
 } from "./kanban-mappers";
+import { computeColumnDeletion, computeReorderOrder, computeTrackDeletion } from "./kanban-logic";
+import { kanbanRepo } from "./kanban-repo";
 import { useCardDetails } from "./use-card-details";
 import { useTemplates } from "./use-templates";
 import { useCardColors } from "./use-card-colors";
@@ -57,6 +65,43 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const { templates, saveTemplate, updateTemplate, deleteTemplate } = useTemplates();
   const { cardColors, setCardColor } = useCardColors();
 
+  // Espelho SEMPRE fresco do estado e dos slices, para que as ações estáveis
+  // (memo com deps `[]`) leiam sem capturar valores antigos por closure.
+  // Atualizado a cada render — barato, sincronicamente correto na fase de render.
+  const stateRef = useRef({ cards, trilhas, tracks, columns });
+  stateRef.current = { cards, trilhas, tracks, columns };
+
+  const slicesRef = useRef({
+    logActivity,
+    loadCardDetails,
+    addComment,
+    updateComment,
+    deleteComment,
+    addTimeLog,
+    deleteTimeLog,
+    addAttachment,
+    deleteAttachment,
+    saveTemplate,
+    updateTemplate,
+    deleteTemplate,
+    setCardColor,
+  });
+  slicesRef.current = {
+    logActivity,
+    loadCardDetails,
+    addComment,
+    updateComment,
+    deleteComment,
+    addTimeLog,
+    deleteTimeLog,
+    addAttachment,
+    deleteAttachment,
+    saveTemplate,
+    updateTemplate,
+    deleteTemplate,
+    setCardColor,
+  };
+
   // Bloco 2.1: consome a sessão do auth-store em vez de manter getUser()/
   // onAuthStateChange próprios. O padrão anterior tinha 3 gatilhos de load
   // (chamada direta + SIGNED_IN + load inicial) correndo sobre um único
@@ -90,22 +135,21 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     currentUserIdRef.current = user.id;
 
     const runLoad = async () => {
-      const [{ data: dbCards }, { data: dbTrilhas }, { data: dbTracks }, { data: dbColumns }] =
-        await Promise.all([
-          supabase.from("tasks").select("*").order("created_at"),
-          supabase.from("trilhas").select("*").order("created_at"),
-          supabase.from("tracks").select("*").order("order"),
-          supabase.from("columns").select("*").order("order"),
-        ]);
+      // Sem seed automático: trilhas, tracks, columns e cards iniciais
+      // são criadas pelo usuário no Onboarding Beta (e depois em /settings).
+      const {
+        cards: dbCards,
+        trilhas: dbTrilhas,
+        tracks: dbTracks,
+        columns: dbColumns,
+      } = await kanbanRepo.loadAll();
 
       if (cancelled) return;
 
-      // Sem seed automático: trilhas, tracks, columns e cards iniciais
-      // são criadas pelo usuário no Onboarding Beta (e depois em /settings).
-      setTracks((dbTracks ?? []).map(rowToTrack));
-      setCards((dbCards ?? []).map(rowToCard));
-      setTrilhas((dbTrilhas ?? []).map(rowToTrilha));
-      setColumns((dbColumns ?? []).map(rowToColumn).sort((a, b) => a.order - b.order));
+      setTracks(dbTracks.map(rowToTrack));
+      setCards(dbCards.map(rowToCard));
+      setTrilhas(dbTrilhas.map(rowToTrilha));
+      setColumns(dbColumns.map(rowToColumn).sort((a, b) => a.order - b.order));
       setLoading(false);
     };
 
@@ -130,33 +174,16 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveCollapsed(collapsed);
   }, [collapsed]);
 
-  const value = useMemo<
-    Omit<KanbanCtx, "activitiesByCard" | "commentsByCard" | "timeLogsByCard" | "attachmentsByCard">
-  >(
+  // Ações do kernel: memoizadas UMA vez. Leem estado/slices via refs (sempre
+  // frescos), persistem via kanbanRepo, computam via kanban-logic. Por isso a
+  // deps array é `[]` e estável — não há o que esquecer de listar.
+  const actions = useMemo(
     () => ({
-      cards,
-      trilhas,
-      tracks,
-      columns,
-      collapsed,
-      search,
-      setSearch,
-      filter,
-      setFilter,
-      trackFilter,
-      setTrackFilter,
-      loading,
-      createOpen,
-      setCreateOpen,
-      templates,
-      cardColors,
-
-      addCard: async (data) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-        currentUserIdRef.current = user.id;
+      addCard: async (data: Parameters<KanbanCtx["addCard"]>[0]) => {
+        const userId = await kanbanRepo.getUserId();
+        if (!userId) return;
+        currentUserIdRef.current = userId;
+        const { cards } = stateRef.current;
         const now = new Date().toISOString();
         const tempId = crypto.randomUUID();
         const newCard: Card = {
@@ -170,34 +197,31 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           updated_at: now,
         };
         setCards((cur) => [...cur, newCard]);
-        const { data: inserted, error } = await supabase
-          .from("tasks")
-          .insert({ ...newCard, user_id: user.id })
-          .select()
-          .single();
+        const { data: inserted, error } = await kanbanRepo.tasks.insert(newCard, userId);
         if (error) {
           setCards((cur) => cur.filter((c) => c.id !== tempId));
         } else if (inserted) {
           const real = rowToCard(inserted);
           setCards((cur) => cur.map((c) => (c.id === tempId ? real : c)));
-          logActivity(real.id, "created", `Card criado: "${real.title}"`);
+          slicesRef.current.logActivity(real.id, "created", `Card criado: "${real.title}"`);
         }
       },
 
-      updateCard: async (id, patch) => {
+      updateCard: async (id: string, patch: Partial<Card>) => {
         const now = new Date().toISOString();
-        const before = cards.find((c) => c.id === id);
+        const before = stateRef.current.cards.find((c) => c.id === id);
         setCards((cur) => cur.map((c) => (c.id === id ? { ...c, ...patch, updated_at: now } : c)));
-        const { error: updateError } = await supabase
-          .from("tasks")
-          .update({ ...patch, updated_at: now })
-          .eq("id", id);
+        const { error: updateError } = await kanbanRepo.tasks.update(id, {
+          ...patch,
+          updated_at: now,
+        });
         if (updateError) {
           setCards((cur) => cur.map((c) => (c.id === id && before ? before : c)));
           console.error("[updateCard] Falha ao salvar no Supabase:", updateError);
           return;
         }
         if (before) {
+          const logActivity = slicesRef.current.logActivity;
           if (patch.title !== undefined && patch.title !== before.title) {
             logActivity(id, "edited", `Título alterado para "${patch.title}"`);
           }
@@ -227,12 +251,13 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         }
       },
 
-      moveCard: async (id, col, track) => {
+      moveCard: async (id: string, col: string, track?: string) => {
         const now = new Date().toISOString();
+        const { cards, columns } = stateRef.current;
         const before = cards.find((c) => c.id === id);
-        const targetTrack = track ?? cards.find((c) => c.id === id)?.track;
+        const targetTrack = track ?? before?.track;
         if (!targetTrack) return;
-        // Card que muda de coluna/track vai pro final da nova coluna
+        // Card que muda de coluna/track vai pro final da nova coluna.
         const newOrder = nextOrder(
           cards.filter((c) => c.id !== id),
           targetTrack,
@@ -247,94 +272,63 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
               : c,
           ),
         );
-        const { error: moveError } = await supabase.from("tasks").update(patch).eq("id", id);
+        const { error: moveError } = await kanbanRepo.tasks.update(id, patch);
         if (moveError) {
-          // Rollback optimistic update
-          setCards((cur) =>
-            cur.map((c) => (c.id === id && before ? before : c)),
-          );
+          // Rollback optimistic update.
+          setCards((cur) => cur.map((c) => (c.id === id && before ? before : c)));
           console.error("[moveCard] Falha ao salvar no Supabase:", moveError);
           return;
         }
         if (before && before.col !== col) {
           const fromName = columns.find((c) => c.id === before.col)?.name ?? before.col;
           const toName = columns.find((c) => c.id === col)?.name ?? col;
-          logActivity(id, "moved", `Movido: ${fromName} → ${toName}`);
+          slicesRef.current.logActivity(id, "moved", `Movido: ${fromName} → ${toName}`);
         }
       },
 
-      reorderCard: async (id, target) => {
+      reorderCard: async (id: string, target: Parameters<KanbanCtx["reorderCard"]>[1]) => {
+        const { cards } = stateRef.current;
+        const result = computeReorderOrder(cards, id, target);
+        if (!result) return;
         const card = cards.find((c) => c.id === id);
         if (!card) return;
-        const targetCol = target.col ?? card.col;
-        const targetTrack = target.track ?? card.track;
-        // Pega cards da coluna alvo, ordenados (excluindo o próprio)
-        const sameColumn = cards
-          .filter((c) => c.track === targetTrack && c.col === targetCol && c.id !== id)
-          .sort((a, b) => a.order - b.order);
-
-        let newOrder: number;
-        if (target.beforeId) {
-          const beforeIdx = sameColumn.findIndex((c) => c.id === target.beforeId);
-          if (beforeIdx === -1) return;
-          const before = sameColumn[beforeIdx];
-          const prev = sameColumn[beforeIdx - 1];
-          newOrder = prev ? (prev.order + before.order) / 2 : before.order - 1;
-        } else if (target.afterId) {
-          const afterIdx = sameColumn.findIndex((c) => c.id === target.afterId);
-          if (afterIdx === -1) return;
-          const after = sameColumn[afterIdx];
-          const next = sameColumn[afterIdx + 1];
-          newOrder = next ? (after.order + next.order) / 2 : after.order + 1;
-        } else {
-          newOrder = sameColumn.length ? sameColumn[sameColumn.length - 1].order + 1 : 1;
-        }
-
-        // Sem mudança real
-        const colChanged = targetCol !== card.col;
-        const trackChanged = targetTrack !== card.track;
-        const orderChanged = Math.abs(newOrder - card.order) > 1e-9;
-        if (!colChanged && !trackChanged && !orderChanged) return;
 
         const now = new Date().toISOString();
         const snapshot = card;
         setCards((cur) =>
           cur.map((c) =>
             c.id === id
-              ? { ...c, col: targetCol, track: targetTrack, order: newOrder, updated_at: now }
+              ? { ...c, col: result.col, track: result.track, order: result.order, updated_at: now }
               : c,
           ),
         );
-        const { error: reorderError } = await supabase
-          .from("tasks")
-          .update({ col: targetCol, track: targetTrack, order: newOrder, updated_at: now })
-          .eq("id", id);
+        const { error: reorderError } = await kanbanRepo.tasks.update(id, {
+          col: result.col,
+          track: result.track,
+          order: result.order,
+          updated_at: now,
+        });
         if (reorderError) {
-          // Rollback optimistic update
-          setCards((cur) =>
-            cur.map((c) => (c.id === id ? snapshot : c)),
-          );
+          // Rollback optimistic update.
+          setCards((cur) => cur.map((c) => (c.id === id ? snapshot : c)));
           console.error("[reorderCard] Falha ao salvar no Supabase:", reorderError);
         }
       },
 
-      deleteCard: async (id) => {
+      deleteCard: async (id: string) => {
         setCards((cur) => cur.filter((c) => c.id !== id));
-        await supabase.from("tasks").delete().eq("id", id);
+        await kanbanRepo.tasks.remove(id);
       },
 
-      toggleStar: async (id) => {
+      toggleStar: async (id: string) => {
         const now = new Date().toISOString();
+        const card = stateRef.current.cards.find((c) => c.id === id);
         setCards((cur) =>
           cur.map((c) => (c.id === id ? { ...c, starred: !c.starred, updated_at: now } : c)),
         );
-        const card = cards.find((c) => c.id === id);
         if (card) {
-          await supabase
-            .from("tasks")
-            .update({ starred: !card.starred, updated_at: now })
-            .eq("id", id);
-          logActivity(
+          await kanbanRepo.tasks.update(id, { starred: !card.starred, updated_at: now });
+          slicesRef.current.logActivity(
             id,
             card.starred ? "unstarred" : "starred",
             card.starred ? "Removido dos favoritos" : "Marcado como favorito",
@@ -342,12 +336,10 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         }
       },
 
-      duplicateCard: async (id) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        const original = cards.find((c) => c.id === id);
-        if (!user || !original) return;
+      duplicateCard: async (id: string) => {
+        const userId = await kanbanRepo.getUserId();
+        const original = stateRef.current.cards.find((c) => c.id === id);
+        if (!userId || !original) return;
         const now = new Date().toISOString();
         const tempId = crypto.randomUUID();
         const newCard: Card = {
@@ -355,8 +347,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           id: tempId,
           title: `${original.title} (copy)`,
           starred: false,
-          order: nextOrder(cards, original.track, original.col),
-          // Reseta estado de progresso: checklist desmarcado, sem dependências
+          order: nextOrder(stateRef.current.cards, original.track, original.col),
+          // Reseta estado de progresso: checklist desmarcado, sem dependências.
           checklist: (original.checklist ?? []).map((i) => ({
             ...i,
             id: crypto.randomUUID(),
@@ -367,54 +359,31 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
           updated_at: now,
         };
         setCards((cur) => [...cur, newCard]);
-        const { data: inserted, error } = await supabase
-          .from("tasks")
-          .insert({ ...newCard, user_id: user.id })
-          .select()
-          .single();
+        const { data: inserted, error } = await kanbanRepo.tasks.insert(newCard, userId);
         if (error) {
           setCards((cur) => cur.filter((c) => c.id !== tempId));
         } else if (inserted) {
           const real = rowToCard(inserted);
           setCards((cur) => cur.map((c) => (c.id === tempId ? real : c)));
-          logActivity(real.id, "duplicated", `Duplicado de "${original.title}"`);
+          slicesRef.current.logActivity(real.id, "duplicated", `Duplicado de "${original.title}"`);
         }
       },
 
-      toggleCollapsed: (id) => setCollapsed((cur) => ({ ...cur, [id]: !cur[id] })),
+      toggleCollapsed: (id: string) => setCollapsed((cur) => ({ ...cur, [id]: !cur[id] })),
 
-      saveTemplate,
-      updateTemplate,
-      deleteTemplate,
-      setCardColor,
-
-      getColumnsForTrack: (trackId) => {
+      getColumnsForTrack: (trackId: string) => {
+        const { columns } = stateRef.current;
         const trackCols = columns.filter((c) => c.track_id === trackId);
         if (trackCols.length > 0) return trackCols.sort((a, b) => a.order - b.order);
         return columns.filter((c) => !c.track_id).sort((a, b) => a.order - b.order);
       },
 
-      loadCardDetails,
-      addComment,
-      updateComment,
-      deleteComment,
-      addTimeLog,
-      deleteTimeLog,
-      addAttachment,
-      deleteAttachment,
-
-      createTrilha: async (t) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
+      createTrilha: async (t: Omit<Trilha, "id">) => {
+        const userId = await kanbanRepo.getUserId();
+        if (!userId) return;
         const tempId = crypto.randomUUID();
         setTrilhas((cur) => [...cur, { ...t, id: tempId }]);
-        const { data: inserted, error } = await supabase
-          .from("trilhas")
-          .insert({ ...t, user_id: user.id })
-          .select()
-          .single();
+        const { data: inserted, error } = await kanbanRepo.trilhas.insert(t, userId);
         if (error) {
           setTrilhas((cur) => cur.filter((x) => x.id !== tempId));
         } else if (inserted) {
@@ -422,34 +391,32 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         }
       },
 
-      updateTrilha: async (id, data) => {
+      updateTrilha: async (id: string, data: Omit<Trilha, "id">) => {
         setTrilhas((cur) => cur.map((t) => (t.id === id ? { ...t, ...data } : t)));
-        await supabase.from("trilhas").update(data).eq("id", id);
+        await kanbanRepo.trilhas.update(id, data);
       },
 
-      deleteTrilha: async (id) => {
+      deleteTrilha: async (id: string) => {
         setTrilhas((cur) => cur.filter((t) => t.id !== id));
         setCards((cur) => cur.map((c) => ({ ...c, tags: c.tags.filter((x) => x !== id) })));
         setFilter((f) => (f === id ? "__all" : f));
-        await supabase.from("trilhas").delete().eq("id", id);
-        await supabase.rpc("remove_tag_from_tasks", { tag_id: id });
+        await kanbanRepo.trilhas.remove(id);
+        await kanbanRepo.trilhas.removeTagFromTasks(id);
       },
 
-      createTrack: async (input) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
+      createTrack: async (input: Parameters<KanbanCtx["createTrack"]>[0]) => {
+        const userId = await kanbanRepo.getUserId();
+        if (!userId) return;
+        const { tracks } = stateRef.current;
         const tempId = crypto.randomUUID();
         const order =
           input.order ?? (tracks.length ? Math.max(...tracks.map((t) => t.order)) + 1 : 0);
         const newTrack: Track = { ...input, id: tempId, order };
         setTracks((cur) => [...cur, newTrack].sort((a, b) => a.order - b.order));
-        const { data: inserted, error } = await supabase
-          .from("tracks")
-          .insert({ ...trackToRow(newTrack), user_id: user.id })
-          .select()
-          .single();
+        const { data: inserted, error } = await kanbanRepo.tracks.insert(
+          trackToRow(newTrack),
+          userId,
+        );
         if (error) {
           setTracks((cur) => cur.filter((x) => x.id !== tempId));
         } else if (inserted) {
@@ -461,46 +428,37 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         }
       },
 
-      updateTrack: async (id, data) => {
+      updateTrack: async (id: string, data: Omit<Track, "id">) => {
         setTracks((cur) =>
           cur.map((t) => (t.id === id ? { ...t, ...data } : t)).sort((a, b) => a.order - b.order),
         );
-        await supabase.from("tracks").update(trackToRow(data)).eq("id", id);
+        await kanbanRepo.tracks.update(id, data);
       },
 
-      deleteTrack: async (id) => {
-        // Move cards desta track para a primeira track restante (se houver)
-        const remaining = tracks.filter((t) => t.id !== id);
-        const fallback = remaining[0];
-        if (fallback) {
-          const now = new Date().toISOString();
-          setCards((cur) =>
-            cur.map((c) => (c.track === id ? { ...c, track: fallback.id, updated_at: now } : c)),
-          );
-          await supabase
-            .from("tasks")
-            .update({ track: fallback.id, updated_at: now })
-            .eq("track", id);
-        } else {
-          // Sem track de fallback: apaga os cards desta track
-          setCards((cur) => cur.filter((c) => c.track !== id));
-          await supabase.from("tasks").delete().eq("track", id);
-        }
-        setTracks(remaining);
+      deleteTrack: async (id: string) => {
+        const { cards, tracks } = stateRef.current;
+        const now = new Date().toISOString();
+        const result = computeTrackDeletion(cards, tracks, id, now);
+        setCards(result.cards);
+        setTracks(result.remaining);
         setTrackFilter((f) => (f === id ? "__all" : f));
         setCollapsed((cur) => {
           const next = { ...cur };
           delete next[id];
           return next;
         });
-        await supabase.from("tracks").delete().eq("id", id);
+        if (result.fallbackId) {
+          await kanbanRepo.tasks.reassignTrack(id, result.fallbackId, now);
+        } else {
+          await kanbanRepo.tasks.deleteByTrack(id);
+        }
+        await kanbanRepo.tracks.remove(id);
       },
 
-      createColumn: async (name, trackId) => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
+      createColumn: async (name: string, trackId?: string) => {
+        const userId = await kanbanRepo.getUserId();
+        if (!userId) return;
+        const { columns } = stateRef.current;
         const tempId = crypto.randomUUID();
         const scopedCols = trackId
           ? columns.filter((c) => c.track_id === trackId)
@@ -508,17 +466,13 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         const order = scopedCols.length ? Math.max(...scopedCols.map((c) => c.order)) + 1 : 5;
         const newCol: Column = { id: tempId, name: name.trim(), order, track_id: trackId };
         setColumns((cur) => [...cur, newCol].sort((a, b) => a.order - b.order));
-        const { data: inserted, error } = await supabase
-          .from("columns")
-          .insert({
-            id: tempId,
-            name: name.trim(),
-            order,
-            user_id: user.id,
-            track_id: trackId ?? null,
-          })
-          .select()
-          .single();
+        const { data: inserted, error } = await kanbanRepo.columns.insert({
+          id: tempId,
+          name: name.trim(),
+          order,
+          user_id: userId,
+          track_id: trackId ?? null,
+        });
         if (error) {
           setColumns((cur) => cur.filter((c) => c.id !== tempId));
         } else if (inserted) {
@@ -530,7 +484,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         }
       },
 
-      updateColumn: async (id, data) => {
+      updateColumn: async (id: string, data: { name?: string; wip_limit?: number | null }) => {
         const patch: Record<string, unknown> = {};
         if (data.name !== undefined) patch.name = data.name.trim();
         if (data.wip_limit !== undefined) patch.wip_limit = data.wip_limit;
@@ -547,34 +501,79 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
               : c,
           ),
         );
-        await supabase.from("columns").update(patch).eq("id", id);
+        await kanbanRepo.columns.update(id, patch);
       },
 
-      deleteColumn: async (id) => {
-        const remaining = columns.filter((c) => c.id !== id);
-        const fallback = remaining[0];
-        if (fallback) {
-          const now = new Date().toISOString();
-          setCards((cur) =>
-            cur.map((c) => (c.col === id ? { ...c, col: fallback.id, updated_at: now } : c)),
-          );
-          await supabase.from("tasks").update({ col: fallback.id, updated_at: now }).eq("col", id);
+      deleteColumn: async (id: string) => {
+        const { cards, columns } = stateRef.current;
+        const now = new Date().toISOString();
+        const result = computeColumnDeletion(cards, columns, id, now);
+        setCards(result.cards);
+        setColumns(result.remaining);
+        if (result.fallbackId) {
+          await kanbanRepo.tasks.reassignColumn(id, result.fallbackId, now);
         } else {
-          setCards((cur) => cur.filter((c) => c.col !== id));
-          await supabase.from("tasks").delete().eq("col", id);
+          await kanbanRepo.tasks.deleteByColumn(id);
         }
-        setColumns(remaining);
-        await supabase.from("columns").delete().eq("id", id);
+        await kanbanRepo.columns.remove(id);
       },
+
+      // Pass-throughs estáveis para os slices (delegam via ref → sempre frescos).
+      saveTemplate: (card: Card, name: string) => slicesRef.current.saveTemplate(card, name),
+      updateTemplate: (templateId: string, name: string) =>
+        slicesRef.current.updateTemplate(templateId, name),
+      deleteTemplate: (templateId: string) => slicesRef.current.deleteTemplate(templateId),
+      setCardColor: (cardId: string, color: string) =>
+        slicesRef.current.setCardColor(cardId, color),
+      loadCardDetails: (cardId: string) => slicesRef.current.loadCardDetails(cardId),
+      addComment: (cardId: string, text: string) => slicesRef.current.addComment(cardId, text),
+      updateComment: (commentId: string, text: string) =>
+        slicesRef.current.updateComment(commentId, text),
+      deleteComment: (commentId: string, cardId: string) =>
+        slicesRef.current.deleteComment(commentId, cardId),
+      addTimeLog: (cardId: string, minutes: number, note?: string, loggedAt?: string) =>
+        slicesRef.current.addTimeLog(cardId, minutes, note, loggedAt),
+      deleteTimeLog: (logId: string, cardId: string) =>
+        slicesRef.current.deleteTimeLog(logId, cardId),
+      addAttachment: (cardId: string, file: File) => slicesRef.current.addAttachment(cardId, file),
+      deleteAttachment: (attachment: Parameters<KanbanCtx["deleteAttachment"]>[0]) =>
+        slicesRef.current.deleteAttachment(attachment),
     }),
-    // IMPORTANTE: array de dependências IDÊNTICO ao original (verbatim).
-    // As funções dos slices (logActivity, addComment, saveTemplate, ...) e os
-    // refs são intencionalmente OMITIDOS: incluí-los recriaria este memo a cada
-    // render (essas funções não são memoizadas nos hooks), anulando a divisão
-    // value/fullValue que existe justamente para que mudanças em
-    // activities/comments/timeLogs não recriem os closures do kernel. As ações
-    // do kernel só leem entidades + estado de UI, que estão todos listados aqui.
+    // Deps `[]` PROPOSITAIS: as ações leem tudo via stateRef/slicesRef, então
+    // são estáveis para sempre. currentUserIdRef é um ref (estável). Não há
+    // valor reativo capturado aqui — nada a listar, nada a esquecer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  // `value` agrega DADOS reativos + setters (estáveis) + ações (estáveis).
+  // Recria quando algum dado muda — que é exatamente quando os consumidores
+  // precisam ver a mudança. Todas as deps são valores reativos reais: o
+  // footgun do array manual desapareceu (sem closure de ação capturada aqui).
+  const value = useMemo<KanbanCtx>(
+    () => ({
+      cards,
+      trilhas,
+      tracks,
+      columns,
+      collapsed,
+      search,
+      setSearch,
+      filter,
+      setFilter,
+      trackFilter,
+      setTrackFilter,
+      loading,
+      createOpen,
+      setCreateOpen,
+      templates,
+      cardColors,
+      activitiesByCard,
+      commentsByCard,
+      timeLogsByCard,
+      attachmentsByCard,
+      ...actions,
+    }),
     [
       cards,
       trilhas,
@@ -588,13 +587,13 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       loading,
       templates,
       cardColors,
+      activitiesByCard,
+      commentsByCard,
+      timeLogsByCard,
+      attachmentsByCard,
+      actions,
     ],
   );
 
-  const fullValue = useMemo(
-    () => ({ ...value, activitiesByCard, commentsByCard, timeLogsByCard, attachmentsByCard }),
-    [value, activitiesByCard, commentsByCard, timeLogsByCard, attachmentsByCard],
-  );
-
-  return <Ctx.Provider value={fullValue}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
