@@ -8,7 +8,20 @@
 ---
 
 > Baseado em análise comparativa com JIRA, Trello e ferramentas Kanban profissionais.
-> Atualizado em: 2026-06-07 — Fases 1–5 completas ✅ · Blocos 1–7 + UX fixes concluídos · MVP em produção (Vercel)
+> Atualizado em: 2026-06-16 — Fases 1–5 completas ✅ · Blocos 1–7 + UX fixes concluídos · MVP em produção (Vercel)
+>
+> **2026-06-16 — Refactor do kanban-store + limpeza + testes unitários:**
+> Lógica não-trivial (ordem do reorder, cascata de delete de track/column)
+> extraída para `kanban-logic.ts` puro; acesso ao Supabase isolado em
+> `kanban-repo.ts`; ações do provider estabilizadas via `stateRef`/`slicesRef`
+> (elimina o array de deps manual com `eslint-disable` — footgun de closure
+> obsoleta). **Limpeza:** −5944 linhas — 43 componentes shadcn/ui sem uso, hook
+> `use-mobile`, órfãos `card-rules`/`error-capture`, 33 deps (validadas
+> import-a-import) e 3 docs obsoletos. **Testes:** suíte unitária Vitest nova
+> (kanban-logic, kanban-mappers, habit-logic) — 67 → 98 testes. **Fix:** guard
+> acionável no `supabase.ts` para credenciais ausentes. Validado por smoke
+> profundo (login→load→addCard→persistência→deleteCard, zero pageerror).
+> T1 (optimistic updates) marcado como já implementado.
 >
 > **2026-06-07 — UX: Modal two-column + confirmação de exclusão:**
 > CardDetailModal redesenhado no layout two-column estilo Jira (max-w-4xl). Coluna esquerda
@@ -186,7 +199,8 @@
 | Hábitos no Dashboard e For You (consistência, heatmap 30d, streak+recorde, pendentes, alerta de risco) | ✅ |
 | README.md com setup, stack e schema Supabase | ✅ |
 | Código formatado com Prettier (zero lint errors) | ✅ |
-| Arquitetura em camadas (services, card-rules, dashboard-export) | ✅ |
+| Arquitetura em camadas (services, kanban-logic/kanban-repo, dashboard-export) | ✅ |
+| Testes unitários (Vitest) — kanban-logic, kanban-mappers, habit-logic | ✅ |
 | Testes E2E isolados com RUN_ID único por execução | ✅ |
 
 ---
@@ -330,7 +344,7 @@
 | ~~5.1~~ | Formatar código com Prettier | `src/` inteiro | 🟢 Mínima | `claude-haiku-4-5-20251001` | ✅ |
 | ~~5.2~~ | Criar README.md operacional | raiz do projeto | 🟢 Baixa | `claude-haiku-4-5-20251001` | ✅ |
 | ~~5.3~~ | Extrair exportação do dashboard | `dashboards.tsx` → `dashboard-export.ts` | 🟡 Baixa-média | `claude-sonnet-4-6[1m]` | ✅ |
-| ~~5.4~~ | Extrair regras puras de card | `card-rules.ts` (re-export semântico) | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
+| ~~5.4~~ | Extrair regras puras de card | ~~`card-rules.ts`~~ (re-export removido em 2026-06-16 — nunca adotado; consumidores importam de `kanban-types`) | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
 | ~~5.5~~ | Melhorar isolamento dos testes E2E | `helpers.ts` — `RUN_ID` único por execução | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
 | ~~5.6~~ | Separar serviços do kanban-store | `activity-service.ts`, `comments-service.ts`, `timelog-service.ts` | 🔴 Alta | `claude-opus-4-7` | ✅ |
 | ~~5.7~~ | Separar CardDetailModal | 5 sub-componentes em `card-modal-sections/` | 🔴 Alta | `claude-opus-4-7` | ✅ |
@@ -415,7 +429,7 @@ Dentro da Fase 1, a ordem recomendada é:
 
 | # | Feature | Por que importa | Consumo | Modelo |
 |---|---------|----------------|---------|--------|
-| T1 | **Optimistic updates** em todas as mutações do board | Hoje toda ação espera o Supabase responder antes de atualizar a UI — perceptível em conexões lentas | 🔴 Alto | `claude-opus-4-7` |
+| ~~T1~~ | **Optimistic updates** em todas as mutações do board | ✅ Implementado — addCard/moveCard/reorderCard/etc. atualizam o estado local antes do Supabase e fazem rollback em erro (ver `kanban-store/provider.tsx`) | 🔴 Alto | `claude-opus-4-7` |
 | T2 | **Realtime Supabase** — múltiplas abas sincronizadas sem reload | Abrindo o app em duas abas, mudanças em uma não aparecem na outra | 🔴 Alto | `claude-opus-4-7` |
 | T3 | **Error boundary global** + fallback UI de erro | O app quebra silenciosamente em alguns fluxos; o usuário vê tela branca sem mensagem | 🟡 Médio | `claude-sonnet-4-6` |
 | T4 | **PWA / installable** — manifesto + service worker para uso offline | Ferramenta pessoal de uso diário — funcionar offline faz sentido | 🟡 Médio | `claude-sonnet-4-6` |

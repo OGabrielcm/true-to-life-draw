@@ -5,11 +5,11 @@ A modern kanban board built with React, TypeScript, and Supabase. Designed for t
 ## Tech Stack
 
 - **Frontend**: React 19, TypeScript, TanStack Router, TanStack Start (Vite)
-- **Styling**: Tailwind CSS v4, shadcn/ui components, Radix UI
+- **Styling**: Tailwind CSS v4 + Radix UI primitives (alert-dialog, slot) + `sonner` toasts
 - **State & Data**: React Context stores + TanStack React Query + Supabase client (no realtime subscriptions yet — see ROADMAP T2)
 - **Backend**: Supabase (PostgreSQL, authentication, RLS, Storage)
 - **Deployment**: Vercel
-- **Testing**: Playwright (E2E)
+- **Testing**: Vitest (unitário — lógica pura do kanban-store e habit-logic) + Playwright (E2E)
 - **Code Quality**: ESLint, Prettier, TypeScript strict mode
 
 ## Quick Start
@@ -65,6 +65,8 @@ bun run preview  # Test production build locally
 | `bun run preview` | Preview production build locally |
 | `bun run lint` | Run ESLint across src/ |
 | `bun run format` | Format code with Prettier |
+| `bun run test` | Run unit tests (Vitest) |
+| `bun run test:watch` | Run unit tests in watch mode |
 | `bun run test:e2e` | Run Playwright E2E tests against `.env.test` |
 | `bun run test:e2e:ui` | Run tests with Playwright UI inspector |
 
@@ -273,8 +275,10 @@ src/
 ├── lib/
 │   ├── kanban-store/       # Kanban Context store, split into slices (Bloco 1)
 │   │   ├── index.tsx          # Public barrel (KanbanProvider, useKanban)
-│   │   ├── provider.tsx       # Kernel: entities + filters + actions
+│   │   ├── provider.tsx       # Kernel: entities + filters + ações estáveis (stateRef)
 │   │   ├── context.ts         # KanbanCtx type + useKanban hook
+│   │   ├── kanban-logic.ts    # Lógica pura testável (reorder, cascata de delete)
+│   │   ├── kanban-repo.ts     # Acesso ao Supabase isolado (CRUD por entidade)
 │   │   ├── kanban-mappers.ts  # row ↔ Card mapping
 │   │   ├── use-card-details.ts # activities/comments/time/attachments slice
 │   │   ├── use-templates.ts / use-card-colors.ts
