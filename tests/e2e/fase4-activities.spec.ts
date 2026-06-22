@@ -17,7 +17,11 @@ test.describe.serial("4.5 — Histórico de atividades", () => {
   test("registra atividade 'criado' ao abrir card", async ({ page }) => {
     await openCard(page, CARD_TITLE);
     // Clica na tab "Atividade" (tab 4 no novo modal)
-    await page.locator(".max-w-2xl button").filter({ hasText: /ATIVIDADE|Atividade/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /ATIVIDADE|Atividade/i })
+      .first()
+      .click();
     await page.waitForTimeout(1_000);
     await expect(page.getByText(/Atividades \(\d+\)/)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText(/Card criado/i)).toBeVisible({ timeout: 8_000 });
@@ -34,7 +38,11 @@ test.describe.serial("4.5 — Histórico de atividades", () => {
     await goToBoard(page);
     await openCard(page, CARD_TITLE);
     // Verifica na aba Atividade
-    await page.locator(".max-w-2xl button").filter({ hasText: /ATIVIDADE|Atividade/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /ATIVIDADE|Atividade/i })
+      .first()
+      .click();
     await page.waitForTimeout(500);
     await expect(page.locator("text=/Movido:/i")).toBeVisible({ timeout: 8_000 });
     console.log(`✓ Movido → ${colName}`);
@@ -48,11 +56,15 @@ test.describe.serial("4.5 — Histórico de atividades", () => {
     await page.waitForTimeout(400);
     await openCard(page, CARD_TITLE);
     // Verifica na aba Atividade
-    await page.locator(".max-w-2xl button").filter({ hasText: /ATIVIDADE|Atividade/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /ATIVIDADE|Atividade/i })
+      .first()
+      .click();
     await page.waitForTimeout(500);
-    await expect(
-      page.locator("text=/Marcado como favorito|Removido dos favoritos/i"),
-    ).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator("text=/Marcado como favorito|Removido dos favoritos/i")).toBeVisible({
+      timeout: 8_000,
+    });
     console.log("✓ Atividade de favoritar registrada");
   });
 

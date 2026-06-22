@@ -57,18 +57,18 @@ bun run preview  # Test production build locally
 
 ## Available Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `bun run dev` | Start Vite dev server with hot reload |
-| `bun run build` | Build for production (SSR + client) |
-| `bun run build:dev` | Build in development mode (debugging) |
-| `bun run preview` | Preview production build locally |
-| `bun run lint` | Run ESLint across src/ |
-| `bun run format` | Format code with Prettier |
-| `bun run test` | Run unit tests (Vitest) |
-| `bun run test:watch` | Run unit tests in watch mode |
-| `bun run test:e2e` | Run Playwright E2E tests against `.env.test` |
-| `bun run test:e2e:ui` | Run tests with Playwright UI inspector |
+| Script                | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `bun run dev`         | Start Vite dev server with hot reload        |
+| `bun run build`       | Build for production (SSR + client)          |
+| `bun run build:dev`   | Build in development mode (debugging)        |
+| `bun run preview`     | Preview production build locally             |
+| `bun run lint`        | Run ESLint across src/                       |
+| `bun run format`      | Format code with Prettier                    |
+| `bun run test`        | Run unit tests (Vitest)                      |
+| `bun run test:watch`  | Run unit tests in watch mode                 |
+| `bun run test:e2e`    | Run Playwright E2E tests against `.env.test` |
+| `bun run test:e2e:ui` | Run tests with Playwright UI inspector       |
 
 ## Auth e cadastro
 
@@ -84,170 +84,182 @@ bun run preview  # Test production build locally
 > **`task_id`**.
 
 ### `tasks`
+
 Main task/goal entities with full metadata.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | Owner (FK to `auth.users`) |
-| `col` | text | Column ID (backlog, todo, inprogress, review, done) |
-| `track` | uuid | Track/category reference (FK to `tracks`) |
-| `type` | text | "Task" or "Goal" |
-| `parent_id` | uuid | Optional parent card for sub-tasks (FK to `tasks`) |
-| `title` | text | Card title |
-| `desc` | text | Card description (markdown) |
-| `prio` | text | Priority: "Alta", "Média", or "Baixa" |
-| `date` | text | Optional deadline (ISO 8601) |
-| `starred` | boolean | User favorite flag |
-| `tags` | text[] | Array of trilha IDs for legacy filtering |
-| `order` | float | Position within column (allows insertion without renumbering) |
-| `checklist` | jsonb | Array of `{id, text, done}` objects |
-| `blocked_by` | text[] | Array of card IDs that block this card |
-| `created_at` | timestamp | Record creation |
-| `updated_at` | timestamp | Last modification |
+| Column       | Type      | Notes                                                         |
+| ------------ | --------- | ------------------------------------------------------------- |
+| `id`         | uuid      | Primary key                                                   |
+| `user_id`    | uuid      | Owner (FK to `auth.users`)                                    |
+| `col`        | text      | Column ID (backlog, todo, inprogress, review, done)           |
+| `track`      | uuid      | Track/category reference (FK to `tracks`)                     |
+| `type`       | text      | "Task" or "Goal"                                              |
+| `parent_id`  | uuid      | Optional parent card for sub-tasks (FK to `tasks`)            |
+| `title`      | text      | Card title                                                    |
+| `desc`       | text      | Card description (markdown)                                   |
+| `prio`       | text      | Priority: "Alta", "Média", or "Baixa"                         |
+| `date`       | text      | Optional deadline (ISO 8601)                                  |
+| `starred`    | boolean   | User favorite flag                                            |
+| `tags`       | text[]    | Array of trilha IDs for legacy filtering                      |
+| `order`      | float     | Position within column (allows insertion without renumbering) |
+| `checklist`  | jsonb     | Array of `{id, text, done}` objects                           |
+| `blocked_by` | text[]    | Array of card IDs that block this card                        |
+| `created_at` | timestamp | Record creation                                               |
+| `updated_at` | timestamp | Last modification                                             |
 
 > Há também uma coluna `attachments` (jsonb) legada nesta tabela, **não usada** —
 > os anexos vivem na tabela dedicada `attachments` (abaixo).
 
 ### `columns`
+
 Board structure configuration.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | text | Column ID ("backlog", "todo", "inprogress", "review", "done" or custom) |
-| `user_id` | uuid | Owner (FK to `auth.users`) |
-| `name` | text | Display name |
-| `order` | int | Column position |
-| `wip_limit` | int | Optional work-in-progress limit |
-| `track_id` | uuid | Owning track; `null` = global/template column |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                                                                   |
+| ------------ | --------- | ----------------------------------------------------------------------- |
+| `id`         | text      | Column ID ("backlog", "todo", "inprogress", "review", "done" or custom) |
+| `user_id`    | uuid      | Owner (FK to `auth.users`)                                              |
+| `name`       | text      | Display name                                                            |
+| `order`      | int       | Column position                                                         |
+| `wip_limit`  | int       | Optional work-in-progress limit                                         |
+| `track_id`   | uuid      | Owning track; `null` = global/template column                           |
+| `created_at` | timestamp | Record creation                                                         |
 
 ### `tracks`
+
 Swimlanes — horizontal lanes of the board with their own columns and colors.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | Owner (FK to `auth.users`) |
-| `name` | text | Track name |
-| `bg` | text | Background color (hex) |
-| `border` | text | Border color (hex) |
-| `fg` | text | Foreground/text color (hex) |
-| `dark_bg` | text | Dark mode background |
-| `dark_fg` | text | Dark mode foreground |
-| `order` | int | Track position |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                       |
+| ------------ | --------- | --------------------------- |
+| `id`         | uuid      | Primary key                 |
+| `user_id`    | uuid      | Owner (FK to `auth.users`)  |
+| `name`       | text      | Track name                  |
+| `bg`         | text      | Background color (hex)      |
+| `border`     | text      | Border color (hex)          |
+| `fg`         | text      | Foreground/text color (hex) |
+| `dark_bg`    | text      | Dark mode background        |
+| `dark_fg`    | text      | Dark mode foreground        |
+| `order`      | int       | Track position              |
+| `created_at` | timestamp | Record creation             |
 
 ### `trilhas`
+
 Tags/labels for filtering (legacy tag system — **distinct** from `tracks`).
 A card's `tags` array holds `trilha` IDs. See the Track vs Trilha note in
 `kanban-types.ts`.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | Owner (FK to `auth.users`) |
-| `name` | text | Label name |
-| `bg` | text | Background color (hex) |
-| `fg` | text | Foreground/text color (hex) |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                       |
+| ------------ | --------- | --------------------------- |
+| `id`         | uuid      | Primary key                 |
+| `user_id`    | uuid      | Owner (FK to `auth.users`)  |
+| `name`       | text      | Label name                  |
+| `bg`         | text      | Background color (hex)      |
+| `fg`         | text      | Foreground/text color (hex) |
+| `created_at` | timestamp | Record creation             |
 
 ### `comments`
+
 Card discussion threads.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
-| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `text` | text | Comment text |
-| `created_at` | timestamp | Record creation |
-| `updated_at` | timestamp | Last edit |
+| Column       | Type      | Notes                                  |
+| ------------ | --------- | -------------------------------------- |
+| `id`         | uuid      | Primary key                            |
+| `task_id`    | uuid      | FK to `tasks` (ON DELETE CASCADE)      |
+| `user_id`    | uuid      | FK to `auth.users` (ON DELETE CASCADE) |
+| `text`       | text      | Comment text                           |
+| `created_at` | timestamp | Record creation                        |
+| `updated_at` | timestamp | Last edit                              |
 
 **RLS**: Enabled; users can only view/edit their own comments.
 
 ### `activities`
+
 Activity log for audit trail and card history.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
-| `user_id` | uuid | FK to `auth.users` |
-| `type` | text | "created", "moved", "edited", "starred", "checklist", etc. |
-| `message` | text | Human-readable log entry |
-| `created_at` | timestamp | When action occurred |
+| Column       | Type      | Notes                                                      |
+| ------------ | --------- | ---------------------------------------------------------- |
+| `id`         | uuid      | Primary key                                                |
+| `task_id`    | uuid      | FK to `tasks` (ON DELETE CASCADE)                          |
+| `user_id`    | uuid      | FK to `auth.users`                                         |
+| `type`       | text      | "created", "moved", "edited", "starred", "checklist", etc. |
+| `message`    | text      | Human-readable log entry                                   |
+| `created_at` | timestamp | When action occurred                                       |
 
 ### `time_logs`
+
 Time tracking entries per card.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
-| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `minutes` | int | Time spent (in minutes) |
-| `note` | text | Optional note |
-| `logged_at` | timestamp | When the work happened |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                                  |
+| ------------ | --------- | -------------------------------------- |
+| `id`         | uuid      | Primary key                            |
+| `task_id`    | uuid      | FK to `tasks` (ON DELETE CASCADE)      |
+| `user_id`    | uuid      | FK to `auth.users` (ON DELETE CASCADE) |
+| `minutes`    | int       | Time spent (in minutes)                |
+| `note`       | text      | Optional note                          |
+| `logged_at`  | timestamp | When the work happened                 |
+| `created_at` | timestamp | Record creation                        |
 
 ### `attachments`
+
 File attachments per card. Binaries live in the `attachments` Storage bucket;
 this table holds only metadata. (Bloco 4)
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `task_id` | uuid | FK to `tasks` (ON DELETE CASCADE) |
-| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `path` | text | Object path in the bucket: `${task_id}/${uuid}-${name}` |
-| `name` | text | Original filename |
-| `mime` | text | MIME type |
-| `size_bytes` | int | File size |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                                                   |
+| ------------ | --------- | ------------------------------------------------------- |
+| `id`         | uuid      | Primary key                                             |
+| `task_id`    | uuid      | FK to `tasks` (ON DELETE CASCADE)                       |
+| `user_id`    | uuid      | FK to `auth.users` (ON DELETE CASCADE)                  |
+| `path`       | text      | Object path in the bucket: `${task_id}/${uuid}-${name}` |
+| `name`       | text      | Original filename                                       |
+| `mime`       | text      | MIME type                                               |
+| `size_bytes` | int       | File size                                               |
+| `created_at` | timestamp | Record creation                                         |
 
 **RLS** (two layers): table — SELECT for authenticated, INSERT/DELETE by owner;
 Storage `objects` — INSERT authenticated, SELECT public, DELETE by `owner_id`.
 **Bucket**: `attachments` (public, 20 MB limit).
+
 > **Limitação conhecida:** excluir um card faz cascade nas rows, mas **orfana os
 > objetos no Storage** (sem trigger de limpeza).
 
 ### `user_profile`
+
 Per-user preferences (one row per user).
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `user_id` | uuid | Primary key / FK to `auth.users` |
-| `onboarding_completed` | boolean | Gates the mandatory Beta onboarding |
-| `theme` | text | UI theme: `dark` (default), `light`, `babyblue`, `sepia` — cross-device |
-| `created_at` | timestamp | Record creation |
-| `updated_at` | timestamp | Last update |
+| Column                 | Type      | Notes                                                                   |
+| ---------------------- | --------- | ----------------------------------------------------------------------- |
+| `user_id`              | uuid      | Primary key / FK to `auth.users`                                        |
+| `onboarding_completed` | boolean   | Gates the mandatory Beta onboarding                                     |
+| `theme`                | text      | UI theme: `dark` (default), `light`, `babyblue`, `sepia` — cross-device |
+| `created_at`           | timestamp | Record creation                                                         |
+| `updated_at`           | timestamp | Last update                                                             |
 
 ### `habits`
+
 Habit definitions for the habit tracker (`/habits`). Separate system — does not
 reference `tasks`.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `name` | text | Habit name |
-| `color` | text | Swatch color (hex) |
-| `frequency` | jsonb | `{type:"daily"}` or `{type:"weekdays", days:[0–6]}` (0=Sunday) |
-| `archived` | boolean | Soft-hide flag |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                                                          |
+| ------------ | --------- | -------------------------------------------------------------- |
+| `id`         | uuid      | Primary key                                                    |
+| `user_id`    | uuid      | FK to `auth.users` (ON DELETE CASCADE)                         |
+| `name`       | text      | Habit name                                                     |
+| `color`      | text      | Swatch color (hex)                                             |
+| `frequency`  | jsonb     | `{type:"daily"}` or `{type:"weekdays", days:[0–6]}` (0=Sunday) |
+| `archived`   | boolean   | Soft-hide flag                                                 |
+| `created_at` | timestamp | Record creation                                                |
 
 ### `habit_logs`
+
 Daily completion log. The **presence** of a row marks the habit as done that day
 (toggle inserts/deletes). Streak, heatmap and consistency all derive from this table.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `habit_id` | uuid | FK to `habits` (ON DELETE CASCADE) |
-| `user_id` | uuid | FK to `auth.users` (ON DELETE CASCADE) |
-| `date` | date | Day completed (local ISO) |
-| `created_at` | timestamp | Record creation |
+| Column       | Type      | Notes                                  |
+| ------------ | --------- | -------------------------------------- |
+| `id`         | uuid      | Primary key                            |
+| `habit_id`   | uuid      | FK to `habits` (ON DELETE CASCADE)     |
+| `user_id`    | uuid      | FK to `auth.users` (ON DELETE CASCADE) |
+| `date`       | date      | Day completed (local ISO)              |
+| `created_at` | timestamp | Record creation                        |
 
 **Constraint**: `unique (habit_id, date)` — one log per habit per day.
 **RLS**: per-user (SELECT/INSERT/DELETE where `auth.uid() = user_id`) on both tables.
@@ -320,6 +332,7 @@ Tracks organize cards by theme or context. Each track has its own color scheme w
 ### Priorities
 
 Three priority levels with semantic colors:
+
 - **Alta** (High): Red tones — urgent work
 - **Média** (Medium): Orange tones — standard work
 - **Baixa** (Low): Green tones — backlog/nice-to-have
@@ -354,7 +367,7 @@ A separate system from the board (`/habits`). A habit has a `frequency`
 `habit_logs` (the row's **presence** = done). All derived metrics are computed
 from the logs by pure, unit-tested functions in `habit-logic.ts`:
 
-- **Streak** — consecutive *scheduled* days with a log (a Mon/Wed/Fri habit
+- **Streak** — consecutive _scheduled_ days with a log (a Mon/Wed/Fri habit
   doesn't break on weekends); today is pending until marked.
 - **Record** — the longest streak ever achieved.
 - **Monthly consistency** — % of days this month with ≥1 scheduled habit done.
@@ -378,11 +391,13 @@ table for audit trails and historical context.
 ### Creating a Feature
 
 1. Create a feature branch following Conventional Commits:
+
    ```bash
    git checkout -b feat/card-pinning
    ```
 
 2. Use the `git-commit` skill when committing:
+
    ```bash
    Skill(git-commit)  # Ensures Conventional Commits in pt-BR
    ```
@@ -423,6 +438,7 @@ This project is deployed on **Vercel** (https://vercel.com). No additional confi
 - Environment variables: Configured in Vercel dashboard
 
 **Why Vercel?**
+
 - Native support for TanStack Start and Vite
 - Automatic serverless function deployment
 - Built-in analytics and performance monitoring

@@ -29,11 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const [{ data: tracks, error: tracksError }, { data: columns, error: colsError }] =
     await Promise.all([
-      supabase
-        .from("tracks")
-        .select("id, name, order")
-        .eq("user_id", TTL_USER_ID)
-        .order("order"),
+      supabase.from("tracks").select("id, name, order").eq("user_id", TTL_USER_ID).order("order"),
       supabase
         .from("columns")
         .select("id, name, order, track_id")

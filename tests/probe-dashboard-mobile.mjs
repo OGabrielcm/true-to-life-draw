@@ -22,7 +22,10 @@ mkdirSync(OUT, { recursive: true });
 
 let fail = 0;
 const ok = (m) => console.log(`  ✓ ${m}`);
-const bad = (m) => { console.log(`  ✗ ${m}`); fail++; };
+const bad = (m) => {
+  console.log(`  ✗ ${m}`);
+  fail++;
+};
 const info = (m) => console.log(`      · ${m}`);
 
 async function checkViewport(page, width) {
@@ -45,21 +48,28 @@ async function checkViewport(page, width) {
       if (style.overflowX === "auto" || style.overflowX === "scroll") return;
       if (el.scrollWidth > vw + 1 && el.getBoundingClientRect().width > vw + 1) {
         // ignora os que estão DENTRO de um scroller
-        let p = el.parentElement, inScroller = false;
+        let p = el.parentElement,
+          inScroller = false;
         while (p) {
           const ps = getComputedStyle(p);
-          if (ps.overflowX === "auto" || ps.overflowX === "scroll") { inScroller = true; break; }
+          if (ps.overflowX === "auto" || ps.overflowX === "scroll") {
+            inScroller = true;
+            break;
+          }
           p = p.parentElement;
         }
         if (!inScroller) {
-          offenders.push(`${el.tagName.toLowerCase()}.${(el.className || "").toString().split(" ").slice(0, 2).join(".")} w=${Math.round(el.getBoundingClientRect().width)}`);
+          offenders.push(
+            `${el.tagName.toLowerCase()}.${(el.className || "").toString().split(" ").slice(0, 2).join(".")} w=${Math.round(el.getBoundingClientRect().width)}`,
+          );
         }
       }
     });
     return { docW, offenders: offenders.slice(0, 8) };
   }, width);
 
-  if (pageOverflow.docW <= width + 1) ok(`sem overflow horizontal da página (scrollWidth=${pageOverflow.docW})`);
+  if (pageOverflow.docW <= width + 1)
+    ok(`sem overflow horizontal da página (scrollWidth=${pageOverflow.docW})`);
   else {
     bad(`página estoura ${width}px (scrollWidth=${pageOverflow.docW})`);
     pageOverflow.offenders.forEach((o) => info(`overflow: ${o}`));
@@ -72,7 +82,9 @@ async function checkViewport(page, width) {
     if (!scroller) return null;
     return {
       scrollable: scroller.scrollWidth > scroller.clientWidth,
-      hasOverflowAuto: getComputedStyle(scroller).overflowX === "auto" || getComputedStyle(scroller).overflowX === "scroll",
+      hasOverflowAuto:
+        getComputedStyle(scroller).overflowX === "auto" ||
+        getComputedStyle(scroller).overflowX === "scroll",
     };
   });
   if (tableScroll?.hasOverflowAuto && tableScroll?.scrollable)
@@ -95,7 +107,10 @@ async function checkViewport(page, width) {
     return out.slice(0, 8);
   });
   if (truncated.length === 0) ok("nenhum texto truncado sem indicação (title/tooltip)");
-  else { bad(`${truncated.length} texto(s) truncado(s) sem affordance`); truncated.forEach((tx) => info(`"${tx}…"`)); }
+  else {
+    bad(`${truncated.length} texto(s) truncado(s) sem affordance`);
+    truncated.forEach((tx) => info(`"${tx}…"`));
+  }
 
   await page.screenshot({ path: `${OUT}dashboard-${width}.png`, fullPage: true });
   info(`screenshot: tmp-shots/dashboard-${width}.png`);
@@ -121,4 +136,7 @@ async function main() {
   process.exit(fail === 0 ? 0 : 1);
 }
 
-main().catch((e) => { console.error("PROBE CRASH:", e); process.exit(1); });
+main().catch((e) => {
+  console.error("PROBE CRASH:", e);
+  process.exit(1);
+});

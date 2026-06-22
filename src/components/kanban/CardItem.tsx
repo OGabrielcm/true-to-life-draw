@@ -162,15 +162,16 @@ export function CardItem({
       style={{ opacity: isDragging ? 0.4 * aging : aging }}
     >
       {/* Top indicator bar — substitui side-stripe */}
-      {topBarColor && (
-        <div className="h-[3px] w-full" style={{ backgroundColor: topBarColor }} />
-      )}
+      {topBarColor && <div className="h-[3px] w-full" style={{ backgroundColor: topBarColor }} />}
 
       {/* Hover actions — só desktop */}
       <div className="absolute right-1.5 top-1.5 hidden items-center gap-0.5 md:flex opacity-0 group-hover:opacity-100 transition-opacity">
         {onToggleStar && (
           <button
-            onClick={(e) => { e.stopPropagation(); onToggleStar(card.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleStar(card.id);
+            }}
             className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             aria-label="Favoritar"
           >
@@ -196,7 +197,8 @@ export function CardItem({
               <AlertDialogHeader>
                 <AlertDialogTitle>Excluir card</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Tem certeza que deseja excluir <strong>{card.title}</strong>? Esta ação não pode ser desfeita.
+                  Tem certeza que deseja excluir <strong>{card.title}</strong>? Esta ação não pode
+                  ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

@@ -129,13 +129,17 @@ export function ColumnsModal({
                     <div className="flex-1">
                       <span className="text-sm font-medium text-foreground">{col.name}</span>
                       {col.wip_limit && (
-                        <div className="text-xs text-muted-foreground">{t("wip_short")} {col.wip_limit}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {t("wip_short")} {col.wip_limit}
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1">
                       {isConfirming ? (
                         <>
-                          <span className="text-xs text-muted-foreground">{t("delete_confirm")}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {t("delete_confirm")}
+                          </span>
                           <button
                             onClick={() => {
                               onDelete(col.id);

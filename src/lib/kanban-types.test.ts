@@ -264,11 +264,8 @@ describe("formatBytes", () => {
     expect(formatBytes(500)).toBe("500 B");
   });
 
-  it("formats kilobytes — uses toFixed(1) when val < 10 (returns '1.0 KB')", () => {
-    // NOTE: formatBytes uses toFixed(1) for val < 10 at non-byte units,
-    // so 1 KB is formatted as "1.0 KB" instead of "1 KB".
-    // This is a characterization of the current behavior.
-    expect(formatBytes(1024)).toBe("1.0 KB");
+  it("formats exact kilobytes without unnecessary decimal", () => {
+    expect(formatBytes(1024)).toBe("1 KB");
   });
 
   it("formats megabytes with one decimal for small values", () => {

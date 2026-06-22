@@ -56,7 +56,7 @@ export interface Column {
   name: string;
   order: number;
   wip_limit?: number; // undefined = sem limite
-  track_id?: string;  // undefined = coluna global (template)
+  track_id?: string; // undefined = coluna global (template)
 }
 
 // IDs fixos para backwards compatibility com cards existentes
@@ -168,32 +168,61 @@ export const TRACK_COLOR_PRESETS: TrackColorPreset[] = [
 ];
 
 const TRACK_NAMES: Record<string, Record<"pt" | "en", string>> = {
-  work:     { pt: "Trabalho",         en: "Work" },
-  studies:  { pt: "Estudos",          en: "Studies" },
+  work: { pt: "Trabalho", en: "Work" },
+  studies: { pt: "Estudos", en: "Studies" },
   projects: { pt: "Projetos Pessoais", en: "Personal Projects" },
 };
 
 const TRILHA_NAMES: Record<string, Record<"pt" | "en", string>> = {
-  pendente:     { pt: "Pendente",     en: "Pending" },
+  pendente: { pt: "Pendente", en: "Pending" },
   "em-andamento": { pt: "Em andamento", en: "In Progress" },
-  concluido:    { pt: "Concluído",    en: "Completed" },
-  pausado:      { pt: "Pausado",      en: "On Hold" },
+  concluido: { pt: "Concluído", en: "Completed" },
+  pausado: { pt: "Pausado", en: "On Hold" },
 };
 
 export function getDefaultTracks(locale: "pt" | "en" = "pt"): Omit<Track, "id">[] {
   return [
-    { name: TRACK_NAMES.work[locale],     bg: "#EEEDFE", border: "#7F77DD", fg: "#3C3489", darkBg: "#26215C", darkFg: "#AFA9EC", order: 0 },
-    { name: TRACK_NAMES.studies[locale],  bg: "#E1F5EE", border: "#1D9E75", fg: "#085041", darkBg: "#04342C", darkFg: "#5DCAA5", order: 1 },
-    { name: TRACK_NAMES.projects[locale], bg: "#FAEEDA", border: "#EF9F27", fg: "#633806", darkBg: "#412402", darkFg: "#FAC775", order: 2 },
+    {
+      name: TRACK_NAMES.work[locale],
+      bg: "#EEEDFE",
+      border: "#7F77DD",
+      fg: "#3C3489",
+      darkBg: "#26215C",
+      darkFg: "#AFA9EC",
+      order: 0,
+    },
+    {
+      name: TRACK_NAMES.studies[locale],
+      bg: "#E1F5EE",
+      border: "#1D9E75",
+      fg: "#085041",
+      darkBg: "#04342C",
+      darkFg: "#5DCAA5",
+      order: 1,
+    },
+    {
+      name: TRACK_NAMES.projects[locale],
+      bg: "#FAEEDA",
+      border: "#EF9F27",
+      fg: "#633806",
+      darkBg: "#412402",
+      darkFg: "#FAC775",
+      order: 2,
+    },
   ];
 }
 
 export function getDefaultTrilhas(locale: "pt" | "en" = "pt"): Trilha[] {
   return [
-    { id: "pendente",      name: TRILHA_NAMES["pendente"][locale],      bg: "#ECECEC", fg: "#333333" },
-    { id: "em-andamento",  name: TRILHA_NAMES["em-andamento"][locale],  bg: "#E6F1FB", fg: "#0C447C" },
-    { id: "concluido",     name: TRILHA_NAMES["concluido"][locale],     bg: "#EAF3DE", fg: "#27500A" },
-    { id: "pausado",       name: TRILHA_NAMES["pausado"][locale],       bg: "#FAEEDA", fg: "#633806" },
+    { id: "pendente", name: TRILHA_NAMES["pendente"][locale], bg: "#ECECEC", fg: "#333333" },
+    {
+      id: "em-andamento",
+      name: TRILHA_NAMES["em-andamento"][locale],
+      bg: "#E6F1FB",
+      fg: "#0C447C",
+    },
+    { id: "concluido", name: TRILHA_NAMES["concluido"][locale], bg: "#EAF3DE", fg: "#27500A" },
+    { id: "pausado", name: TRILHA_NAMES["pausado"][locale], bg: "#FAEEDA", fg: "#633806" },
   ];
 }
 
@@ -215,37 +244,229 @@ type SeedCard = Omit<Card, "id" | "created_at" | "updated_at" | "track">;
 
 const SEED_CARDS_PT: Record<string, SeedCard[]> = {
   Trabalho: [
-    { col: "inprogress", type: "Task", title: "Organizar pendências da semana", desc: "Liste as tarefas mais importantes e defina prioridades.", prio: "Alta", starred: true, tags: ["em-andamento"], order: 1, checklist: [], blocked_by: [] },
-    { col: "todo", type: "Task", title: "Responder e-mails importantes", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
-    { col: "backlog", type: "Task", title: "Planejar próximo mês", desc: "Revisar metas e definir foco.", prio: "Baixa", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
+    {
+      col: "inprogress",
+      type: "Task",
+      title: "Organizar pendências da semana",
+      desc: "Liste as tarefas mais importantes e defina prioridades.",
+      prio: "Alta",
+      starred: true,
+      tags: ["em-andamento"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "todo",
+      type: "Task",
+      title: "Responder e-mails importantes",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "backlog",
+      type: "Task",
+      title: "Planejar próximo mês",
+      desc: "Revisar metas e definir foco.",
+      prio: "Baixa",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
   ],
   Estudos: [
-    { col: "inprogress", type: "Task", title: "Leitura do capítulo atual", desc: "Avance no material que está estudando no momento.", prio: "Alta", starred: false, tags: ["em-andamento"], order: 1, checklist: [], blocked_by: [] },
-    { col: "todo", type: "Task", title: "Revisar anotações da semana", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
-    { col: "backlog", type: "Goal", title: "Concluir curso ou certificação", desc: "Defina o objetivo de aprendizado e acompanhe o progresso.", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
+    {
+      col: "inprogress",
+      type: "Task",
+      title: "Leitura do capítulo atual",
+      desc: "Avance no material que está estudando no momento.",
+      prio: "Alta",
+      starred: false,
+      tags: ["em-andamento"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "todo",
+      type: "Task",
+      title: "Revisar anotações da semana",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "backlog",
+      type: "Goal",
+      title: "Concluir curso ou certificação",
+      desc: "Defina o objetivo de aprendizado e acompanhe o progresso.",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
   ],
   "Projetos Pessoais": [
-    { col: "inprogress", type: "Goal", title: "Definir escopo do projeto", desc: "Descreva o que quer construir e qual problema resolve.", prio: "Alta", starred: true, tags: ["em-andamento"], order: 1, checklist: [], blocked_by: [] },
-    { col: "todo", type: "Task", title: "Pesquisar referências e inspirações", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
-    { col: "backlog", type: "Task", title: "Ideia para explorar futuramente", desc: "Guarde aqui ideias que ainda não têm prazo definido.", prio: "Baixa", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
+    {
+      col: "inprogress",
+      type: "Goal",
+      title: "Definir escopo do projeto",
+      desc: "Descreva o que quer construir e qual problema resolve.",
+      prio: "Alta",
+      starred: true,
+      tags: ["em-andamento"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "todo",
+      type: "Task",
+      title: "Pesquisar referências e inspirações",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "backlog",
+      type: "Task",
+      title: "Ideia para explorar futuramente",
+      desc: "Guarde aqui ideias que ainda não têm prazo definido.",
+      prio: "Baixa",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
   ],
 };
 
 const SEED_CARDS_EN: Record<string, SeedCard[]> = {
   Work: [
-    { col: "inprogress", type: "Task", title: "Organize this week's tasks", desc: "List the most important tasks and set priorities.", prio: "Alta", starred: true, tags: ["em-andamento"], order: 1, checklist: [], blocked_by: [] },
-    { col: "todo", type: "Task", title: "Reply to important emails", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
-    { col: "backlog", type: "Task", title: "Plan next month", desc: "Review goals and define focus.", prio: "Baixa", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
+    {
+      col: "inprogress",
+      type: "Task",
+      title: "Organize this week's tasks",
+      desc: "List the most important tasks and set priorities.",
+      prio: "Alta",
+      starred: true,
+      tags: ["em-andamento"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "todo",
+      type: "Task",
+      title: "Reply to important emails",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "backlog",
+      type: "Task",
+      title: "Plan next month",
+      desc: "Review goals and define focus.",
+      prio: "Baixa",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
   ],
   Studies: [
-    { col: "inprogress", type: "Task", title: "Read current chapter", desc: "Advance on the material you're studying right now.", prio: "Alta", starred: false, tags: ["em-andamento"], order: 1, checklist: [], blocked_by: [] },
-    { col: "todo", type: "Task", title: "Review this week's notes", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
-    { col: "backlog", type: "Goal", title: "Complete a course or certification", desc: "Define your learning goal and track progress.", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
+    {
+      col: "inprogress",
+      type: "Task",
+      title: "Read current chapter",
+      desc: "Advance on the material you're studying right now.",
+      prio: "Alta",
+      starred: false,
+      tags: ["em-andamento"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "todo",
+      type: "Task",
+      title: "Review this week's notes",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "backlog",
+      type: "Goal",
+      title: "Complete a course or certification",
+      desc: "Define your learning goal and track progress.",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
   ],
   "Personal Projects": [
-    { col: "inprogress", type: "Goal", title: "Define project scope", desc: "Describe what you want to build and what problem it solves.", prio: "Alta", starred: true, tags: ["em-andamento"], order: 1, checklist: [], blocked_by: [] },
-    { col: "todo", type: "Task", title: "Research references and inspiration", prio: "Média", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
-    { col: "backlog", type: "Task", title: "Idea to explore later", desc: "Store ideas here that don't have a deadline yet.", prio: "Baixa", starred: false, tags: ["pendente"], order: 1, checklist: [], blocked_by: [] },
+    {
+      col: "inprogress",
+      type: "Goal",
+      title: "Define project scope",
+      desc: "Describe what you want to build and what problem it solves.",
+      prio: "Alta",
+      starred: true,
+      tags: ["em-andamento"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "todo",
+      type: "Task",
+      title: "Research references and inspiration",
+      prio: "Média",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
+    {
+      col: "backlog",
+      type: "Task",
+      title: "Idea to explore later",
+      desc: "Store ideas here that don't have a deadline yet.",
+      prio: "Baixa",
+      starred: false,
+      tags: ["pendente"],
+      order: 1,
+      checklist: [],
+      blocked_by: [],
+    },
   ],
 };
 
@@ -307,7 +528,9 @@ export function formatBytes(bytes?: number): string {
   const units = ["B", "KB", "MB", "GB"];
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
   const val = bytes / Math.pow(1024, i);
-  return `${val >= 10 || i === 0 ? Math.round(val) : val.toFixed(1)} ${units[i]}`;
+  const formatted =
+    i === 0 || Number.isInteger(val) || val >= 10 ? Math.round(val) : val.toFixed(1);
+  return `${formatted} ${units[i]}`;
 }
 
 export function formatMinutes(min: number): string {

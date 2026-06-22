@@ -17,7 +17,10 @@ const ANON = appEnv.match(/VITE_SUPABASE_ANON_KEY=(.*)/)[1].trim();
 
 let fail = 0;
 const ok = (m) => console.log(`  ✓ ${m}`);
-const bad = (m) => { console.log(`  ✗ ${m}`); fail++; };
+const bad = (m) => {
+  console.log(`  ✗ ${m}`);
+  fail++;
+};
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -89,7 +92,11 @@ async function main() {
       const uniqueEnforced = dup.status === 409;
 
       // 5) desmarca (delete log) e confirma sumiço
-      if (logRow) await fetch(`${SUPA_URL}/rest/v1/habit_logs?id=eq.${logRow.id}`, { method: "DELETE", headers: H });
+      if (logRow)
+        await fetch(`${SUPA_URL}/rest/v1/habit_logs?id=eq.${logRow.id}`, {
+          method: "DELETE",
+          headers: H,
+        });
       const after = await fetch(
         `${SUPA_URL}/rest/v1/habit_logs?select=id&habit_id=eq.${habit.id}&date=eq.${today}`,
         { headers: H },
@@ -110,7 +117,9 @@ async function main() {
   } else {
     result.log.forEach((l) => console.log(`      · ${l}`));
     result.persisted ? ok("log persiste na tabela") : bad("log NÃO persistiu");
-    result.uniqueEnforced ? ok("unique(habit_id,date) bloqueia duplicado (409)") : bad("duplicado NÃO bloqueado");
+    result.uniqueEnforced
+      ? ok("unique(habit_id,date) bloqueia duplicado (409)")
+      : bad("duplicado NÃO bloqueado");
     result.goneLog ? ok("desmarcar remove o log") : bad("log continua após desmarcar");
   }
 
@@ -119,4 +128,7 @@ async function main() {
   process.exit(fail === 0 ? 0 : 1);
 }
 
-main().catch((e) => { console.error("PROBE CRASH:", e); process.exit(1); });
+main().catch((e) => {
+  console.error("PROBE CRASH:", e);
+  process.exit(1);
+});

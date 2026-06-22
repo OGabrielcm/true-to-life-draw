@@ -61,8 +61,8 @@ function SettingsPage() {
 
         {fromOnboarding && (
           <div className="rounded-lg border border-foreground/30 bg-foreground/5 px-4 py-3 text-xs text-foreground animate-in fade-in slide-in-from-top-2 duration-500">
-            <strong className="font-semibold">É aqui que você gerencia tudo.</strong>{" "}
-            Crie mais trilhas e colunas, edite as existentes ou ajuste cores quando quiser.
+            <strong className="font-semibold">É aqui que você gerencia tudo.</strong> Crie mais
+            trilhas e colunas, edite as existentes ou ajuste cores quando quiser.
           </div>
         )}
 

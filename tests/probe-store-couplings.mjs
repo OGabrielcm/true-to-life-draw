@@ -23,7 +23,10 @@ const PASSWORD = env.match(/TEST_PASSWORD=(.*)/)[1].trim();
 
 let fail = 0;
 const ok = (m) => console.log(`  ✓ ${m}`);
-const bad = (m) => { console.log(`  ✗ ${m}`); fail++; };
+const bad = (m) => {
+  console.log(`  ✗ ${m}`);
+  fail++;
+};
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -60,7 +63,8 @@ async function main() {
     }
     await page.waitForTimeout(500);
   }
-  if (restored) ok(`board sobreviveu ao reload (${await page.locator("[data-track]").count()} tracks)`);
+  if (restored)
+    ok(`board sobreviveu ao reload (${await page.locator("[data-track]").count()} tracks)`);
   else bad("board travou no reload — sessão restaurada não carregou (2.1)");
 
   // Segundo reload: confirma que kanban-store E user-profile-store sobrevivem a
@@ -82,4 +86,7 @@ async function main() {
   process.exit(fail === 0 ? 0 : 1);
 }
 
-main().catch((e) => { console.error("PROBE CRASH:", e); process.exit(1); });
+main().catch((e) => {
+  console.error("PROBE CRASH:", e);
+  process.exit(1);
+});

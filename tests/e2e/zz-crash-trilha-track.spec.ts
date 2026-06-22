@@ -66,7 +66,7 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
     // Seleciona a trilha dentro do modal (seção "Trilhas / tags")
     const modal = page.locator(".fixed.inset-0.z-50");
     const trilhaBtn = modal.locator("button").filter({ hasText: TRILHA_NAME }).first();
-    if (await trilhaBtn.count() > 0) {
+    if ((await trilhaBtn.count()) > 0) {
       await trilhaBtn.click();
     }
 
@@ -96,7 +96,7 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
   test("5 — teardown", async ({ page }) => {
     // Exclui card
     const card = page.locator("[data-card-id]").filter({ hasText: CARD_TITLE }).first();
-    if (await card.count() > 0) {
+    if ((await card.count()) > 0) {
       await card.click();
       await page.locator('button:has-text("Excluir")').first().click();
       await page.locator("button.bg-red-600").click();
@@ -107,9 +107,13 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
     await page.locator("button").filter({ hasText: "Tracks" }).last().click();
     await page.waitForTimeout(400);
     const trackRow = page.locator("li, .group").filter({ hasText: TRACK_NAME }).first();
-    if (await trackRow.count() > 0) {
+    if ((await trackRow.count()) > 0) {
       await trackRow.hover({ force: true });
-      await trackRow.locator("button.text-red-600").first().click({ force: true }).catch(() => {});
+      await trackRow
+        .locator("button.text-red-600")
+        .first()
+        .click({ force: true })
+        .catch(() => {});
       await page.waitForTimeout(300);
     }
     await page.keyboard.press("Escape");
@@ -119,8 +123,12 @@ test.describe.serial("crash: criar track + trilha nova e associar a card", () =>
     await page.locator("button").filter({ hasText: "Tags" }).click();
     await page.waitForTimeout(400);
     const trilhaRow = page.locator("li, .group").filter({ hasText: TRILHA_NAME }).first();
-    if (await trilhaRow.count() > 0) {
-      await trilhaRow.locator("button").last().click({ force: true }).catch(() => {});
+    if ((await trilhaRow.count()) > 0) {
+      await trilhaRow
+        .locator("button")
+        .last()
+        .click({ force: true })
+        .catch(() => {});
       await page.waitForTimeout(300);
     }
     await page.keyboard.press("Escape");

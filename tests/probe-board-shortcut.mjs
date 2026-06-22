@@ -35,9 +35,7 @@ async function main() {
   ok("login + board");
 
   // input de busca (AppShell) — placeholder "Buscar tarefas…"
-  const search = page.locator(
-    'input[placeholder*="Buscar"], input[placeholder*="Search"]',
-  );
+  const search = page.locator('input[placeholder*="Buscar"], input[placeholder*="Search"]');
   if ((await search.count()) === 0) {
     bad("input de busca não encontrado");
     await browser.close();

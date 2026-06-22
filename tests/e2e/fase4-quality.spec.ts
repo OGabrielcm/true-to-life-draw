@@ -54,7 +54,9 @@ test.describe.serial("4.1–4.4 — Quality of Life", () => {
     await page.keyboard.press("e");
 
     // Em modo editing, o título vira um <input>
-    const titleInput = page.locator(".max-w-2xl input[type='text'], .max-w-2xl input:not([type])").first();
+    const titleInput = page
+      .locator(".max-w-2xl input[type='text'], .max-w-2xl input:not([type])")
+      .first();
     await expect(titleInput).toBeVisible({ timeout: 5_000 });
     console.log("✓ 4.2 Atalho 'e' ativa edição");
 

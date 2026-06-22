@@ -1,6 +1,5 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
-import { validateSignupForm } from "./signup-form.ts";
+import { describe, expect, it } from "vitest";
+import { validateSignupForm } from "./signup-form";
 
 describe("validateSignupForm", () => {
   it("aceita nome, email confirmado e senha confirmada", () => {
@@ -12,11 +11,11 @@ describe("validateSignupForm", () => {
       passwordConfirmation: "senha123",
     });
 
-    assert.equal(result.ok, true);
+    expect(result.ok).toBe(true);
     if (result.ok) {
-      assert.equal(result.data.fullName, "Gabriel Mercês");
-      assert.equal(result.data.email, "merces@example.com");
-      assert.equal(result.data.password, "senha123");
+      expect(result.data.fullName).toBe("Gabriel Mercês");
+      expect(result.data.email).toBe("merces@example.com");
+      expect(result.data.password).toBe("senha123");
     }
   });
 
@@ -29,8 +28,8 @@ describe("validateSignupForm", () => {
       passwordConfirmation: "senha123",
     });
 
-    assert.equal(result.ok, false);
-    if (!result.ok) assert.match(result.error, /nome/i);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/nome/i);
   });
 
   it("rejeita confirmação de email diferente", () => {
@@ -42,8 +41,8 @@ describe("validateSignupForm", () => {
       passwordConfirmation: "senha123",
     });
 
-    assert.equal(result.ok, false);
-    if (!result.ok) assert.match(result.error, /email não confere/i);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/email não confere/i);
   });
 
   it("rejeita confirmação de senha diferente", () => {
@@ -55,7 +54,7 @@ describe("validateSignupForm", () => {
       passwordConfirmation: "outra123",
     });
 
-    assert.equal(result.ok, false);
-    if (!result.ok) assert.match(result.error, /senha não confere/i);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/senha não confere/i);
   });
 });

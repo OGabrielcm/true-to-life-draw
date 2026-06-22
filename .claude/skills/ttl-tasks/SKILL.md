@@ -8,6 +8,7 @@ A skill requer a variável de ambiente `TTL_API_KEY` disponível no ambiente do 
 Endpoint base: `https://true-to-life-draw.vercel.app`
 
 Verifique antes de usar:
+
 ```bash
 echo $TTL_API_KEY | head -c 8  # deve mostrar os primeiros 8 chars da key
 ```
@@ -26,6 +27,7 @@ curl -s "https://true-to-life-draw.vercel.app/api/tracks" \
 ```
 
 Retorna:
+
 ```json
 {
   "tracks": [{ "id": "uuid", "name": "Trabalho", "order": 0 }, ...],
@@ -57,6 +59,7 @@ curl -s -X POST "https://true-to-life-draw.vercel.app/api/tasks" \
 **Campos obrigatórios:** `title`
 
 **Valores válidos:**
+
 - `col`: `backlog` | `todo` | `inprogress` | `review` | `done`
 - `prio`: `Alta` | `Média` | `Baixa`
 - `type`: `Task` | `Goal`
@@ -92,6 +95,7 @@ curl -s "https://true-to-life-draw.vercel.app/api/tasks?starred=true" \
 ## Comportamento padrão ao criar tasks
 
 Se Gabriel não especificar:
+
 - **col** → usar `backlog`
 - **prio** → usar `Média`
 - **type** → usar `Task`
@@ -102,6 +106,7 @@ Se Gabriel não especificar:
 ## Exemplos de uso em conversa
 
 **Gabriel:** "Cria uma task para revisar o relatório mensal, prioridade alta"
+
 ```bash
 # 1. Buscar tracks
 curl -s ".../api/tracks" -H "Authorization: Bearer $TTL_API_KEY"
@@ -113,6 +118,7 @@ curl -s -X POST ".../api/tasks" \
 ```
 
 **Gabriel:** "Quais tasks estão in progress?"
+
 ```bash
 curl -s ".../api/tasks?col=inprogress" -H "Authorization: Bearer $TTL_API_KEY"
 ```
@@ -122,6 +128,7 @@ curl -s ".../api/tasks?col=inprogress" -H "Authorization: Bearer $TTL_API_KEY"
 ## Instalação na VPS (Hermes)
 
 Adicione ao `~/.bashrc` ou `~/.zshrc` do agente na VPS:
+
 ```bash
 export TTL_API_KEY="<valor_da_key>"
 ```

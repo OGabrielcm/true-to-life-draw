@@ -5,7 +5,9 @@ test.describe("Emmanuel — conta após correção de colunas", () => {
   test("board carrega sem crash e exibe cards nas colunas corretas", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push("PAGEERROR: " + e.message));
-    page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+    page.on("console", (m) => {
+      if (m.type() === "error") errors.push(m.text());
+    });
 
     await page.goto("/");
     await expect(page.locator("text=Gerenciador de Molas")).toBeVisible({ timeout: 20_000 });
@@ -16,8 +18,8 @@ test.describe("Emmanuel — conta após correção de colunas", () => {
 
     // Verifica que o app não crashou
     await expect(page.locator("text=Gerenciador de Molas")).toBeVisible();
-    const crashed = errors.some((e) =>
-      e.includes("This page didn't load") || e.includes("invalid input syntax"),
+    const crashed = errors.some(
+      (e) => e.includes("This page didn't load") || e.includes("invalid input syntax"),
     );
     expect(crashed, `App crashou: ${errors.join(", ")}`).toBe(false);
     console.log("✓ Board carregou sem crash");

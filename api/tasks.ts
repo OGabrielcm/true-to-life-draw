@@ -31,7 +31,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let query = supabase
       .from("tasks")
-      .select("id, title, col, track, type, prio, desc, date, starred, tags, checklist, blocked_by, order, created_at, updated_at")
+      .select(
+        "id, title, col, track, type, prio, desc, date, starred, tags, checklist, blocked_by, order, created_at, updated_at",
+      )
       .eq("user_id", TTL_USER_ID)
       .order("order", { ascending: true })
       .limit(Number(limit));

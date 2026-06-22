@@ -61,21 +61,33 @@ function LoginPage() {
           </div>
 
           {forgotSent ? (
-            <div className="rounded-xl border bg-card p-6 text-center space-y-3 shadow-sm" style={{ borderWidth: "0.5px" }}>
+            <div
+              className="rounded-xl border bg-card p-6 text-center space-y-3 shadow-sm"
+              style={{ borderWidth: "0.5px" }}
+            >
               <span className="text-2xl">✉️</span>
               <h2 className="text-sm font-semibold">Verifique seu email</h2>
               <p className="text-xs text-muted-foreground">
-                Enviamos um link de redefinição para <strong>{forgotEmail}</strong>. O link expira em 1 hora.
+                Enviamos um link de redefinição para <strong>{forgotEmail}</strong>. O link expira
+                em 1 hora.
               </p>
               <button
-                onClick={() => { setForgotOpen(false); setForgotSent(false); setForgotEmail(""); }}
+                onClick={() => {
+                  setForgotOpen(false);
+                  setForgotSent(false);
+                  setForgotEmail("");
+                }}
                 className="mt-2 text-xs underline text-muted-foreground hover:text-foreground"
               >
                 Voltar para o login
               </button>
             </div>
           ) : (
-            <form onSubmit={submitForgot} className="space-y-4 rounded-xl border bg-card p-6 shadow-sm" style={{ borderWidth: "0.5px" }}>
+            <form
+              onSubmit={submitForgot}
+              className="space-y-4 rounded-xl border bg-card p-6 shadow-sm"
+              style={{ borderWidth: "0.5px" }}
+            >
               <h2 className="text-sm font-semibold">Recuperar senha</h2>
               <p className="text-xs text-muted-foreground">
                 Informe seu email e enviaremos um link para redefinir sua senha.
@@ -163,7 +175,10 @@ function LoginPage() {
               <label className="text-xs font-medium text-muted-foreground">Senha</label>
               <button
                 type="button"
-                onClick={() => { setForgotOpen(true); setForgotEmail(email); }}
+                onClick={() => {
+                  setForgotOpen(true);
+                  setForgotEmail(email);
+                }}
                 className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
               >
                 Esqueci minha senha

@@ -19,14 +19,21 @@ test.describe.serial("6.2 — Rota /settings", () => {
     await settingsLink.click();
 
     await expect(page).toHaveURL(/\/settings/, { timeout: 8_000 });
-    await expect(page.locator("h1").filter({ hasText: /Configurações/i })).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("h1").filter({ hasText: /Configurações/i })).toBeVisible({
+      timeout: 5_000,
+    });
 
     console.log("✓ /settings acessível pela sidebar");
   });
 
   test("exibe seção de Trilhas com contagem", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page.locator("h2").filter({ hasText: /Trilhas/i }).first()).toBeVisible({ timeout: 8_000 });
+    await expect(
+      page
+        .locator("h2")
+        .filter({ hasText: /Trilhas/i })
+        .first(),
+    ).toBeVisible({ timeout: 8_000 });
 
     // Deve mostrar a contagem entre parênteses
     await expect(page.locator("text=/\\(\\d+\\)/").first()).toBeVisible({ timeout: 5_000 });
@@ -36,7 +43,9 @@ test.describe.serial("6.2 — Rota /settings", () => {
 
   test("exibe seção de Colunas padrão", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page.locator("h2").filter({ hasText: /Colunas padrão/i })).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator("h2").filter({ hasText: /Colunas padrão/i })).toBeVisible({
+      timeout: 8_000,
+    });
 
     console.log("✓ Seção Colunas padrão visível");
   });
@@ -51,7 +60,10 @@ test.describe.serial("6.2 — Rota /settings", () => {
 
     // Modal de trilhas deve aparecer (título "TRILHAS" ou similar)
     await expect(
-      page.locator("div[class*='fixed']").filter({ hasText: /Trilha/i }).first()
+      page
+        .locator("div[class*='fixed']")
+        .filter({ hasText: /Trilha/i })
+        .first(),
     ).toBeVisible({ timeout: 5_000 });
 
     // Fechar modal com Escape
@@ -70,7 +82,10 @@ test.describe.serial("6.2 — Rota /settings", () => {
 
     // Modal de colunas deve aparecer
     await expect(
-      page.locator("div[class*='fixed']").filter({ hasText: /Coluna/i }).first()
+      page
+        .locator("div[class*='fixed']")
+        .filter({ hasText: /Coluna/i })
+        .first(),
     ).toBeVisible({ timeout: 5_000 });
 
     await page.keyboard.press("Escape");
@@ -87,7 +102,9 @@ test.describe.serial("6.2 — Rota /settings", () => {
     await avatarBtn.click();
 
     // Menu dropdown deve aparecer com link para /settings
-    const settingsMenuItem = page.locator("a[href='/settings']").filter({ hasText: /Configurações/i });
+    const settingsMenuItem = page
+      .locator("a[href='/settings']")
+      .filter({ hasText: /Configurações/i });
     await expect(settingsMenuItem).toBeVisible({ timeout: 3_000 });
     await settingsMenuItem.click();
 

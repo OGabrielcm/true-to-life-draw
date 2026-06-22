@@ -14,7 +14,11 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("adiciona comentário (Ctrl+Enter)", async ({ page }) => {
     await openCard(page, CARD_TITLE);
-    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /COMENTÁRIOS|Comentários/i })
+      .first()
+      .click();
     await page.waitForTimeout(300);
 
     const textarea = page.locator('textarea[placeholder*="Adicionar comentário"]');
@@ -27,7 +31,11 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("persiste após reabrir modal", async ({ page }) => {
     await openCard(page, CARD_TITLE);
-    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /COMENTÁRIOS|Comentários/i })
+      .first()
+      .click();
     await page.waitForTimeout(300);
     await expect(page.locator("text=Comentário de teste E2E")).toBeVisible({ timeout: 8_000 });
     console.log("✓ Comentário persiste");
@@ -35,14 +43,21 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("edita comentário existente", async ({ page }) => {
     await openCard(page, CARD_TITLE);
-    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /COMENTÁRIOS|Comentários/i })
+      .first()
+      .click();
     await page.waitForTimeout(300);
     const group = page.locator(".group").filter({ hasText: "Comentário de teste E2E" }).first();
     // Força hover via JS para revelar botões com opacity-0
     await group.hover({ force: true });
     await page.waitForTimeout(300);
     // Botão lápis (Pencil) é o primeiro botão dentro do grupo de ações
-    const editBtn = group.locator("button").filter({ has: page.locator("svg") }).first();
+    const editBtn = group
+      .locator("button")
+      .filter({ has: page.locator("svg") })
+      .first();
     await editBtn.click({ force: true });
 
     // Aguarda o textarea de edição aparecer (tem autoFocus)
@@ -59,10 +74,17 @@ test.describe.serial("4.6 — Comentários no card", () => {
 
   test("deleta comentário", async ({ page }) => {
     await openCard(page, CARD_TITLE);
-    await page.locator(".max-w-2xl button").filter({ hasText: /COMENTÁRIOS|Comentários/i }).first().click();
+    await page
+      .locator(".max-w-2xl button")
+      .filter({ hasText: /COMENTÁRIOS|Comentários/i })
+      .first()
+      .click();
     await page.waitForTimeout(300);
     // Hover forçado para revelar botões com opacity-0
-    const group = page.locator(".group").filter({ hasText: /Comentário/ }).first();
+    const group = page
+      .locator(".group")
+      .filter({ hasText: /Comentário/ })
+      .first();
     await group.hover({ force: true });
     await page.waitForTimeout(300);
     // Botão de deletar é o segundo (Trash2) dentro do grupo de ações
