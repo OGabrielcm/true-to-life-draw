@@ -130,3 +130,17 @@ export function computeColumnDeletion(
     deletedCardIds: orphans.map((c) => c.id),
   };
 }
+
+export function getVisibleTracks(
+  tracks: Track[],
+  filteredCards: Card[],
+  selectedAreaIds: string[],
+  search: string,
+): Track[] {
+  const selected = new Set(selectedAreaIds);
+  const hasSearch = search.trim().length > 0;
+
+  return tracks
+    .filter((track) => selected.size === 0 || selected.has(track.id))
+    .filter((track) => !hasSearch || filteredCards.some((card) => card.track === track.id));
+}

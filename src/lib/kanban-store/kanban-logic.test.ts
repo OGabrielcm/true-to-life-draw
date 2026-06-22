@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { computeReorderOrder, computeTrackDeletion, computeColumnDeletion } from "./kanban-logic";
+import {
+  computeReorderOrder,
+  computeTrackDeletion,
+  computeColumnDeletion,
+  getVisibleTracks,
+} from "./kanban-logic";
 import type { Card, Column, Track } from "../kanban-types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -198,5 +203,40 @@ describe("computeColumnDeletion", () => {
     expect(res.fallbackId).toBeNull();
     expect(res.deletedCardIds).toEqual(["a"]);
     expect(res.cards).toEqual([]);
+  });
+});
+
+// ── getVisibleTracks ──────────────────────────────────────────────────────────
+
+describe("getVisibleTracks", () => {
+  const tracks = [
+    makeTrack({ id: "work", name: "Work", order: 0 }),
+    makeTrack({ id: "college", name: "College", order: 1 }),
+    makeTrack({ id: "ai-dev", name: "AI / Dev", order: 2 }),
+  ];
+
+  it("shows all areas when no area is selected and there is no search", () => {
+    expect(getVisibleTracks(tracks, [], [], "").map((track) => track.id)).toEqual([
+      "work",
+      "college",
+      "ai-dev",
+    ]);
+  });
+
+  it("shows only selected areas", () => {
+    expect(getVisibleTracks(tracks, [], ["work", "ai-dev"], "").map((track) => track.id)).toEqual([
+      "work",
+      "ai-dev",
+    ]);
+  });
+
+  it("keeps search optimization by hiding selected areas without matching cards", () => {
+    const filteredCards = [makeCard({ id: "match", track: "ai-dev" })];
+
+    expect(
+      getVisibleTracks(tracks, filteredCards, ["work", "ai-dev"], "langgraph").map(
+        (track) => track.id,
+      ),
+    ).toEqual(["ai-dev"]);
   });
 });

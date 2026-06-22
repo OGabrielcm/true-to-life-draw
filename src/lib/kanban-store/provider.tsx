@@ -1,8 +1,8 @@
 // Kernel do KanbanProvider: entidades (cards/tracks/trilhas/columns) +
-// estado de UI (filter/trackFilter/collapsed/search/createOpen/loading) +
+// estado de UI (filter/selectedAreaIds/collapsed/search/createOpen/loading) +
 // efeito de load + TODAS as ações que tocam essas entidades. Mantido junto DE
 // PROPÓSITO: as ações de delete cruzam domínios (deleteTrack mexe em cards/
-// trackFilter/collapsed; deleteTrilha em cards/filter), então separá-las
+// selectedAreaIds/collapsed; deleteTrilha em cards/filter), então separá-las
 // criaria acoplamento via setters injetados.
 //
 // ARQUITETURA (refatorado): as ações do kernel são memoizadas UMA vez (deps
@@ -42,7 +42,9 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("__all");
-  const [trackFilter, setTrackFilter] = useState("__all");
+  // [] = todas as áreas. Quando há ids, o board mostra apenas essas áreas.
+  // O banco ainda usa `tracks`; "Area" aqui é a nomenclatura de produto/frontend.
+  const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -441,7 +443,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         const result = computeTrackDeletion(cards, tracks, id, now);
         setCards(result.cards);
         setTracks(result.remaining);
-        setTrackFilter((f) => (f === id ? "__all" : f));
+        setSelectedAreaIds((ids) => ids.filter((areaId) => areaId !== id));
         setCollapsed((cur) => {
           const next = { ...cur };
           delete next[id];
@@ -561,8 +563,8 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       setSearch,
       filter,
       setFilter,
-      trackFilter,
-      setTrackFilter,
+      selectedAreaIds,
+      setSelectedAreaIds,
       loading,
       createOpen,
       setCreateOpen,
@@ -582,7 +584,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
       collapsed,
       search,
       filter,
-      trackFilter,
+      selectedAreaIds,
       createOpen,
       loading,
       templates,

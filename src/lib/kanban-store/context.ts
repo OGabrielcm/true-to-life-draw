@@ -1,6 +1,6 @@
 // Tipo do contexto Kanban + createContext + hook useKanban.
 // Extraído verbatim de kanban-store.tsx — API pública INALTERADA.
-import { createContext, useContext } from "react";
+import { createContext, useContext, type Dispatch, type SetStateAction } from "react";
 import {
   Activity,
   Attachment,
@@ -35,8 +35,8 @@ export interface KanbanCtx {
   setSearch: (s: string) => void;
   filter: string;
   setFilter: (s: string) => void;
-  trackFilter: string;
-  setTrackFilter: (s: string) => void;
+  selectedAreaIds: string[];
+  setSelectedAreaIds: Dispatch<SetStateAction<string[]>>;
   loading: boolean;
   addCard: (data: AddInput) => void;
   updateCard: (id: string, patch: Partial<Card>) => void;

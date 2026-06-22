@@ -53,22 +53,22 @@ const pt = {
 
   // ── Board ──
   all: "Todos",
-  tracks: "Trilhas",
+  tracks: "Áreas",
   columns: "Colunas",
   archived_one: "card arquivado",
   archived_many: "cards arquivados",
   done_since: "Concluído há mais de",
   done_since_days: "dias",
   see_dashboards: "Ver no Dashboards →",
-  no_tracks: "Nenhuma trilha ainda",
-  create_first_track: "Criar primeira trilha",
-  no_tracks_desc: "Crie sua primeira trilha para começar a organizar suas tarefas.",
+  no_tracks: "Nenhuma área ainda",
+  create_first_track: "Criar primeira área",
+  no_tracks_desc: "Crie sua primeira área para começar a organizar suas tarefas.",
   add_track_hint_title: "Quer organizar melhor?",
-  add_track_hint_desc: "Adicione uma nova trilha para separar suas tarefas por contexto.",
+  add_track_hint_desc: "Adicione uma nova área para separar suas tarefas por contexto.",
   empty_board_title: "Nenhum card ainda",
-  empty_board_desc: "Adicione uma nova trilha para começar a organizar suas tarefas.",
+  empty_board_desc: "Adicione uma nova área para começar a organizar suas tarefas.",
   move_to_column: "Mover para coluna",
-  move_to_track: "Mover para trilha",
+  move_to_track: "Mover para área",
   in_progress_label: "em andamento",
   cards_label: "cards",
   card_label: "card",
@@ -114,19 +114,19 @@ const pt = {
   delete_confirm: "Excluir?",
 
   // ── TracksModal ──
-  manage_tracks: "Gerenciar trilhas",
+  manage_tracks: "Gerenciar áreas",
   manage_tracks_desc:
-    "Trilhas são as swimlanes do board. Excluir uma trilha move todos os cards dela para a primeira trilha restante.",
-  no_tracks_yet: "Nenhuma trilha ainda.",
-  new_track: "Nova trilha",
-  track_name_placeholder: "Nome da trilha",
+    "Áreas são as swimlanes/contextos do board. Excluir uma área move todos os cards dela para a primeira área restante.",
+  no_tracks_yet: "Nenhuma área ainda.",
+  new_track: "Nova área",
+  track_name_placeholder: "Nome da área",
 
   // ── ColumnsModal ──
   manage_columns: "Gerenciar colunas",
   manage_columns_desc:
     "Colunas são os estágios do board. Excluir uma coluna move seus cards para a primeira coluna restante.",
   manage_columns_track_desc:
-    "Colunas específicas desta trilha. Quando vazias, usam o template global.",
+    "Colunas específicas desta área. Quando vazias, usam o template global.",
   no_columns_yet: "Nenhuma coluna ainda.",
   new_column: "Nova coluna",
   column_name_placeholder: "Nome da coluna",
@@ -318,22 +318,22 @@ const en = {
 
   // ── Board ──
   all: "All",
-  tracks: "Tracks",
+  tracks: "Areas",
   columns: "Columns",
   archived_one: "archived card",
   archived_many: "archived cards",
   done_since: "Done for more than",
   done_since_days: "days",
   see_dashboards: "See in Dashboards →",
-  no_tracks: "No tracks yet",
-  create_first_track: "Create first track",
-  no_tracks_desc: "Create your first track to start organizing your tasks.",
+  no_tracks: "No areas yet",
+  create_first_track: "Create first area",
+  no_tracks_desc: "Create your first area to start organizing your tasks.",
   add_track_hint_title: "Want better organization?",
-  add_track_hint_desc: "Add a new track to separate your tasks by context.",
+  add_track_hint_desc: "Add a new area to separate your tasks by context.",
   empty_board_title: "No cards yet",
-  empty_board_desc: "Add a new track to start organizing your tasks.",
+  empty_board_desc: "Add a new area to start organizing your tasks.",
   move_to_column: "Move to column",
-  move_to_track: "Move to track",
+  move_to_track: "Move to area",
   in_progress_label: "in progress",
   cards_label: "cards",
   card_label: "card",
@@ -378,19 +378,19 @@ const en = {
   delete_confirm: "Delete?",
 
   // ── TracksModal ──
-  manage_tracks: "Manage tracks",
+  manage_tracks: "Manage areas",
   manage_tracks_desc:
-    "Tracks are the board's swimlanes. Deleting a track moves all its cards to the first remaining track.",
-  no_tracks_yet: "No tracks yet.",
-  new_track: "New track",
-  track_name_placeholder: "Track name",
+    "Areas are the board's swimlanes/contexts. Deleting an area moves all its cards to the first remaining area.",
+  no_tracks_yet: "No areas yet.",
+  new_track: "New area",
+  track_name_placeholder: "Area name",
 
   // ── ColumnsModal ──
   manage_columns: "Manage columns",
   manage_columns_desc:
     "Columns are the board's stages. Deleting a column moves its cards to the first remaining column.",
   manage_columns_track_desc:
-    "Columns specific to this track. When empty, the global template is used.",
+    "Columns specific to this area. When empty, the global template is used.",
   no_columns_yet: "No columns yet.",
   new_column: "New column",
   column_name_placeholder: "Column name",
