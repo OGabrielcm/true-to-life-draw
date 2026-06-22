@@ -53,8 +53,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     createOpen,
     tracks,
     cards,
-    trackFilter,
-    setTrackFilter,
+    selectedAreaIds,
+    setSelectedAreaIds,
   } = useKanban();
   const urgentCount = cards.filter((c) => {
     const s = getDeadlineStatus(c);
@@ -77,11 +77,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   }, [user, loading, navigate]);
 
-  const handleTrackClick = (id: string) => {
-    // Toggle: clicar na mesma trilha ativa desfaz o filtro.
-    const next = trackFilter === id ? "__all" : id;
-    setTrackFilter(next);
-    setMobileOpen(false);
+  const handleAreaClick = (id: string) => {
+    // Multi-select: [] representa "Todos"; clicar em uma área alterna seleção.
+    setSelectedAreaIds((current) =>
+      current.includes(id) ? current.filter((areaId) => areaId !== id) : [...current, id],
+    );
     if (path !== "/") navigate({ to: "/" });
   };
 
@@ -162,16 +162,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
             {tracksOpen && (
               <div className="ml-1 mt-0.5 flex flex-col gap-0.5 border-l pl-2">
-                {/* "Todos" — reseta o filtro de track */}
+                {/* "Todos" — reseta o filtro de áreas */}
                 <button
                   type="button"
                   onClick={() => {
-                    setTrackFilter("__all");
+                    setSelectedAreaIds([]);
                     setMobileOpen(false);
                     if (path !== "/") navigate({ to: "/" });
                   }}
                   className={`flex items-center gap-2 rounded-sm px-2 py-1 text-xs transition-colors ${
-                    trackFilter === "__all"
+                    selectedAreaIds.length === 0
                       ? "nav-item-active text-foreground font-medium"
                       : "nav-item-hover text-muted-foreground hover:text-foreground"
                   }`}
@@ -180,12 +180,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                   {t("all")}
                 </button>
                 {tracks.map((tr) => {
-                  const active = trackFilter === tr.id;
+                  const active = selectedAreaIds.includes(tr.id);
                   return (
                     <button
                       key={tr.id}
                       type="button"
-                      onClick={() => handleTrackClick(tr.id)}
+                      onClick={() => handleAreaClick(tr.id)}
                       aria-pressed={active}
                       className={`flex items-center justify-between rounded-sm px-2 py-1 text-xs transition-colors ${
                         active
@@ -200,6 +200,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         />
                         {tr.name}
                       </div>
+                      {active && <Check className="h-3 w-3 text-muted-foreground" />}
                     </button>
                   );
                 })}

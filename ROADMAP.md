@@ -170,7 +170,7 @@
 | Autenticação (login, signup, perfil)                                                                   | ✅     |
 | Responsividade mobile (board, modal, dashboard com scroll horizontal na tabela)                        | ✅     |
 | Onboarding Beta obrigatório (`onboarding_completed`, sem trilhas/colunas padrão)                       | ✅     |
-| Filtro de trilhas na sidebar (mostra todas quando nenhuma selecionada)                                 | ✅     |
+| Filtro multi-select de áreas na sidebar ([] = Todos; busca oculta áreas sem resultado)                 | ✅     |
 | Edição de cards (título, descrição, prazo, prioridade, tags)                                           | ✅     |
 | Colunas customizáveis (criar, renomear, excluir colunas do board)                                      | ✅     |
 | Reordenação de cards dentro da coluna (desktop ✅ · mobile modo claro — ver 2.2)                       | ✅     |

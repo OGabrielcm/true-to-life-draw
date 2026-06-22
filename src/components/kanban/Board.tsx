@@ -13,6 +13,7 @@ import {
   Trilha,
 } from "@/lib/kanban-types";
 import { useKanban } from "@/lib/kanban-store";
+import { getVisibleTracks } from "@/lib/kanban-store/kanban-logic";
 import { useTheme } from "@/components/theme-provider";
 import { CardItem } from "./CardItem";
 import { AddCardModal } from "./AddCardModal";
@@ -32,7 +33,7 @@ export function Board() {
     search,
     filter,
     setFilter,
-    trackFilter,
+    selectedAreaIds,
     addCard,
     updateCard,
     moveCard,
@@ -271,36 +272,30 @@ export function Board() {
               <span className="text-foreground/70">{t("see_dashboards")}</span>
             </Link>
           )}
-          {tracks
-            .filter((tr) => trackFilter === "__all" || tr.id === trackFilter)
-            // Durante a busca (2.3), oculta trilhas sem nenhum card correspondente
-            // — só mostra as trilhas onde há resultado. Sem busca, todas aparecem
-            // (estado normal, inclusive trilhas vazias).
-            .filter((tr) => !search.trim() || filtered.some((c) => c.track === tr.id))
-            .map((track) => (
-              <Swimlane
-                key={track.id}
-                track={track}
-                columns={getColumnsForTrack(track.id)}
-                cards={filtered.filter((c) => c.track === track.id)}
-                allCards={cards}
-                trilhas={trilhas}
-                collapsed={collapsed[track.id]}
-                onToggleCollapsed={() => toggleCollapsed(track.id)}
-                onAdd={(col) => setAdding({ col, track: track.id })}
-                onOpenCard={(c) => setOpenCardId(c.id)}
-                onOpenColumns={() => setColumnsOpen(track.id)}
-                draggingId={draggingId}
-                dragOver={dragOver}
-                setDraggingId={setDraggingId}
-                setDragOver={setDragOver}
-                moveCard={moveCard}
-                reorderCard={reorderCard}
-                cardColors={cardColors}
-                onToggleStar={toggleStar}
-                onDelete={deleteCard}
-              />
-            ))}
+          {getVisibleTracks(tracks, filtered, selectedAreaIds, search).map((track) => (
+            <Swimlane
+              key={track.id}
+              track={track}
+              columns={getColumnsForTrack(track.id)}
+              cards={filtered.filter((c) => c.track === track.id)}
+              allCards={cards}
+              trilhas={trilhas}
+              collapsed={collapsed[track.id]}
+              onToggleCollapsed={() => toggleCollapsed(track.id)}
+              onAdd={(col) => setAdding({ col, track: track.id })}
+              onOpenCard={(c) => setOpenCardId(c.id)}
+              onOpenColumns={() => setColumnsOpen(track.id)}
+              draggingId={draggingId}
+              dragOver={dragOver}
+              setDraggingId={setDraggingId}
+              setDragOver={setDragOver}
+              moveCard={moveCard}
+              reorderCard={reorderCard}
+              cardColors={cardColors}
+              onToggleStar={toggleStar}
+              onDelete={deleteCard}
+            />
+          ))}
           {tracks.length <= 1 && (
             <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed py-16 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
