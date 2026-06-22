@@ -151,6 +151,8 @@
 
 ## ✅ Já implementado
 
+> **2026-06-22 — Segurança/Auth:** advisor `auth_leaked_password_protection` verificado no Supabase. A opção `Prevent use of leaked passwords` existe em Authentication → Attack Protection, mas está bloqueada no plano Free (requer Pro+). Decisão: não pagar agora; warning aceito temporariamente e registrado em `SECURITY.md` para reavaliar antes de abrir o app para usuários externos/públicos.
+
 | Feature                                                                                                | Status |
 | ------------------------------------------------------------------------------------------------------ | ------ |
 | Board Kanban com swimlanes (tracks)                                                                    | ✅     |

@@ -269,6 +269,7 @@ Daily completion log. The **presence** of a row marks the habit as done that day
 - **Provider**: Supabase Auth (email + password)
 - **Session**: JWT token stored in localStorage (HTTP-only cookie preferred in production)
 - **Row-Level Security (RLS)**: Enabled on all tables; users see only their own board data
+- **Known advisor**: Leaked Password Protection is disabled because Supabase limits this feature to Pro plans and above. This warning is accepted temporarily while the project stays on the Free plan; see [`SECURITY.md`](./SECURITY.md).
 
 ## Project Structure
 
