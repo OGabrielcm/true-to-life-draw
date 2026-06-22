@@ -326,9 +326,11 @@ src/
 
 The board uses **float-based ordering** to allow inserting cards between existing positions without renumbering the entire column. When moving a card from position 2 to position 2.5, all subsequent positions remain stable.
 
-### Tracks (Swimlanes)
+### Areas / Tracks (Swimlanes)
 
-Tracks organize cards by theme or context. Each track has its own color scheme with light/dark variants. Cards can belong to a single track and can be filtered by track.
+The product UI calls these swimlanes **Areas** (for example: Work, College, AI / Dev, Personal). The database schema still uses the legacy names `tracks` and `track_id`; no Supabase migration was applied for the Areas naming cleanup.
+
+Tracks/areas organize cards by theme or context. Each area has its own color scheme with light/dark variants. Cards can belong to a single area. The sidebar filter supports multi-select via `selectedAreaIds`, where an empty array means "All areas".
 
 ### Priorities
 
