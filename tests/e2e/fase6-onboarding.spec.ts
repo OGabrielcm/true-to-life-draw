@@ -40,7 +40,10 @@ test.describe("6.4 — Onboarding Beta (conta existente)", () => {
     await goToBoard(page);
 
     // A seção TRILHAS deve existir na sidebar
-    const tracksSection = page.locator("nav button").filter({ hasText: /Trilhas|Tracks/i }).first();
+    const tracksSection = page
+      .locator("nav button")
+      .filter({ hasText: /Trilhas|Tracks/i })
+      .first();
     await expect(tracksSection).toBeVisible({ timeout: 8_000 });
 
     console.log("✓ Seção TRILHAS visível na sidebar");

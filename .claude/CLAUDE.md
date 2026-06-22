@@ -9,6 +9,7 @@ Skill(git-commit)
 ```
 
 Nunca rodar `git commit` diretamente. A skill garante:
+
 - Branch correta (nunca commitar na `main`)
 - Conventional Commits em pt-BR
 - Staging inteligente

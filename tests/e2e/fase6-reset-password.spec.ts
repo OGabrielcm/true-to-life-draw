@@ -25,9 +25,13 @@ test.describe.serial("6.3 — Recuperação de senha", () => {
     await page.goto("/login");
     await page.locator("text=Esqueci minha senha").click();
 
-    await expect(page.locator("h2").filter({ hasText: /Recuperar senha/i })).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("h2").filter({ hasText: /Recuperar senha/i })).toBeVisible({
+      timeout: 5_000,
+    });
     await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 3_000 });
-    await expect(page.locator('button[type="submit"]').filter({ hasText: /Enviar link/i })).toBeVisible();
+    await expect(
+      page.locator('button[type="submit"]').filter({ hasText: /Enviar link/i }),
+    ).toBeVisible();
 
     console.log("✓ Formulário de recuperação visível");
   });
@@ -62,10 +66,15 @@ test.describe.serial("6.3 — Recuperação de senha", () => {
     await page.locator("text=Esqueci minha senha").click();
 
     // Aguarda formulário de recuperação
-    await expect(page.locator("h2").filter({ hasText: /Recuperar senha/i })).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("h2").filter({ hasText: /Recuperar senha/i })).toBeVisible({
+      timeout: 5_000,
+    });
 
     // Clica no link de voltar
-    await page.locator("button").filter({ hasText: /Voltar para o login/ }).click();
+    await page
+      .locator("button")
+      .filter({ hasText: /Voltar para o login/ })
+      .click();
 
     // Deve voltar ao formulário de login
     await expect(page.locator("h2").filter({ hasText: /Entrar/i })).toBeVisible({ timeout: 5_000 });

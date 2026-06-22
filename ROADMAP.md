@@ -94,7 +94,7 @@
 > download retorna 400 após excluir). Delete restrito ao dono via
 > `storage.objects.owner_id` (owner-pode-excluir validado; não-dono bloqueado
 > pela policy, não testado com 2ª conta).
-> **Limitação consciente (não implementada agora):** excluir um *card* faz
+> **Limitação consciente (não implementada agora):** excluir um _card_ faz
 > cascade nas rows de `attachments`, mas **orfana os objetos no Storage** — não
 > há trigger/edge-function de limpeza do bucket. Fora do escopo do critério;
 > registrado para decisão futura.
@@ -129,21 +129,21 @@
 
 ## Infraestrutura de desenvolvimento
 
-| Ferramenta | Status | Uso |
-|-----------|--------|-----|
-| **Supabase MCP** | ✅ Conectado | Queries, migrations e logs direto no Claude Code |
-| **Vercel MCP** | ✅ Conectado | Deployments, logs de runtime e projetos |
+| Ferramenta         | Status         | Uso                                              |
+| ------------------ | -------------- | ------------------------------------------------ |
+| **Supabase MCP**   | ✅ Conectado   | Queries, migrations e logs direto no Claude Code |
+| **Vercel MCP**     | ✅ Conectado   | Deployments, logs de runtime e projetos          |
 | **Playwright E2E** | ✅ Configurado | Testes de interface em `tests/e2e/` — porta 5174 |
 
 ---
 
 ## Modelos disponíveis
 
-| Modelo | ID | Uso indicado |
-|--------|----|-------------|
-| **Haiku 4.5** | `claude-haiku-4-5-20251001` | Tarefas simples, 1–2 arquivos, sem migration |
-| **Sonnet 4.6** | `claude-sonnet-4-6[1m]` | Tarefas médias, 3–5 arquivos, novo modal/componente |
-| **Opus 4.8** | `claude-opus-4-8` | Tarefas complexas, 6+ arquivos, nova tabela Supabase |
+| Modelo         | ID                          | Uso indicado                                         |
+| -------------- | --------------------------- | ---------------------------------------------------- |
+| **Haiku 4.5**  | `claude-haiku-4-5-20251001` | Tarefas simples, 1–2 arquivos, sem migration         |
+| **Sonnet 4.6** | `claude-sonnet-4-6[1m]`     | Tarefas médias, 3–5 arquivos, novo modal/componente  |
+| **Opus 4.8**   | `claude-opus-4-8`           | Tarefas complexas, 6+ arquivos, nova tabela Supabase |
 
 > ⚠️ **Regra:** Antes de iniciar qualquer feature, verificar se o modelo ativo coincide com o modelo recomendado abaixo. Se não coincidir, pausar e avisar o usuário.
 
@@ -151,57 +151,57 @@
 
 ## ✅ Já implementado
 
-| Feature | Status |
-|---------|--------|
-| Board Kanban com swimlanes (tracks) | ✅ |
-| Cards com título, descrição, prioridade, prazo | ✅ |
-| Tipos de card: Task / Goal (relação pai-filho) | ✅ |
-| Tags / Trilhas (filtros visuais) | ✅ |
-| Drag & Drop (desktop ✅ · mobile modo claro pendente de validação — ver 2.2) | ✅ |
-| Busca global | ✅ |
-| Tracks dinâmicas (criar, editar, excluir swimlanes) | ✅ |
-| Trilhas dinâmicas (criar, editar, excluir tags) | ✅ |
-| Arquivamento automático (Done > 7 dias) | ✅ |
-| For You (recentes + favoritos) | ✅ |
-| Dashboards (tabela com todas as tarefas) | ✅ |
-| 4 temas (Dark padrão, Light, Baby Blue, Sépia) com persistência por usuário no Supabase, cross-device | ✅ |
-| Autenticação (login, signup, perfil) | ✅ |
-| Responsividade mobile (board, modal, dashboard com scroll horizontal na tabela) | ✅ |
-| Onboarding Beta obrigatório (`onboarding_completed`, sem trilhas/colunas padrão) | ✅ |
-| Filtro de trilhas na sidebar (mostra todas quando nenhuma selecionada) | ✅ |
-| Edição de cards (título, descrição, prazo, prioridade, tags) | ✅ |
-| Colunas customizáveis (criar, renomear, excluir colunas do board) | ✅ |
-| Reordenação de cards dentro da coluna (desktop ✅ · mobile modo claro — ver 2.2) | ✅ |
-| Notificações de prazo (badge no header, indicador visual nos cards) | ✅ |
-| Progresso automático em Goals (% baseado em Tasks filhas) | ✅ |
-| Duplicar card | ✅ |
-| WIP Limits por coluna (alerta visual ao ultrapassar) | ✅ |
-| Checklists dentro do card (subtarefas com progresso) | ✅ |
-| Dependências entre cards (bloqueado por) | ✅ |
-| Visão Calendário (mês / semana / lista) | ✅ |
-| Estatísticas do board (KPIs + barras por coluna/prioridade/track) | ✅ |
-| Export CSV / PDF | ✅ |
-| Filtros avançados no board | ✅ |
-| Templates de cards | ✅ |
-| Markdown na descrição dos cards | ✅ |
-| Atalhos de teclado (1–5=trocar aba, n=novo, d=deletar no modal) | ✅ |
-| Card aging (opacidade por inatividade) | ✅ |
-| Cor de destaque / cover no card | ✅ |
-| Modal two-column estilo Jira (descrição + tabs à esq., metadados à dir.) | ✅ |
-| Inline editing por campo no modal (título e descrição — sem modo global) | ✅ |
-| Ações rápidas no hover do card (favoritar, excluir com confirmação) | ✅ |
-| Confirmação AlertDialog antes de excluir card (modal e hover) | ✅ |
-| Histórico de atividades no card | ✅ |
-| Comentários no card | ✅ |
-| Time tracking (log de horas por card) | ✅ |
-| Anexos no card (upload p/ Storage, preview, download, excluir — Bloco 4) | ✅ |
-| Habit Tracker (aba `/habits`: marcar feito, streak, frequência, heatmap) | ✅ |
-| Hábitos no Dashboard e For You (consistência, heatmap 30d, streak+recorde, pendentes, alerta de risco) | ✅ |
-| README.md com setup, stack e schema Supabase | ✅ |
-| Código formatado com Prettier (zero lint errors) | ✅ |
-| Arquitetura em camadas (services, kanban-logic/kanban-repo, dashboard-export) | ✅ |
-| Testes unitários (Vitest) — kanban-logic, kanban-mappers, habit-logic | ✅ |
-| Testes E2E isolados com RUN_ID único por execução | ✅ |
+| Feature                                                                                                | Status |
+| ------------------------------------------------------------------------------------------------------ | ------ |
+| Board Kanban com swimlanes (tracks)                                                                    | ✅     |
+| Cards com título, descrição, prioridade, prazo                                                         | ✅     |
+| Tipos de card: Task / Goal (relação pai-filho)                                                         | ✅     |
+| Tags / Trilhas (filtros visuais)                                                                       | ✅     |
+| Drag & Drop (desktop ✅ · mobile modo claro pendente de validação — ver 2.2)                           | ✅     |
+| Busca global                                                                                           | ✅     |
+| Tracks dinâmicas (criar, editar, excluir swimlanes)                                                    | ✅     |
+| Trilhas dinâmicas (criar, editar, excluir tags)                                                        | ✅     |
+| Arquivamento automático (Done > 7 dias)                                                                | ✅     |
+| For You (recentes + favoritos)                                                                         | ✅     |
+| Dashboards (tabela com todas as tarefas)                                                               | ✅     |
+| 4 temas (Dark padrão, Light, Baby Blue, Sépia) com persistência por usuário no Supabase, cross-device  | ✅     |
+| Autenticação (login, signup, perfil)                                                                   | ✅     |
+| Responsividade mobile (board, modal, dashboard com scroll horizontal na tabela)                        | ✅     |
+| Onboarding Beta obrigatório (`onboarding_completed`, sem trilhas/colunas padrão)                       | ✅     |
+| Filtro de trilhas na sidebar (mostra todas quando nenhuma selecionada)                                 | ✅     |
+| Edição de cards (título, descrição, prazo, prioridade, tags)                                           | ✅     |
+| Colunas customizáveis (criar, renomear, excluir colunas do board)                                      | ✅     |
+| Reordenação de cards dentro da coluna (desktop ✅ · mobile modo claro — ver 2.2)                       | ✅     |
+| Notificações de prazo (badge no header, indicador visual nos cards)                                    | ✅     |
+| Progresso automático em Goals (% baseado em Tasks filhas)                                              | ✅     |
+| Duplicar card                                                                                          | ✅     |
+| WIP Limits por coluna (alerta visual ao ultrapassar)                                                   | ✅     |
+| Checklists dentro do card (subtarefas com progresso)                                                   | ✅     |
+| Dependências entre cards (bloqueado por)                                                               | ✅     |
+| Visão Calendário (mês / semana / lista)                                                                | ✅     |
+| Estatísticas do board (KPIs + barras por coluna/prioridade/track)                                      | ✅     |
+| Export CSV / PDF                                                                                       | ✅     |
+| Filtros avançados no board                                                                             | ✅     |
+| Templates de cards                                                                                     | ✅     |
+| Markdown na descrição dos cards                                                                        | ✅     |
+| Atalhos de teclado (1–5=trocar aba, n=novo, d=deletar no modal)                                        | ✅     |
+| Card aging (opacidade por inatividade)                                                                 | ✅     |
+| Cor de destaque / cover no card                                                                        | ✅     |
+| Modal two-column estilo Jira (descrição + tabs à esq., metadados à dir.)                               | ✅     |
+| Inline editing por campo no modal (título e descrição — sem modo global)                               | ✅     |
+| Ações rápidas no hover do card (favoritar, excluir com confirmação)                                    | ✅     |
+| Confirmação AlertDialog antes de excluir card (modal e hover)                                          | ✅     |
+| Histórico de atividades no card                                                                        | ✅     |
+| Comentários no card                                                                                    | ✅     |
+| Time tracking (log de horas por card)                                                                  | ✅     |
+| Anexos no card (upload p/ Storage, preview, download, excluir — Bloco 4)                               | ✅     |
+| Habit Tracker (aba `/habits`: marcar feito, streak, frequência, heatmap)                               | ✅     |
+| Hábitos no Dashboard e For You (consistência, heatmap 30d, streak+recorde, pendentes, alerta de risco) | ✅     |
+| README.md com setup, stack e schema Supabase                                                           | ✅     |
+| Código formatado com Prettier (zero lint errors)                                                       | ✅     |
+| Arquitetura em camadas (services, kanban-logic/kanban-repo, dashboard-export)                          | ✅     |
+| Testes unitários (Vitest) — kanban-logic, kanban-mappers, habit-logic                                  | ✅     |
+| Testes E2E isolados com RUN_ID único por execução                                                      | ✅     |
 
 ---
 
@@ -224,18 +224,21 @@
 > Features que diferenciam um Kanban básico de uma ferramenta profissional.
 
 ### ~~2.1 Progresso automático nos Goals~~ ✅ Implementado
+
 - **O que é:** % de conclusão calculada a partir das Tasks filhas (tasks done / total tasks)
 - **Referência:** JIRA (Epic progress), Linear
 - **Consumo de token:** 🟢 Baixo (lógica client-side, sem schema change)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
 ### ~~2.2 Duplicar card~~ ✅ Implementado
+
 - **O que é:** Botão para copiar um card existente como ponto de partida
 - **Referência:** Trello, Notion
 - **Consumo de token:** 🟢 Baixo (1–2 arquivos)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
 ### ~~2.3 WIP Limits (limite de cards por coluna)~~ ✅ Implementado
+
 - **O que é:** Definir máximo de cards por coluna; alerta visual ao ultrapassar
 - **Por que importa:** Pilar do Kanban clássico — força o fluxo e evita gargalos
 - **Referência:** Kanban clássico, Jira Software
@@ -243,12 +246,14 @@
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
 ### ~~2.4 Checklists dentro do card~~ ✅ Implementado
+
 - **O que é:** Lista de itens com checkbox dentro de um card (subtarefas leves)
 - **Referência:** Trello (checklist), Notion
 - **Consumo de token:** 🔴 Alto (novo campo JSONB no Supabase + UI)
 - **Modelo recomendado:** `claude-opus-4-7`
 
 ### ~~2.5 Dependências entre cards~~ ✅ Implementado
+
 - **O que é:** Marcar um card como "bloqueado por" outro card
 - **Referência:** JIRA (issue links), Linear
 - **Consumo de token:** 🔴 Alto (campo array no Supabase + UI)
@@ -261,30 +266,35 @@
 > Features de visão macro e gestão estratégica.
 
 ### ~~3.1 Visão Calendário~~ ✅ Implementado
+
 - **O que é:** Cards com prazo exibidos em um calendário mensal/semanal/lista
 - **Referência:** Trello (Calendar Power-Up), Notion Calendar
 - **Consumo de token:** 🔴 Alto (nova rota custom, 3 views — sem lib externa)
 - **Modelo recomendado:** `claude-opus-4-7`
 
 ### ~~3.2 Estatísticas do board~~ ✅ Implementado
+
 - **O que é:** Gráficos de cards por status, taxa de conclusão, cards vencidos
 - **Referência:** JIRA (dashboards), Trello (Butler)
 - **Consumo de token:** 🟡 Médio (nova seção no Dashboards, cálculos client-side)
 - **Modelo recomendado:** `claude-sonnet-4-6[1m]`
 
 ### ~~3.3 Export CSV / PDF~~ ✅ Implementado
+
 - **O que é:** Exportar a tabela do Dashboards em CSV ou PDF
 - **Referência:** JIRA, Asana
 - **Consumo de token:** 🟢 Baixo (1 arquivo, biblioteca de export)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
 ### ~~3.4 Filtros avançados no board~~ ✅ Implementado
+
 - **O que é:** Filtrar por prazo (vencido, esta semana), prioridade, tipo de card
 - **Referência:** JIRA (JQL), Trello (filtros)
 - **Consumo de token:** 🟢 Baixo (lógica client-side, sem schema change)
 - **Modelo recomendado:** `claude-haiku-4-5-20251001`
 
 ### ~~3.5 Templates de cards~~ ✅ Implementado
+
 - **O que é:** Salvar um card como template e reutilizá-lo para tarefas recorrentes
 - **Referência:** Trello, Notion
 - **Consumo de token:** 🟡 Médio (nova tabela + modal)
@@ -296,33 +306,36 @@
 
 > Pequenos detalhes que elevam a experiência.
 
-| # | Feature | Consumo de token | Modelo recomendado | Impl. | Teste E2E |
-|---|---------|-----------------|-------------------|-------|-----------|
-| ~~4.1~~ | Markdown na descrição dos cards | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
-| ~~4.2~~ | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
-| ~~4.3~~ | Card aging (opacidade em cards parados há muito tempo) | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
-| ~~4.4~~ | Cor de destaque / cover no card | 🟢 Baixo | `claude-haiku-4-5-20251001` | ✅ | — |
-| ~~4.5~~ | Histórico de atividades no card | 🔴 Alto | `claude-opus-4-7` | ✅ | ✅ `fase4-activities.spec.ts` |
-| ~~4.6~~ | Comentários no card | 🔴 Alto | `claude-opus-4-7` | ✅ | ✅ `fase4-comments.spec.ts` |
-| ~~4.7~~ | Time tracking (log de horas por card) | 🔴 Alto | `claude-opus-4-7` | ✅ | ✅ `fase4-timetracking.spec.ts` |
+| #       | Feature                                                     | Consumo de token | Modelo recomendado          | Impl. | Teste E2E                       |
+| ------- | ----------------------------------------------------------- | ---------------- | --------------------------- | ----- | ------------------------------- |
+| ~~4.1~~ | Markdown na descrição dos cards                             | 🟢 Baixo         | `claude-haiku-4-5-20251001` | ✅    | —                               |
+| ~~4.2~~ | Atalhos de teclado (e = editar, d = deletar, n = novo card) | 🟢 Baixo         | `claude-haiku-4-5-20251001` | ✅    | —                               |
+| ~~4.3~~ | Card aging (opacidade em cards parados há muito tempo)      | 🟢 Baixo         | `claude-haiku-4-5-20251001` | ✅    | —                               |
+| ~~4.4~~ | Cor de destaque / cover no card                             | 🟢 Baixo         | `claude-haiku-4-5-20251001` | ✅    | —                               |
+| ~~4.5~~ | Histórico de atividades no card                             | 🔴 Alto          | `claude-opus-4-7`           | ✅    | ✅ `fase4-activities.spec.ts`   |
+| ~~4.6~~ | Comentários no card                                         | 🔴 Alto          | `claude-opus-4-7`           | ✅    | ✅ `fase4-comments.spec.ts`     |
+| ~~4.7~~ | Time tracking (log de horas por card)                       | 🔴 Alto          | `claude-opus-4-7`           | ✅    | ✅ `fase4-timetracking.spec.ts` |
 
 > ⚠️ **Migration:** `supabase_activities_comments_time_migration.sql` — já aplicada no Supabase (projeto `smdelyasoqtgcjdbldpf`).
 
 ### Cobertura dos testes E2E (Fase 4)
 
 **`4.5 — Histórico de atividades`** · `fase4-activities.spec.ts`
+
 - Registra atividade `criado` ao abrir card pela primeira vez
 - Registra atividade ao mover card de coluna
 - Registra atividade ao favoritar card
 - Setup / teardown automatizados
 
 **`4.6 — Comentários no card`** · `fase4-comments.spec.ts`
+
 - Adiciona comentário via Ctrl+Enter
 - Persiste após fechar e reabrir o modal
 - Edita comentário existente inline
 - Deleta comentário e confirma remoção
 
 **`4.7 — Time tracking`** · `fase4-timetracking.spec.ts`
+
 - Registra 1h 30m com nota e exibe na lista
 - Total acumula corretamente com segundo registro (45m → 2h 15m)
 - Deleta entrada e total volta ao valor anterior (1h 30m)
@@ -339,15 +352,15 @@
 > Baseado em auditoria técnica do projeto. Todas as etapas concluídas e em produção (Vercel).
 > Merge: `chore/git-commit-hook-e-scrollbar` → `main` em 18/05/2026.
 
-| # | Etapa | Arquivo principal | Complexidade | Modelo | Status |
-|---|-------|------------------|-------------|--------|--------|
-| ~~5.1~~ | Formatar código com Prettier | `src/` inteiro | 🟢 Mínima | `claude-haiku-4-5-20251001` | ✅ |
-| ~~5.2~~ | Criar README.md operacional | raiz do projeto | 🟢 Baixa | `claude-haiku-4-5-20251001` | ✅ |
-| ~~5.3~~ | Extrair exportação do dashboard | `dashboards.tsx` → `dashboard-export.ts` | 🟡 Baixa-média | `claude-sonnet-4-6[1m]` | ✅ |
-| ~~5.4~~ | Extrair regras puras de card | ~~`card-rules.ts`~~ (re-export removido em 2026-06-16 — nunca adotado; consumidores importam de `kanban-types`) | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
-| ~~5.5~~ | Melhorar isolamento dos testes E2E | `helpers.ts` — `RUN_ID` único por execução | 🟡 Média | `claude-sonnet-4-6[1m]` | ✅ |
-| ~~5.6~~ | Separar serviços do kanban-store | `activity-service.ts`, `comments-service.ts`, `timelog-service.ts` | 🔴 Alta | `claude-opus-4-7` | ✅ |
-| ~~5.7~~ | Separar CardDetailModal | 5 sub-componentes em `card-modal-sections/` | 🔴 Alta | `claude-opus-4-7` | ✅ |
+| #       | Etapa                              | Arquivo principal                                                                                               | Complexidade   | Modelo                      | Status |
+| ------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------- | ------ |
+| ~~5.1~~ | Formatar código com Prettier       | `src/` inteiro                                                                                                  | 🟢 Mínima      | `claude-haiku-4-5-20251001` | ✅     |
+| ~~5.2~~ | Criar README.md operacional        | raiz do projeto                                                                                                 | 🟢 Baixa       | `claude-haiku-4-5-20251001` | ✅     |
+| ~~5.3~~ | Extrair exportação do dashboard    | `dashboards.tsx` → `dashboard-export.ts`                                                                        | 🟡 Baixa-média | `claude-sonnet-4-6[1m]`     | ✅     |
+| ~~5.4~~ | Extrair regras puras de card       | ~~`card-rules.ts`~~ (re-export removido em 2026-06-16 — nunca adotado; consumidores importam de `kanban-types`) | 🟡 Média       | `claude-sonnet-4-6[1m]`     | ✅     |
+| ~~5.5~~ | Melhorar isolamento dos testes E2E | `helpers.ts` — `RUN_ID` único por execução                                                                      | 🟡 Média       | `claude-sonnet-4-6[1m]`     | ✅     |
+| ~~5.6~~ | Separar serviços do kanban-store   | `activity-service.ts`, `comments-service.ts`, `timelog-service.ts`                                              | 🔴 Alta        | `claude-opus-4-7`           | ✅     |
+| ~~5.7~~ | Separar CardDetailModal            | 5 sub-componentes em `card-modal-sections/`                                                                     | 🔴 Alta        | `claude-opus-4-7`           | ✅     |
 
 ### Resultado
 
@@ -362,12 +375,12 @@
 
 ## Legenda
 
-| Símbolo | Significado |
-|---------|------------|
-| ✅ | Implementado |
-| 🟢 Baixo | 1–2 arquivos, sem migration, lógica simples → Haiku |
+| Símbolo  | Significado                                                    |
+| -------- | -------------------------------------------------------------- |
+| ✅       | Implementado                                                   |
+| 🟢 Baixo | 1–2 arquivos, sem migration, lógica simples → Haiku            |
 | 🟡 Médio | 3–5 arquivos, possível migration Supabase, novo modal → Sonnet |
-| 🔴 Alto | 6+ arquivos, nova tabela Supabase, estado complexo → Opus |
+| 🔴 Alto  | 6+ arquivos, nova tabela Supabase, estado complexo → Opus      |
 
 ---
 
@@ -389,51 +402,55 @@ Dentro da Fase 1, a ordem recomendada é:
 ---
 
 ## 📬 Grupo E — Email e Comunicação
+
 > Bloqueado pelo Supabase free plan. Requer Gmail SMTP ou domínio próprio + Resend.
 
-| # | Feature | Por que importa | Pré-requisito | Consumo | Modelo |
-|---|---------|----------------|--------------|---------|--------|
-| E1 | **Templates HTML de email** (boas-vindas, recuperação, confirmação) com visual Molas | Profissionaliza o onboarding — hoje os emails saem com layout padrão do Supabase | Gmail SMTP ou domínio + Resend | 🟡 Médio | `claude-sonnet-4-6` |
-| E2 | **Email de boas-vindas automático** no signup | Primeira impressão da ferramenta; reforça identidade visual | E1 (SMTP customizado) ativo | 🟢 Baixo | `claude-haiku-4-5-20251001` |
+| #   | Feature                                                                              | Por que importa                                                                  | Pré-requisito                  | Consumo  | Modelo                      |
+| --- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------ | -------- | --------------------------- |
+| E1  | **Templates HTML de email** (boas-vindas, recuperação, confirmação) com visual Molas | Profissionaliza o onboarding — hoje os emails saem com layout padrão do Supabase | Gmail SMTP ou domínio + Resend | 🟡 Médio | `claude-sonnet-4-6`         |
+| E2  | **Email de boas-vindas automático** no signup                                        | Primeira impressão da ferramenta; reforça identidade visual                      | E1 (SMTP customizado) ativo    | 🟢 Baixo | `claude-haiku-4-5-20251001` |
 
 ---
 
 ## 🧪 Grupo Q — Qualidade e Cobertura
+
 > Garantia de que o que foi construído continua funcionando à medida que o projeto cresce.
 
-| # | Feature | Por que importa | Consumo | Modelo |
-|---|---------|----------------|---------|--------|
-| Q1 | **Onboarding Beta — validação com conta nova** | O fluxo step 1 → step 2 → /settings nunca foi validado end-to-end com uma conta recém-criada; os E2E cobrem apenas contas existentes | 🟢 Baixo (testes manuais) | — |
-| Q2 | **Testes E2E no CI** (Vercel Preview + GitHub Actions) | Os testes existem mas rodam apenas localmente; qualquer deploy pode quebrar sem alerta | 🟡 Médio | `claude-sonnet-4-6` |
-| Q3 | **Cobertura E2E das Fases 1–3** (board básico, drag-drop, filtros, coluna) | Só as Fases 4 e 6 têm testes; as features principais do produto não têm garantia automatizada | 🔴 Alto | `claude-opus-4-7` |
+| #   | Feature                                                                    | Por que importa                                                                                                                      | Consumo                   | Modelo              |
+| --- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------- |
+| Q1  | **Onboarding Beta — validação com conta nova**                             | O fluxo step 1 → step 2 → /settings nunca foi validado end-to-end com uma conta recém-criada; os E2E cobrem apenas contas existentes | 🟢 Baixo (testes manuais) | —                   |
+| Q2  | **Testes E2E no CI** (Vercel Preview + GitHub Actions)                     | Os testes existem mas rodam apenas localmente; qualquer deploy pode quebrar sem alerta                                               | 🟡 Médio                  | `claude-sonnet-4-6` |
+| Q3  | **Cobertura E2E das Fases 1–3** (board básico, drag-drop, filtros, coluna) | Só as Fases 4 e 6 têm testes; as features principais do produto não têm garantia automatizada                                        | 🔴 Alto                   | `claude-opus-4-7`   |
 
 ---
 
 ## 🚀 Grupo P — Features de Produto
+
 > Funcionalidades que diferenciam o Molas de um Kanban genérico e aumentam o valor diário.
 
-| # | Feature | Referência | Consumo | Modelo |
-|---|---------|-----------|---------|--------|
-| P1 | **Notificações push / browser** para prazos vencendo | Trello, Linear | 🟡 Médio | `claude-sonnet-4-6` |
-| P2 | **Recurring cards** — cards que se repetem automaticamente (semanal, mensal) | Notion, TickTick | 🔴 Alto | `claude-opus-4-7` |
-| P3 | **Modo foco** — esconde tudo exceto a trilha/coluna selecionada | Linear | 🟢 Baixo | `claude-haiku-4-5-20251001` |
-| P4 | **Quick-add via `Cmd+K`** — paleta de comandos para criar card sem abrir o board | Linear, Raycast | 🟡 Médio | `claude-sonnet-4-6` |
-| P5 | **Swim lane por prazo** (hoje / esta semana / atrasado) como view alternativa do board | JIRA | 🔴 Alto | `claude-opus-4-7` |
-| P6 | **Métricas de fluxo** — Lead time, Cycle time, Throughput por coluna | Kanban profissional | 🔴 Alto | `claude-opus-4-7` |
-| P7 | **Board snapshot semanal** — foto automática do estado do board para histórico | Gestão pessoal | 🔴 Alto | `claude-opus-4-7` |
+| #   | Feature                                                                                | Referência          | Consumo  | Modelo                      |
+| --- | -------------------------------------------------------------------------------------- | ------------------- | -------- | --------------------------- |
+| P1  | **Notificações push / browser** para prazos vencendo                                   | Trello, Linear      | 🟡 Médio | `claude-sonnet-4-6`         |
+| P2  | **Recurring cards** — cards que se repetem automaticamente (semanal, mensal)           | Notion, TickTick    | 🔴 Alto  | `claude-opus-4-7`           |
+| P3  | **Modo foco** — esconde tudo exceto a trilha/coluna selecionada                        | Linear              | 🟢 Baixo | `claude-haiku-4-5-20251001` |
+| P4  | **Quick-add via `Cmd+K`** — paleta de comandos para criar card sem abrir o board       | Linear, Raycast     | 🟡 Médio | `claude-sonnet-4-6`         |
+| P5  | **Swim lane por prazo** (hoje / esta semana / atrasado) como view alternativa do board | JIRA                | 🔴 Alto  | `claude-opus-4-7`           |
+| P6  | **Métricas de fluxo** — Lead time, Cycle time, Throughput por coluna                   | Kanban profissional | 🔴 Alto  | `claude-opus-4-7`           |
+| P7  | **Board snapshot semanal** — foto automática do estado do board para histórico         | Gestão pessoal      | 🔴 Alto  | `claude-opus-4-7`           |
 
 ---
 
 ## 🔧 Grupo T — Qualidade Técnica (dívida futura)
+
 > Melhorias de arquitetura que não adicionam features visíveis, mas aumentam confiabilidade e percepção de velocidade.
 
-| # | Feature | Por que importa | Consumo | Modelo |
-|---|---------|----------------|---------|--------|
-| ~~T1~~ | **Optimistic updates** em todas as mutações do board | ✅ Implementado — addCard/moveCard/reorderCard/etc. atualizam o estado local antes do Supabase e fazem rollback em erro (ver `kanban-store/provider.tsx`) | 🔴 Alto | `claude-opus-4-7` |
-| T2 | **Realtime Supabase** — múltiplas abas sincronizadas sem reload | Abrindo o app em duas abas, mudanças em uma não aparecem na outra | 🔴 Alto | `claude-opus-4-7` |
-| T3 | **Error boundary global** + fallback UI de erro | O app quebra silenciosamente em alguns fluxos; o usuário vê tela branca sem mensagem | 🟡 Médio | `claude-sonnet-4-6` |
-| T4 | **PWA / installable** — manifesto + service worker para uso offline | Ferramenta pessoal de uso diário — funcionar offline faz sentido | 🟡 Médio | `claude-sonnet-4-6` |
-| T5 | **Limpar `routeTree.gen.ts`** do versionamento | Arquivo auto-gerado pelo TanStack Router não deve ser commitado manualmente | 🟢 Mínimo | — |
+| #      | Feature                                                             | Por que importa                                                                                                                                           | Consumo   | Modelo              |
+| ------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------- |
+| ~~T1~~ | **Optimistic updates** em todas as mutações do board                | ✅ Implementado — addCard/moveCard/reorderCard/etc. atualizam o estado local antes do Supabase e fazem rollback em erro (ver `kanban-store/provider.tsx`) | 🔴 Alto   | `claude-opus-4-7`   |
+| T2     | **Realtime Supabase** — múltiplas abas sincronizadas sem reload     | Abrindo o app em duas abas, mudanças em uma não aparecem na outra                                                                                         | 🔴 Alto   | `claude-opus-4-7`   |
+| T3     | **Error boundary global** + fallback UI de erro                     | O app quebra silenciosamente em alguns fluxos; o usuário vê tela branca sem mensagem                                                                      | 🟡 Médio  | `claude-sonnet-4-6` |
+| T4     | **PWA / installable** — manifesto + service worker para uso offline | Ferramenta pessoal de uso diário — funcionar offline faz sentido                                                                                          | 🟡 Médio  | `claude-sonnet-4-6` |
+| T5     | **Limpar `routeTree.gen.ts`** do versionamento                      | Arquivo auto-gerado pelo TanStack Router não deve ser commitado manualmente                                                                               | 🟢 Mínimo | —                   |
 
 ---
 

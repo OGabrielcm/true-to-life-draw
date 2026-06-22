@@ -16,7 +16,12 @@ export async function goToBoard(page: Page) {
     const count = await collapsed.count();
     if (count === 0) break;
     for (let i = 0; i < count; i++) {
-      await collapsed.nth(i).locator("..").locator("..").click().catch(() => {});
+      await collapsed
+        .nth(i)
+        .locator("..")
+        .locator("..")
+        .click()
+        .catch(() => {});
       await page.waitForTimeout(200);
     }
   }

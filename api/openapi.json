@@ -5,9 +5,7 @@
     "description": "CLI API for managing Kanban tasks on true-to-life-draw.vercel.app",
     "version": "1.0.0"
   },
-  "servers": [
-    { "url": "https://true-to-life-draw.vercel.app" }
-  ],
+  "servers": [{ "url": "https://true-to-life-draw.vercel.app" }],
   "security": [{ "bearerAuth": [] }],
   "components": {
     "securitySchemes": {
@@ -22,7 +20,10 @@
         "properties": {
           "id": { "type": "string", "format": "uuid" },
           "title": { "type": "string" },
-          "col": { "type": "string", "description": "Column ID (e.g. backlog, todo, inprogress, review, done)" },
+          "col": {
+            "type": "string",
+            "description": "Column ID (e.g. backlog, todo, inprogress, review, done)"
+          },
           "track": { "type": "string", "description": "Track UUID (swimlane)" },
           "type": { "type": "string", "enum": ["Task", "Goal"] },
           "prio": { "type": "string", "enum": ["Alta", "Média", "Baixa"] },
@@ -77,11 +78,33 @@
         "operationId": "listTasks",
         "summary": "List tasks",
         "parameters": [
-          { "name": "col", "in": "query", "schema": { "type": "string" }, "description": "Filter by column ID" },
-          { "name": "track", "in": "query", "schema": { "type": "string" }, "description": "Filter by track UUID" },
-          { "name": "prio", "in": "query", "schema": { "type": "string", "enum": ["Alta", "Média", "Baixa"] } },
-          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["Task", "Goal"] } },
-          { "name": "starred", "in": "query", "schema": { "type": "string", "enum": ["true", "false"] } },
+          {
+            "name": "col",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter by column ID"
+          },
+          {
+            "name": "track",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter by track UUID"
+          },
+          {
+            "name": "prio",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["Alta", "Média", "Baixa"] }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["Task", "Goal"] }
+          },
+          {
+            "name": "starred",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          },
           { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } }
         ],
         "responses": {
@@ -141,8 +164,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "tracks": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } },
-                    "columns": { "type": "array", "items": { "$ref": "#/components/schemas/Column" } }
+                    "tracks": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Track" }
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Column" }
+                    }
                   }
                 }
               }

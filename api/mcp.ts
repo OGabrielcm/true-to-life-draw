@@ -10,7 +10,12 @@ const TTL_API_KEY = process.env.TTL_API_KEY!;
 const TTL_USER_ID = process.env.TTL_USER_ID!;
 
 const UNAUTHORIZED = {
-  content: [{ type: "text" as const, text: "Não autorizado. A URL do conector precisa incluir ?key=<TTL_API_KEY>." }],
+  content: [
+    {
+      type: "text" as const,
+      text: "Não autorizado. A URL do conector precisa incluir ?key=<TTL_API_KEY>.",
+    },
+  ],
 };
 
 function createMcpServer(authorized: boolean) {
@@ -25,7 +30,10 @@ function createMcpServer(authorized: boolean) {
     "list_tasks",
     "Lista as tasks do board Molas Kanban com filtros opcionais",
     {
-      col: z.string().optional().describe("ID da coluna (ex: backlog, todo, inprogress, review, done)"),
+      col: z
+        .string()
+        .optional()
+        .describe("ID da coluna (ex: backlog, todo, inprogress, review, done)"),
       track: z.string().optional().describe("ID da trilha (ex: IA / Dev, Pessoal)"),
       prio: z.enum(["Alta", "Média", "Baixa"]).optional().describe("Prioridade do card"),
       type: z.enum(["Task", "Goal"]).optional().describe("Tipo do card"),
@@ -36,7 +44,9 @@ function createMcpServer(authorized: boolean) {
       if (!authorized) return UNAUTHORIZED;
       let query = supabase
         .from("tasks")
-        .select("id, title, col, track, type, prio, desc, date, starred, tags, checklist, order, created_at, updated_at")
+        .select(
+          "id, title, col, track, type, prio, desc, date, starred, tags, checklist, order, created_at, updated_at",
+        )
         .eq("user_id", TTL_USER_ID)
         .order("order", { ascending: true })
         .limit(limit ?? 50);
@@ -51,10 +61,12 @@ function createMcpServer(authorized: boolean) {
       if (error) return { content: [{ type: "text", text: `Erro: ${error.message}` }] };
 
       return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({ tasks: data, count: data?.length ?? 0 }, null, 2),
-        }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ tasks: data, count: data?.length ?? 0 }, null, 2),
+          },
+        ],
       };
     },
   );
@@ -105,12 +117,15 @@ function createMcpServer(authorized: boolean) {
         .select()
         .single();
 
-      if (error) return { content: [{ type: "text", text: `Erro ao criar task: ${error.message}` }] };
+      if (error)
+        return { content: [{ type: "text", text: `Erro ao criar task: ${error.message}` }] };
       return {
-        content: [{
-          type: "text",
-          text: `Task criada com sucesso!\n${JSON.stringify(data, null, 2)}`,
-        }],
+        content: [
+          {
+            type: "text",
+            text: `Task criada com sucesso!\n${JSON.stringify(data, null, 2)}`,
+          },
+        ],
       };
     },
   );
@@ -123,18 +138,28 @@ function createMcpServer(authorized: boolean) {
       if (!authorized) return UNAUTHORIZED;
       const [{ data: tracks, error: tracksError }, { data: columns, error: colsError }] =
         await Promise.all([
-          supabase.from("tracks").select("id, name, order").eq("user_id", TTL_USER_ID).order("order"),
-          supabase.from("columns").select("id, name, order").eq("user_id", TTL_USER_ID).order("order"),
+          supabase
+            .from("tracks")
+            .select("id, name, order")
+            .eq("user_id", TTL_USER_ID)
+            .order("order"),
+          supabase
+            .from("columns")
+            .select("id, name, order")
+            .eq("user_id", TTL_USER_ID)
+            .order("order"),
         ]);
 
       if (tracksError) return { content: [{ type: "text", text: `Erro: ${tracksError.message}` }] };
       if (colsError) return { content: [{ type: "text", text: `Erro: ${colsError.message}` }] };
 
       return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({ tracks, columns }, null, 2),
-        }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ tracks, columns }, null, 2),
+          },
+        ],
       };
     },
   );

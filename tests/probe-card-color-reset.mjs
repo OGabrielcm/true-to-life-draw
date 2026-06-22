@@ -64,7 +64,7 @@ async function main() {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
   // top bar = div h-[3px] dentro do card
-  const barAfterSet = await firstCard.locator('div.h-\\[3px\\]').count();
+  const barAfterSet = await firstCard.locator("div.h-\\[3px\\]").count();
   if (barAfterSet > 0) ok("cor aplicada: top bar aparece no card");
   else bad("cor não aplicou (sem top bar) — não dá pra testar o reset");
 
@@ -80,7 +80,7 @@ async function main() {
   await page.waitForTimeout(400);
 
   // a top bar deve ter sumido
-  const barAfterReset = await firstCard.locator('div.h-\\[3px\\]').count();
+  const barAfterReset = await firstCard.locator("div.h-\\[3px\\]").count();
   if (barAfterReset === 0) ok("reset 'Nenhuma' removeu a cor (top bar sumiu)");
   else bad("BUG 2.4: cor NÃO resetou — top bar continua após escolher 'Nenhuma'");
 

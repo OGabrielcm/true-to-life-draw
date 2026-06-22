@@ -148,8 +148,16 @@ export function CardDetailModal({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (editingTitle) { setEditingTitle(false); setEditTitle(card.title); return; }
-        if (editingDesc) { setEditingDesc(false); setEditDesc(card.desc ?? ""); return; }
+        if (editingTitle) {
+          setEditingTitle(false);
+          setEditTitle(card.title);
+          return;
+        }
+        if (editingDesc) {
+          setEditingDesc(false);
+          setEditDesc(card.desc ?? "");
+          return;
+        }
         onClose();
         return;
       }
@@ -160,7 +168,8 @@ export function CardDetailModal({
           target.tagName === "TEXTAREA" ||
           target.tagName === "SELECT" ||
           target.isContentEditable)
-      ) return;
+      )
+        return;
 
       // 1-5 para tabs
       const idx = parseInt(e.key) - 1;
@@ -174,7 +183,11 @@ export function CardDetailModal({
   }, [onClose, editingTitle, editingDesc, card]);
 
   const saveTitle = () => {
-    if (!editTitle.trim()) { setEditTitle(card.title); setEditingTitle(false); return; }
+    if (!editTitle.trim()) {
+      setEditTitle(card.title);
+      setEditingTitle(false);
+      return;
+    }
     onUpdate(card.id, { title: editTitle.trim() });
     setEditingTitle(false);
   };
@@ -185,9 +198,10 @@ export function CardDetailModal({
   };
 
   const prioRaw = PRIO_COLORS[card.prio];
-  const prio = theme === "dark"
-    ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
-    : { bg: prioRaw.bg, fg: prioRaw.fg };
+  const prio =
+    theme === "dark"
+      ? { bg: prioRaw.darkBg, fg: prioRaw.darkFg }
+      : { bg: prioRaw.bg, fg: prioRaw.fg };
   const parent = card.parent_id ? allCards.find((c) => c.id === card.parent_id) : null;
 
   const cyclePrio = () => {
@@ -231,7 +245,10 @@ export function CardDetailModal({
                   onBlur={saveTitle}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") saveTitle();
-                    if (e.key === "Escape") { setEditingTitle(false); setEditTitle(card.title); }
+                    if (e.key === "Escape") {
+                      setEditingTitle(false);
+                      setEditTitle(card.title);
+                    }
                   }}
                   className="w-full rounded-md border bg-background px-3 py-1.5 text-xl font-semibold outline-none focus:border-foreground/40"
                   style={{ fontFamily: "var(--font-display)" }}
@@ -272,11 +289,17 @@ export function CardDetailModal({
                         {CARD_COLOR_PRESETS.map((preset) => (
                           <button
                             key={preset.name}
-                            onClick={() => { onSetCardColor!(card.id, preset.name); setColorOpen(false); }}
+                            onClick={() => {
+                              onSetCardColor!(card.id, preset.name);
+                              setColorOpen(false);
+                            }}
                             className="h-6 w-6 rounded transition-transform hover:scale-110"
                             style={{
                               backgroundColor: preset.bg,
-                              border: preset.bg === "transparent" ? "1px dashed var(--border)" : undefined,
+                              border:
+                                preset.bg === "transparent"
+                                  ? "1px dashed var(--border)"
+                                  : undefined,
                             }}
                             title={preset.label}
                           />
@@ -288,7 +311,10 @@ export function CardDetailModal({
               )}
               {onDuplicate && (
                 <button
-                  onClick={() => { onDuplicate(card.id); onClose(); }}
+                  onClick={() => {
+                    onDuplicate(card.id);
+                    onClose();
+                  }}
                   className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                   aria-label={t("duplicate")}
                 >
@@ -318,7 +344,6 @@ export function CardDetailModal({
 
         {/* ── BODY: two-column on md+, stacked on mobile ── */}
         <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-
           {/* ── LEFT: description + tabs ── */}
           <div className="flex-1 overflow-y-auto px-6 py-5 min-w-0">
             {/* Goal progress */}
@@ -328,8 +353,12 @@ export function CardDetailModal({
                 return (
                   <div className="mb-5">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-medium text-muted-foreground">{t("progress")}</span>
-                      <span className="text-xs font-semibold text-foreground">{progress.percent}%</span>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {t("progress")}
+                      </span>
+                      <span className="text-xs font-semibold text-foreground">
+                        {progress.percent}%
+                      </span>
                     </div>
                     <div className="h-[3px] w-full rounded-full bg-muted overflow-hidden">
                       <div
@@ -368,7 +397,10 @@ export function CardDetailModal({
                       {t("save")}
                     </button>
                     <button
-                      onClick={() => { setEditingDesc(false); setEditDesc(card.desc ?? ""); }}
+                      onClick={() => {
+                        setEditingDesc(false);
+                        setEditDesc(card.desc ?? "");
+                      }}
                       className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
                     >
                       {t("cancel")}
@@ -469,7 +501,9 @@ export function CardDetailModal({
                   value={card.date ?? ""}
                   onChange={(e) => onUpdate(card.id, { date: e.target.value || undefined })}
                   className="rounded border bg-background px-2 py-1 text-xs outline-none focus:border-foreground/40"
-                  style={{ color: card.date ? getDeadlineColor(getDeadlineStatus(card)) : undefined }}
+                  style={{
+                    color: card.date ? getDeadlineColor(getDeadlineStatus(card)) : undefined,
+                  }}
                 />
                 {card.date && (
                   <button
@@ -526,7 +560,10 @@ export function CardDetailModal({
                   .map((c) => (
                     <button
                       key={c.id}
-                      onClick={() => { onMove(card.id, c.id); onClose(); }}
+                      onClick={() => {
+                        onMove(card.id, c.id);
+                        onClose();
+                      }}
                       className="rounded border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
                     >
                       {c.name}
@@ -550,9 +587,16 @@ export function CardDetailModal({
                       return (
                         <button
                           key={tr.id}
-                          onClick={() => { onMove(card.id, card.col, tr.id); onClose(); }}
+                          onClick={() => {
+                            onMove(card.id, card.col, tr.id);
+                            onClose();
+                          }}
                           className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
-                          style={{ backgroundColor: bg, color: fg, border: `1px solid ${tr.border}` }}
+                          style={{
+                            backgroundColor: bg,
+                            color: fg,
+                            border: `1px solid ${tr.border}`,
+                          }}
                         >
                           {tr.name}
                         </button>
@@ -566,7 +610,10 @@ export function CardDetailModal({
             <div className="pt-2 border-t border-border space-y-1">
               {onSaveTemplate && !savingTemplate && (
                 <button
-                  onClick={() => { setSavingTemplate(true); setTemplateName(card.title); }}
+                  onClick={() => {
+                    setSavingTemplate(true);
+                    setTemplateName(card.title);
+                  }}
                   className="inline-flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   <LayoutTemplate className="h-3.5 w-3.5" />
@@ -622,13 +669,17 @@ export function CardDetailModal({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Excluir card</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Tem certeza que deseja excluir <strong>{card.title}</strong>? Esta ação não pode ser desfeita.
+                      Tem certeza que deseja excluir <strong>{card.title}</strong>? Esta ação não
+                      pode ser desfeita.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => { onDelete(card.id); onClose(); }}
+                      onClick={() => {
+                        onDelete(card.id);
+                        onClose();
+                      }}
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       {t("delete")}

@@ -5,6 +5,6 @@ export default defineConfig({
   plugins: [tsConfigPaths()],
   test: {
     include: ["src/**/*.test.ts"],
-    exclude: ["tests/e2e/**", "src/lib/signup-form.test.ts"],
+    exclude: ["tests/e2e/**"],
   },
 });

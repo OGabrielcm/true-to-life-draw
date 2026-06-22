@@ -143,7 +143,9 @@ export function TrilhasModal({
                     <div className="ml-auto flex items-center gap-1">
                       {isConfirming ? (
                         <>
-                          <span className="text-xs text-muted-foreground">{t("delete_confirm")}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {t("delete_confirm")}
+                          </span>
                           <button
                             onClick={() => {
                               onDelete(trilha.id);

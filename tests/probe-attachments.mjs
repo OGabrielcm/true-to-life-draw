@@ -24,7 +24,10 @@ const ANON = appEnv.match(/VITE_SUPABASE_ANON_KEY=(.*)/)[1].trim();
 
 let fail = 0;
 const ok = (m) => console.log(`  ✓ ${m}`);
-const bad = (m) => { console.log(`  ✗ ${m}`); fail++; };
+const bad = (m) => {
+  console.log(`  ✗ ${m}`);
+  fail++;
+};
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -57,13 +60,9 @@ async function main() {
       const log = [];
 
       // 2) precisa de um card real para o FK task_id → pega um do usuário
-      const tasksRes = await fetch(
-        `${SUPA_URL}/rest/v1/tasks?select=id&limit=1`,
-        { headers: H },
-      );
+      const tasksRes = await fetch(`${SUPA_URL}/rest/v1/tasks?select=id&limit=1`, { headers: H });
       const tasks = await tasksRes.json();
-      if (!Array.isArray(tasks) || tasks.length === 0)
-        return { error: "nenhum card para anexar" };
+      if (!Array.isArray(tasks) || tasks.length === 0) return { error: "nenhum card para anexar" };
       const cardId = tasks[0].id;
       log.push(`card alvo: ${cardId}`);
 
@@ -71,10 +70,11 @@ async function main() {
       const path = `${cardId}/${crypto.randomUUID()}-probe.txt`;
 
       // 3) UPLOAD para o storage
-      const upRes = await fetch(
-        `${SUPA_URL}/storage/v1/object/attachments/${path}`,
-        { method: "POST", headers: { ...H, "Content-Type": "text/plain" }, body: bytes },
-      );
+      const upRes = await fetch(`${SUPA_URL}/storage/v1/object/attachments/${path}`, {
+        method: "POST",
+        headers: { ...H, "Content-Type": "text/plain" },
+        body: bytes,
+      });
       log.push(`upload status: ${upRes.status}`);
       if (!upRes.ok) return { error: `upload falhou (${upRes.status})`, log };
 
@@ -83,14 +83,21 @@ async function main() {
         method: "POST",
         headers: { ...H, "Content-Type": "application/json", Prefer: "return=representation" },
         body: JSON.stringify({
-          task_id: cardId, user_id: userId, path,
-          name: "probe.txt", mime: "text/plain", size_bytes: bytes.length,
+          task_id: cardId,
+          user_id: userId,
+          path,
+          name: "probe.txt",
+          mime: "text/plain",
+          size_bytes: bytes.length,
         }),
       });
       log.push(`insert status: ${insRes.status}`);
       if (!insRes.ok) {
         // rollback do objeto p/ não orfanar
-        await fetch(`${SUPA_URL}/storage/v1/object/attachments/${path}`, { method: "DELETE", headers: H });
+        await fetch(`${SUPA_URL}/storage/v1/object/attachments/${path}`, {
+          method: "DELETE",
+          headers: H,
+        });
         return { error: `insert falhou (${insRes.status})`, log };
       }
       const rows = await insRes.json();
@@ -111,12 +118,15 @@ async function main() {
       const downloadable = dlRes.ok;
 
       // 6) DELETE — storage primeiro, depois a row (igual ao service)
-      const rmRes = await fetch(
-        `${SUPA_URL}/storage/v1/object/attachments/${path}`,
-        { method: "DELETE", headers: H },
-      );
+      const rmRes = await fetch(`${SUPA_URL}/storage/v1/object/attachments/${path}`, {
+        method: "DELETE",
+        headers: H,
+      });
       log.push(`storage remove status: ${rmRes.status}`);
-      await fetch(`${SUPA_URL}/rest/v1/attachments?id=eq.${attId}`, { method: "DELETE", headers: H });
+      await fetch(`${SUPA_URL}/rest/v1/attachments?id=eq.${attId}`, {
+        method: "DELETE",
+        headers: H,
+      });
 
       // 7) CONFIRMA que o arquivo SUMIU do storage (critério graduado)
       const dlAfter = await fetch(`${SUPA_URL}/storage/v1/object/public/attachments/${path}`);
@@ -124,10 +134,9 @@ async function main() {
       const goneFromStorage = !dlAfter.ok;
 
       // e que a row sumiu
-      const rowAfter = await fetch(
-        `${SUPA_URL}/rest/v1/attachments?select=id&id=eq.${attId}`,
-        { headers: H },
-      );
+      const rowAfter = await fetch(`${SUPA_URL}/rest/v1/attachments?select=id&id=eq.${attId}`, {
+        headers: H,
+      });
       const rowsAfter = await rowAfter.json();
       const goneFromTable = Array.isArray(rowsAfter) && rowsAfter.length === 0;
 
@@ -141,10 +150,18 @@ async function main() {
     if (result.log) result.log.forEach((l) => console.log(`      · ${l}`));
   } else {
     result.log.forEach((l) => console.log(`      · ${l}`));
-    result.persisted ? ok("anexo persiste na tabela (sobrevive a reabrir/reload)") : bad("anexo NÃO persistiu");
-    result.downloadable ? ok("arquivo baixável do storage (bucket público)") : bad("arquivo NÃO baixável");
-    result.goneFromStorage ? ok("delete REMOVEU o arquivo do storage (critério graduado)") : bad("arquivo continua no storage após delete");
-    result.goneFromTable ? ok("delete removeu a row de metadados") : bad("row continua na tabela após delete");
+    result.persisted
+      ? ok("anexo persiste na tabela (sobrevive a reabrir/reload)")
+      : bad("anexo NÃO persistiu");
+    result.downloadable
+      ? ok("arquivo baixável do storage (bucket público)")
+      : bad("arquivo NÃO baixável");
+    result.goneFromStorage
+      ? ok("delete REMOVEU o arquivo do storage (critério graduado)")
+      : bad("arquivo continua no storage após delete");
+    result.goneFromTable
+      ? ok("delete removeu a row de metadados")
+      : bad("row continua na tabela após delete");
   }
 
   await browser.close();
@@ -152,4 +169,7 @@ async function main() {
   process.exit(fail === 0 ? 0 : 1);
 }
 
-main().catch((e) => { console.error("PROBE CRASH:", e); process.exit(1); });
+main().catch((e) => {
+  console.error("PROBE CRASH:", e);
+  process.exit(1);
+});
